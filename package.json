@@ -101,7 +101,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "eventemitter3": "^5.0.1"
+    "eventemitter3": "^5.0.4"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

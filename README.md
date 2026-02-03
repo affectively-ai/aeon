@@ -173,6 +173,33 @@ Shared types and utilities used across all modules.
 import type { Operation, VectorClock, PresenceInfo } from '@affectively/aeon/core';
 ```
 
+### Offline (`@affectively/aeon/offline`)
+
+Offline-first operation management.
+
+- `OfflineOperationQueue` - Priority-based offline operation queue with retry logic
+
+### Compression (`@affectively/aeon/compression`)
+
+Data compression and delta sync optimization.
+
+- `CompressionEngine` - Native compression using CompressionStream API
+- `DeltaSyncOptimizer` - Field-level change detection (70-90% payload reduction)
+
+### Optimization (`@affectively/aeon/optimization`)
+
+Network and performance optimization.
+
+- `PrefetchingEngine` - Predictive pre-compression based on operation patterns
+- `BatchTimingOptimizer` - Intelligent batch scheduling based on network conditions
+- `AdaptiveCompressionOptimizer` - Auto-adjusting compression level (1-9)
+
+### Presence (`@affectively/aeon/presence`)
+
+Real-time agent presence tracking.
+
+- `AgentPresenceManager` - Track agent status, cursors, and activity
+
 ### Versioning (`@affectively/aeon/versioning`)
 
 Schema versioning and migration system.

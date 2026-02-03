@@ -35,8 +35,20 @@ export * from './core';
 // Utils
 export * from './utils';
 
-// Versioning module
+// Versioning module (Phase 15)
 export * from './versioning';
 
-// Distributed module
+// Distributed module (Phase 16)
 export * from './distributed';
+
+// Offline module (Phase 11)
+export * from './offline';
+
+// Compression module (Phase 12)
+export * from './compression';
+
+// Optimization module (Phase 13)
+export * from './optimization';
+
+// Presence module (Phase 14)
+export * from './presence';
