@@ -10,9 +10,13 @@
  * - Conflict detection and resolution
  * - State validation and verification
  * - Version tracking
+ * - Cryptographic verification of state versions
+ * - Signed state for tamper detection
  */
 
 import { logger } from '../utils/logger';
+import type { ICryptoProvider } from '../crypto/CryptoProvider';
+import type { SignedSyncData } from '../crypto/types';
 
 export interface StateVersion {
   version: string;
@@ -20,6 +24,10 @@ export interface StateVersion {
   nodeId: string;
   hash: string;
   data: unknown;
+  // Cryptographic fields for signed versions
+  signerDID?: string;
+  signature?: string;
+  signedAt?: number;
 }
 
 export interface StateDiff {
@@ -46,6 +54,196 @@ export type MergeStrategy = 'last-write-wins' | 'vector-clock' | 'majority-vote'
 export class StateReconciler {
   private stateVersions: Map<string, StateVersion[]> = new Map();
   private reconciliationHistory: ReconciliationResult[] = [];
+  private cryptoProvider: ICryptoProvider | null = null;
+  private requireSignedVersions: boolean = false;
+
+  /**
+   * Configure cryptographic provider for signed state versions
+   */
+  configureCrypto(provider: ICryptoProvider, requireSigned: boolean = false): void {
+    this.cryptoProvider = provider;
+    this.requireSignedVersions = requireSigned;
+
+    logger.debug('[StateReconciler] Crypto configured', {
+      initialized: provider.isInitialized(),
+      requireSigned,
+    });
+  }
+
+  /**
+   * Check if crypto is configured
+   */
+  isCryptoEnabled(): boolean {
+    return this.cryptoProvider !== null && this.cryptoProvider.isInitialized();
+  }
+
+  /**
+   * Record a signed state version with cryptographic verification
+   */
+  async recordSignedStateVersion(
+    key: string,
+    version: string,
+    data: unknown,
+  ): Promise<StateVersion> {
+    if (!this.cryptoProvider || !this.cryptoProvider.isInitialized()) {
+      throw new Error('Crypto provider not initialized');
+    }
+
+    const localDID = this.cryptoProvider.getLocalDID();
+    if (!localDID) {
+      throw new Error('Local DID not available');
+    }
+
+    // Hash the data
+    const dataBytes = new TextEncoder().encode(JSON.stringify(data));
+    const hashBytes = await this.cryptoProvider.hash(dataBytes);
+    const hash = Array.from(hashBytes)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    // Sign the version
+    const versionData = { version, data, hash };
+    const signed = await this.cryptoProvider.signData(versionData);
+
+    const stateVersion: StateVersion = {
+      version,
+      timestamp: new Date().toISOString(),
+      nodeId: localDID,
+      hash,
+      data,
+      signerDID: localDID,
+      signature: signed.signature,
+      signedAt: signed.signedAt,
+    };
+
+    if (!this.stateVersions.has(key)) {
+      this.stateVersions.set(key, []);
+    }
+
+    this.stateVersions.get(key)!.push(stateVersion);
+
+    logger.debug('[StateReconciler] Signed state version recorded', {
+      key,
+      version,
+      signerDID: localDID,
+      hash: hash.slice(0, 16) + '...',
+    });
+
+    return stateVersion;
+  }
+
+  /**
+   * Verify a state version's signature
+   */
+  async verifyStateVersion(
+    version: StateVersion,
+  ): Promise<{ valid: boolean; error?: string }> {
+    // If no signature, verify based on hash only
+    if (!version.signature || !version.signerDID) {
+      if (this.requireSignedVersions) {
+        return { valid: false, error: 'Signature required but not present' };
+      }
+
+      // Verify hash matches data
+      const dataBytes = new TextEncoder().encode(JSON.stringify(version.data));
+      if (this.cryptoProvider) {
+        const hashBytes = await this.cryptoProvider.hash(dataBytes);
+        const computedHash = Array.from(hashBytes)
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join('');
+
+        if (computedHash !== version.hash) {
+          return { valid: false, error: 'Hash mismatch' };
+        }
+      }
+
+      return { valid: true };
+    }
+
+    // Verify signature
+    if (!this.cryptoProvider) {
+      return { valid: false, error: 'Crypto provider not configured' };
+    }
+
+    const versionData = {
+      version: version.version,
+      data: version.data,
+      hash: version.hash,
+    };
+
+    const signed: SignedSyncData<typeof versionData> = {
+      payload: versionData,
+      signature: version.signature,
+      signer: version.signerDID,
+      algorithm: 'ES256',
+      signedAt: version.signedAt || Date.now(),
+    };
+
+    const isValid = await this.cryptoProvider.verifySignedData(signed);
+    if (!isValid) {
+      return { valid: false, error: 'Invalid signature' };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Reconcile with verification - only accept verified versions
+   */
+  async reconcileWithVerification(
+    key: string,
+    strategy: MergeStrategy = 'last-write-wins',
+  ): Promise<ReconciliationResult & { verificationErrors: string[] }> {
+    const versions = this.stateVersions.get(key) || [];
+    const verifiedVersions: StateVersion[] = [];
+    const verificationErrors: string[] = [];
+
+    // Verify all versions
+    for (const version of versions) {
+      const result = await this.verifyStateVersion(version);
+      if (result.valid) {
+        verifiedVersions.push(version);
+      } else {
+        verificationErrors.push(
+          `Version ${version.version} from ${version.nodeId}: ${result.error}`,
+        );
+        logger.warn('[StateReconciler] Version verification failed', {
+          version: version.version,
+          nodeId: version.nodeId,
+          error: result.error,
+        });
+      }
+    }
+
+    if (verifiedVersions.length === 0) {
+      return {
+        success: false,
+        mergedState: null,
+        conflictsResolved: 0,
+        strategy,
+        timestamp: new Date().toISOString(),
+        verificationErrors,
+      };
+    }
+
+    // Apply reconciliation strategy
+    let result: ReconciliationResult;
+    switch (strategy) {
+      case 'last-write-wins':
+        result = this.reconcileLastWriteWins(verifiedVersions);
+        break;
+      case 'vector-clock':
+        result = this.reconcileVectorClock(verifiedVersions);
+        break;
+      case 'majority-vote':
+        result = this.reconcileMajorityVote(verifiedVersions);
+        break;
+      default:
+        result = this.reconcileLastWriteWins(verifiedVersions);
+    }
+
+    return { ...result, verificationErrors };
+  }
 
   /**
    * Record a state version
@@ -358,5 +556,14 @@ export class StateReconciler {
   clear(): void {
     this.stateVersions.clear();
     this.reconciliationHistory = [];
+    this.cryptoProvider = null;
+    this.requireSignedVersions = false;
+  }
+
+  /**
+   * Get the crypto provider (for advanced usage)
+   */
+  getCryptoProvider(): ICryptoProvider | null {
+    return this.cryptoProvider;
   }
 }

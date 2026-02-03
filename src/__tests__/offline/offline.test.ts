@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   OfflineOperationQueue,
   getOfflineOperationQueue,
@@ -149,6 +149,118 @@ describe('Offline Module', () => {
       const retried = queue.getOperation(op.id);
       expect(retried?.status).toBe('pending');
       expect(retried?.retryCount).toBe(0);
+    });
+
+    it('should get pending count', () => {
+      queue.enqueue('create', { name: 'test1' }, 'session-1');
+      queue.enqueue('create', { name: 'test2' }, 'session-1');
+      const op3 = queue.enqueue('create', { name: 'test3' }, 'session-1');
+
+      // Mark one as synced
+      queue.markSynced(op3.id);
+
+      const pendingCount = queue.getPendingCount();
+      expect(pendingCount).toBe(2);
+    });
+
+    it('should clear failed operations', () => {
+      const op1 = queue.enqueue('create', { name: 'test1' }, 'session-1', 'normal', 1);
+      const op2 = queue.enqueue('create', { name: 'test2' }, 'session-1', 'normal', 1);
+      queue.enqueue('create', { name: 'test3' }, 'session-1');
+
+      // Make op1 and op2 fail
+      queue.markSyncing([op1.id]);
+      queue.markFailed(op1.id, new Error('Error'));
+      queue.markSyncing([op2.id]);
+      queue.markFailed(op2.id, new Error('Error'));
+
+      // op1 and op2 should now be failed
+      expect(queue.getOperation(op1.id)?.status).toBe('failed');
+      expect(queue.getOperation(op2.id)?.status).toBe('failed');
+
+      queue.clearFailed();
+
+      // Failed operations should be removed
+      expect(queue.getOperation(op1.id)).toBeUndefined();
+      expect(queue.getOperation(op2.id)).toBeUndefined();
+      // Pending operation should still exist
+      expect(queue.getStats().totalOperations).toBe(1);
+    });
+
+    it('should handle queue overflow by removing low priority', () => {
+      // Create queue with small max size
+      const smallQueue = new OfflineOperationQueue(5);
+
+      // Add 5 low priority operations
+      smallQueue.enqueue('create', { n: 1 }, 'session-1', 'low');
+      smallQueue.enqueue('create', { n: 2 }, 'session-1', 'low');
+      smallQueue.enqueue('create', { n: 3 }, 'session-1', 'low');
+      smallQueue.enqueue('create', { n: 4 }, 'session-1', 'low');
+      smallQueue.enqueue('create', { n: 5 }, 'session-1', 'low');
+
+      // Add a high priority operation (should evict oldest low priority)
+      smallQueue.enqueue('create', { n: 6 }, 'session-1', 'high');
+
+      const stats = smallQueue.getStats();
+      // Should still have 5 (max size) after eviction
+      expect(stats.totalOperations).toBeLessThanOrEqual(5);
+    });
+
+    describe('markSynced delayed removal', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('should remove synced operation after delay', () => {
+        const op = queue.enqueue('create', { name: 'test' }, 'session-1');
+        queue.markSynced(op.id);
+
+        // Operation should still exist immediately
+        expect(queue.getOperation(op.id)?.status).toBe('synced');
+
+        // Advance timer past the 1 second delay
+        vi.advanceTimersByTime(1100);
+
+        // Operation should now be removed
+        expect(queue.getOperation(op.id)).toBeUndefined();
+      });
+
+      it('should emit queue-empty when last operation is removed', () => {
+        let queueEmptyEmitted = false;
+        queue.on('queue-empty', () => {
+          queueEmptyEmitted = true;
+        });
+
+        const op = queue.enqueue('create', { name: 'test' }, 'session-1');
+        queue.markSynced(op.id);
+
+        // Advance timer past the delay
+        vi.advanceTimersByTime(1100);
+
+        expect(queueEmptyEmitted).toBe(true);
+      });
+
+      it('should not emit queue-empty when there are pending operations', () => {
+        let queueEmptyEmitted = false;
+        queue.on('queue-empty', () => {
+          queueEmptyEmitted = true;
+        });
+
+        const op1 = queue.enqueue('create', { name: 'test1' }, 'session-1');
+        queue.enqueue('create', { name: 'test2' }, 'session-1'); // This stays pending
+
+        queue.markSynced(op1.id);
+
+        // Advance timer past the delay
+        vi.advanceTimersByTime(1100);
+
+        // Should not emit queue-empty because op2 is still pending
+        expect(queueEmptyEmitted).toBe(false);
+      });
     });
   });
 

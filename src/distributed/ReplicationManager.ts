@@ -10,9 +10,13 @@
  * - Consistency level tracking
  * - Replication health monitoring
  * - Replica synchronization coordination
+ * - End-to-end encryption for replicated data
+ * - DID-based replica authentication
  */
 
 import { logger } from '../utils/logger';
+import type { ICryptoProvider } from '../crypto/CryptoProvider';
+import type { AeonEncryptionMode } from '../crypto/types';
 
 export interface Replica {
   id: string;
@@ -21,6 +25,10 @@ export interface Replica {
   lastSyncTime: string;
   lagBytes: number;
   lagMillis: number;
+  // DID-based identity for authenticated replicas
+  did?: string;
+  // Whether this replica uses encrypted data
+  encrypted?: boolean;
 }
 
 export interface ReplicationPolicy {
@@ -30,6 +38,10 @@ export interface ReplicationPolicy {
   consistencyLevel: 'eventual' | 'read-after-write' | 'strong';
   syncInterval: number;
   maxReplicationLag: number;
+  // Encryption settings for this policy
+  encryptionMode?: AeonEncryptionMode;
+  // Required capabilities for replicas
+  requiredCapabilities?: string[];
 }
 
 export interface ReplicationEvent {
@@ -41,6 +53,26 @@ export interface ReplicationEvent {
 }
 
 /**
+ * Encrypted replication data envelope
+ */
+export interface EncryptedReplicationData {
+  /** Encrypted ciphertext (base64) */
+  ct: string;
+  /** Initialization vector (base64) */
+  iv: string;
+  /** Authentication tag (base64) */
+  tag: string;
+  /** Ephemeral public key for ECIES */
+  epk?: JsonWebKey;
+  /** Sender DID */
+  senderDID?: string;
+  /** Target replica DID */
+  targetDID?: string;
+  /** Encryption timestamp */
+  encryptedAt: number;
+}
+
+/**
  * Replication Manager
  * Manages data replication across distributed nodes
  */
@@ -49,6 +81,215 @@ export class ReplicationManager {
   private policies: Map<string, ReplicationPolicy> = new Map();
   private replicationEvents: ReplicationEvent[] = [];
   private syncStatus: Map<string, { synced: number; failed: number }> = new Map();
+
+  // Crypto support
+  private cryptoProvider: ICryptoProvider | null = null;
+  private replicasByDID: Map<string, string> = new Map(); // DID -> replicaId
+
+  /**
+   * Configure cryptographic provider for encrypted replication
+   */
+  configureCrypto(provider: ICryptoProvider): void {
+    this.cryptoProvider = provider;
+
+    logger.debug('[ReplicationManager] Crypto configured', {
+      initialized: provider.isInitialized(),
+    });
+  }
+
+  /**
+   * Check if crypto is configured
+   */
+  isCryptoEnabled(): boolean {
+    return this.cryptoProvider !== null && this.cryptoProvider.isInitialized();
+  }
+
+  /**
+   * Register an authenticated replica with DID
+   */
+  async registerAuthenticatedReplica(
+    replica: Omit<Replica, 'did' | 'encrypted'> & {
+      did: string;
+      publicSigningKey?: JsonWebKey;
+      publicEncryptionKey?: JsonWebKey;
+    },
+    encrypted: boolean = false,
+  ): Promise<Replica> {
+    const authenticatedReplica: Replica = {
+      ...replica,
+      encrypted,
+    };
+
+    this.replicas.set(replica.id, authenticatedReplica);
+    this.replicasByDID.set(replica.did, replica.id);
+
+    if (!this.syncStatus.has(replica.nodeId)) {
+      this.syncStatus.set(replica.nodeId, { synced: 0, failed: 0 });
+    }
+
+    // Register with crypto provider if keys provided
+    if (this.cryptoProvider && replica.publicSigningKey) {
+      await this.cryptoProvider.registerRemoteNode({
+        id: replica.nodeId,
+        did: replica.did,
+        publicSigningKey: replica.publicSigningKey,
+        publicEncryptionKey: replica.publicEncryptionKey,
+      });
+    }
+
+    const event: ReplicationEvent = {
+      type: 'replica-added',
+      replicaId: replica.id,
+      nodeId: replica.nodeId,
+      timestamp: new Date().toISOString(),
+      details: { did: replica.did, encrypted, authenticated: true },
+    };
+
+    this.replicationEvents.push(event);
+
+    logger.debug('[ReplicationManager] Authenticated replica registered', {
+      replicaId: replica.id,
+      did: replica.did,
+      encrypted,
+    });
+
+    return authenticatedReplica;
+  }
+
+  /**
+   * Get replica by DID
+   */
+  getReplicaByDID(did: string): Replica | undefined {
+    const replicaId = this.replicasByDID.get(did);
+    if (!replicaId) return undefined;
+    return this.replicas.get(replicaId);
+  }
+
+  /**
+   * Get all encrypted replicas
+   */
+  getEncryptedReplicas(): Replica[] {
+    return Array.from(this.replicas.values()).filter(r => r.encrypted);
+  }
+
+  /**
+   * Encrypt data for replication to a specific replica
+   */
+  async encryptForReplica(
+    data: unknown,
+    targetReplicaDID: string,
+  ): Promise<EncryptedReplicationData> {
+    if (!this.cryptoProvider || !this.cryptoProvider.isInitialized()) {
+      throw new Error('Crypto provider not initialized');
+    }
+
+    const dataBytes = new TextEncoder().encode(JSON.stringify(data));
+    const encrypted = await this.cryptoProvider.encrypt(dataBytes, targetReplicaDID);
+
+    const localDID = this.cryptoProvider.getLocalDID();
+
+    return {
+      ct: encrypted.ct,
+      iv: encrypted.iv,
+      tag: encrypted.tag,
+      epk: encrypted.epk,
+      senderDID: localDID || undefined,
+      targetDID: targetReplicaDID,
+      encryptedAt: encrypted.encryptedAt,
+    };
+  }
+
+  /**
+   * Decrypt data received from replication
+   */
+  async decryptReplicationData<T>(
+    encrypted: EncryptedReplicationData,
+  ): Promise<T> {
+    if (!this.cryptoProvider || !this.cryptoProvider.isInitialized()) {
+      throw new Error('Crypto provider not initialized');
+    }
+
+    const decrypted = await this.cryptoProvider.decrypt(
+      {
+        alg: 'ECIES-P256',
+        ct: encrypted.ct,
+        iv: encrypted.iv,
+        tag: encrypted.tag,
+        epk: encrypted.epk,
+      },
+      encrypted.senderDID,
+    );
+
+    return JSON.parse(new TextDecoder().decode(decrypted)) as T;
+  }
+
+  /**
+   * Create an encrypted replication policy
+   */
+  createEncryptedPolicy(
+    name: string,
+    replicationFactor: number,
+    consistencyLevel: 'eventual' | 'read-after-write' | 'strong',
+    encryptionMode: AeonEncryptionMode,
+    options?: {
+      syncInterval?: number;
+      maxReplicationLag?: number;
+      requiredCapabilities?: string[];
+    },
+  ): ReplicationPolicy {
+    const policy: ReplicationPolicy = {
+      id: `policy-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      name,
+      replicationFactor,
+      consistencyLevel,
+      syncInterval: options?.syncInterval || 1000,
+      maxReplicationLag: options?.maxReplicationLag || 10000,
+      encryptionMode,
+      requiredCapabilities: options?.requiredCapabilities,
+    };
+
+    this.policies.set(policy.id, policy);
+
+    logger.debug('[ReplicationManager] Encrypted policy created', {
+      policyId: policy.id,
+      name,
+      replicationFactor,
+      encryptionMode,
+    });
+
+    return policy;
+  }
+
+  /**
+   * Verify a replica's capabilities via UCAN
+   */
+  async verifyReplicaCapabilities(
+    replicaDID: string,
+    token: string,
+    policyId?: string,
+  ): Promise<{ authorized: boolean; error?: string }> {
+    if (!this.cryptoProvider) {
+      return { authorized: true }; // No crypto, always authorized
+    }
+
+    const policy = policyId ? this.policies.get(policyId) : undefined;
+
+    const result = await this.cryptoProvider.verifyUCAN(token, {
+      requiredCapabilities: policy?.requiredCapabilities?.map(cap => ({
+        can: cap,
+        with: '*',
+      })),
+    });
+
+    if (!result.authorized) {
+      logger.warn('[ReplicationManager] Replica capability verification failed', {
+        replicaDID,
+        error: result.error,
+      });
+    }
+
+    return result;
+  }
 
   /**
    * Register a replica
@@ -343,7 +584,7 @@ export class ReplicationManager {
   /**
    * Check if can satisfy consistency level
    */
-  canSatisfyConsistency(policyId: string, requiredAcks: number): boolean {
+  canSatisfyConsistency(policyId: string, _requiredAcks: number): boolean {
     const policy = this.policies.get(policyId);
     if (!policy) {
       return false;
@@ -371,5 +612,14 @@ export class ReplicationManager {
     this.policies.clear();
     this.replicationEvents = [];
     this.syncStatus.clear();
+    this.replicasByDID.clear();
+    this.cryptoProvider = null;
+  }
+
+  /**
+   * Get the crypto provider (for advanced usage)
+   */
+  getCryptoProvider(): ICryptoProvider | null {
+    return this.cryptoProvider;
   }
 }

@@ -80,6 +80,16 @@
         "types": "./dist/utils/index.d.cts",
         "default": "./dist/utils/index.cjs"
       }
+    },
+    "./crypto": {
+      "import": {
+        "types": "./dist/crypto/index.d.ts",
+        "default": "./dist/crypto/index.js"
+      },
+      "require": {
+        "types": "./dist/crypto/index.d.cts",
+        "default": "./dist/crypto/index.cjs"
+      }
     }
   },
   "files": [
@@ -102,6 +112,18 @@
   },
   "dependencies": {
     "eventemitter3": "^5.0.4"
+  },
+  "peerDependencies": {
+    "@affectively/auth": "^1.0.0",
+    "@affectively/zk-encryption": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@affectively/auth": {
+      "optional": true
+    },
+    "@affectively/zk-encryption": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

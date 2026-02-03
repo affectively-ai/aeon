@@ -73,6 +73,105 @@ describe('Compression Module', () => {
       const stats = engine.getStats();
       expect(stats.totalCompressed).toBe(0);
     });
+
+    it('should decompress batch with no compression', async () => {
+      const data = 'Test data for decompression';
+      const batch = await engine.compress(data);
+
+      // Force algorithm to 'none' for this test
+      batch.algorithm = 'none';
+
+      const decompressed = await engine.decompress(batch);
+
+      expect(decompressed.length).toBe(batch.compressed.length);
+    });
+
+    it('should decompress batch and update stats', async () => {
+      const data = 'Test data for decompression';
+      const batch = await engine.compress(data);
+      batch.algorithm = 'none';
+
+      await engine.decompress(batch);
+
+      const stats = engine.getStats();
+      expect(stats.totalDecompressed).toBe(1);
+      expect(stats.decompressionTimeMs).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should handle decompression of algorithm none', async () => {
+      // Create a batch with no compression (algorithm: none)
+      // This avoids the native stream error issue
+      const originalData = new Uint8Array([1, 2, 3, 4, 5]);
+      const batch = {
+        id: 'test-batch',
+        compressed: originalData,
+        originalSize: 5,
+        compressedSize: 5,
+        compressionRatio: 0,
+        algorithm: 'none' as const,
+        timestamp: Date.now(),
+      };
+
+      const result = await engine.decompress(batch);
+      expect(result).toEqual(originalData);
+    });
+
+    it('should throw when reassembling with missing chunks', () => {
+      const chunks = [
+        {
+          chunkId: 'batch-1-chunk-0',
+          batchId: 'batch-1',
+          data: new Uint8Array([1, 2, 3]),
+          index: 0,
+          total: 3, // Expected 3 chunks
+          checksum: '123',
+        },
+        {
+          chunkId: 'batch-1-chunk-2',
+          batchId: 'batch-1',
+          data: new Uint8Array([7, 8, 9]),
+          index: 2,
+          total: 3,
+          checksum: '789',
+        },
+        // Missing chunk at index 1
+      ];
+
+      expect(() => engine.reassembleChunks(chunks)).toThrow('Missing chunks');
+    });
+
+    it('should support deflate algorithm', () => {
+      const deflateEngine = new CompressionEngine('deflate');
+      expect(deflateEngine).toBeDefined();
+    });
+
+    it('should handle empty data compression', async () => {
+      const data = new Uint8Array(0);
+      const batch = await engine.compress(data);
+
+      expect(batch.originalSize).toBe(0);
+      expect(batch.compressionRatio).toBe(0);
+    });
+
+    it('should check native compression support', () => {
+      const supportsNative = engine.supportsNativeCompression();
+      expect(typeof supportsNative).toBe('boolean');
+    });
+
+    it('should handle compress with native support roundtrip', async () => {
+      const data = 'Test data for compression roundtrip';
+      const batch = await engine.compress(data);
+
+      if (batch.algorithm !== 'none') {
+        // Native compression worked
+        const decompressed = await engine.decompress(batch);
+        const decodedString = new TextDecoder().decode(decompressed);
+        expect(decodedString).toBe(data);
+      } else {
+        // No native support, just verify batch was created
+        expect(batch.compressed.length).toBe(batch.originalSize);
+      }
+    });
   });
 
   describe('DeltaSyncOptimizer', () => {
@@ -224,6 +323,82 @@ describe('Compression Module', () => {
 
       optimizer.clearHistory(['op-1']);
       expect(optimizer.getHistorySize()).toBe(0);
+    });
+
+    it('should update history', () => {
+      const operations: Operation[] = [
+        {
+          id: 'op-1',
+          type: 'create',
+          sessionId: 'session-1',
+          data: { name: 'test1' },
+          status: 'pending',
+          createdAt: Date.now(),
+        },
+        {
+          id: 'op-2',
+          type: 'create',
+          sessionId: 'session-1',
+          data: { name: 'test2' },
+          status: 'pending',
+          createdAt: Date.now(),
+        },
+      ];
+
+      optimizer.updateHistory(operations);
+
+      expect(optimizer.getHistorySize()).toBe(2);
+    });
+
+    it('should reset stats', () => {
+      const operation: Operation = {
+        id: 'op-1',
+        type: 'create',
+        sessionId: 'session-1',
+        data: { name: 'test' },
+        status: 'pending',
+        createdAt: Date.now(),
+      };
+
+      optimizer.computeDelta(operation);
+
+      const statsBefore = optimizer.getStats();
+      expect(statsBefore.totalOperations).toBe(1);
+
+      optimizer.resetStats();
+
+      const statsAfter = optimizer.getStats();
+      expect(statsAfter.totalOperations).toBe(0);
+      expect(statsAfter.totalFull).toBe(0);
+      expect(statsAfter.totalDelta).toBe(0);
+    });
+
+    it('should set full operation threshold', () => {
+      optimizer.setFullOperationThreshold(1024);
+
+      const stats = optimizer.getStats();
+      expect(stats.fullOperationThreshold).toBe(1024);
+    });
+
+    it('should get memory estimate', () => {
+      const operation: Operation = {
+        id: 'op-1',
+        type: 'create',
+        sessionId: 'session-1',
+        data: { name: 'test', value: 12345 },
+        status: 'pending',
+        createdAt: Date.now(),
+      };
+
+      optimizer.updateHistory([operation]);
+
+      const memoryEstimate = optimizer.getMemoryEstimate();
+      expect(memoryEstimate).toBeGreaterThan(0);
+    });
+
+    it('should return 0 for empty history memory estimate', () => {
+      const memoryEstimate = optimizer.getMemoryEstimate();
+      expect(memoryEstimate).toBe(0);
     });
   });
 

@@ -185,7 +185,7 @@ export class CompressionEngine {
     const writer = stream.writable.getWriter();
     const reader = stream.readable.getReader();
 
-    writer.write(data);
+    writer.write(new Uint8Array(data.buffer, data.byteOffset, data.byteLength) as BufferSource);
     writer.close();
 
     const chunks: Uint8Array[] = [];
@@ -222,7 +222,7 @@ export class CompressionEngine {
     const writer = stream.writable.getWriter();
     const reader = stream.readable.getReader();
 
-    writer.write(data);
+    writer.write(new Uint8Array(data.buffer, data.byteOffset, data.byteLength) as BufferSource);
     writer.close();
 
     const chunks: Uint8Array[] = [];

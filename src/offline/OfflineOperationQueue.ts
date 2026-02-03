@@ -7,15 +7,12 @@
 
 import { EventEmitter } from 'eventemitter3';
 import { getLogger } from '../utils/logger';
-import type { Operation } from '../core/types';
+import type { Operation, OperationPriority } from '../core/types';
 
 const logger = getLogger();
 
-// ============================================================================
-// Types
-// ============================================================================
-
-export type OperationPriority = 'high' | 'normal' | 'low';
+// Re-export OperationPriority from core
+export type { OperationPriority } from '../core/types';
 
 export interface OfflineOperation {
   id: string;

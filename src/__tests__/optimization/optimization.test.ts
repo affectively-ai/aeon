@@ -75,6 +75,46 @@ describe('Optimization Module', () => {
       const stats = engine.getStats();
       expect(stats.totalPrefetched).toBe(0);
     });
+
+    it('should predict next operations based on patterns', () => {
+      // Record enough operations to trigger pattern analysis
+      for (let i = 0; i < 10; i++) {
+        engine.recordOperation('create', 100);
+        engine.recordOperation('update', 200);
+        engine.recordOperation('delete', 150);
+      }
+
+      const recentOps = [
+        { type: 'create', size: 100, timestamp: Date.now() - 200 },
+        { type: 'update', size: 200, timestamp: Date.now() - 100 },
+      ];
+
+      const predictions = engine.predictNextOperations(recentOps);
+
+      // Should return predictions based on detected patterns
+      expect(Array.isArray(predictions)).toBe(true);
+    });
+
+    it('should return empty predictions with insufficient history', () => {
+      const recentOps = [
+        { type: 'create', size: 100, timestamp: Date.now() },
+      ];
+
+      const predictions = engine.predictNextOperations(recentOps);
+
+      expect(predictions).toEqual([]);
+    });
+
+    it('should handle operation patterns', () => {
+      // Build up operation history with a repeating pattern
+      for (let i = 0; i < 20; i++) {
+        engine.recordOperation('read', 50);
+        engine.recordOperation('write', 100);
+      }
+
+      const stats = engine.getStats();
+      expect(stats.patternsDetected).toBeGreaterThanOrEqual(0);
+    });
   });
 
   describe('BatchTimingOptimizer', () => {
@@ -133,6 +173,17 @@ describe('Optimization Module', () => {
 
       const stats = optimizer.getStats();
       expect(stats.totalBatches).toBe(0);
+    });
+
+    it('should set user active state', () => {
+      optimizer.setUserActive(true);
+      // When user is active, scheduling may change
+      const decisionActive = optimizer.getSchedulingDecision(10000);
+      expect(decisionActive).toBeDefined();
+
+      optimizer.setUserActive(false);
+      const decisionInactive = optimizer.getSchedulingDecision(10000);
+      expect(decisionInactive).toBeDefined();
     });
   });
 

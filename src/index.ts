@@ -52,3 +52,6 @@ export * from './optimization';
 
 // Presence module (Phase 14)
 export * from './presence';
+
+// Crypto module (UCAN + ZK encryption)
+export * from './crypto';

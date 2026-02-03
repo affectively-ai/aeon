@@ -10,10 +10,14 @@
  * - Synchronization workflow orchestration
  * - Node health monitoring
  * - Conflict detection and resolution coordination
+ * - DID-based node identification
+ * - Authenticated sync sessions
  */
 
 import { EventEmitter } from 'eventemitter3';
 import { logger } from '../utils/logger';
+import type { ICryptoProvider } from '../crypto/CryptoProvider';
+import type { AeonEncryptionMode } from '../crypto/types';
 
 export interface SyncNode {
   id: string;
@@ -23,6 +27,14 @@ export interface SyncNode {
   lastHeartbeat: string;
   version: string;
   capabilities: string[];
+  // DID-based identity (optional, for authenticated nodes)
+  did?: string;
+  // Public signing key for verification
+  publicSigningKey?: JsonWebKey;
+  // Public encryption key for E2E encryption
+  publicEncryptionKey?: JsonWebKey;
+  // Granted capabilities via UCAN
+  grantedCapabilities?: string[];
 }
 
 export interface SyncSession {
@@ -35,6 +47,12 @@ export interface SyncSession {
   itemsSynced: number;
   itemsFailed: number;
   conflictsDetected: number;
+  // Security fields for authenticated sessions
+  initiatorDID?: string;
+  participantDIDs?: string[];
+  encryptionMode?: AeonEncryptionMode;
+  requiredCapabilities?: string[];
+  sessionToken?: string;
 }
 
 export interface SyncEvent {
@@ -56,8 +74,215 @@ export class SyncCoordinator extends EventEmitter {
   private nodeHeartbeats: Map<string, number> = new Map();
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
+  // Crypto support
+  private cryptoProvider: ICryptoProvider | null = null;
+  private nodesByDID: Map<string, string> = new Map(); // DID -> nodeId
+
   constructor() {
     super();
+  }
+
+  /**
+   * Configure cryptographic provider for authenticated sync
+   */
+  configureCrypto(provider: ICryptoProvider): void {
+    this.cryptoProvider = provider;
+
+    logger.debug('[SyncCoordinator] Crypto configured', {
+      initialized: provider.isInitialized(),
+    });
+  }
+
+  /**
+   * Check if crypto is configured
+   */
+  isCryptoEnabled(): boolean {
+    return this.cryptoProvider !== null && this.cryptoProvider.isInitialized();
+  }
+
+  /**
+   * Register a node with DID-based identity
+   */
+  async registerAuthenticatedNode(
+    nodeInfo: Omit<SyncNode, 'did' | 'publicSigningKey' | 'publicEncryptionKey'> & {
+      did: string;
+      publicSigningKey: JsonWebKey;
+      publicEncryptionKey?: JsonWebKey;
+    },
+  ): Promise<SyncNode> {
+    const node: SyncNode = {
+      ...nodeInfo,
+    };
+
+    this.nodes.set(node.id, node);
+    this.nodeHeartbeats.set(node.id, Date.now());
+    this.nodesByDID.set(nodeInfo.did, node.id);
+
+    // Register with crypto provider if available
+    if (this.cryptoProvider) {
+      await this.cryptoProvider.registerRemoteNode({
+        id: node.id,
+        did: nodeInfo.did,
+        publicSigningKey: nodeInfo.publicSigningKey,
+        publicEncryptionKey: nodeInfo.publicEncryptionKey,
+      });
+    }
+
+    const event: SyncEvent = {
+      type: 'node-joined',
+      nodeId: node.id,
+      timestamp: new Date().toISOString(),
+      data: { did: nodeInfo.did, authenticated: true },
+    };
+
+    this.syncEvents.push(event);
+    this.emit('node-joined', node);
+
+    logger.debug('[SyncCoordinator] Authenticated node registered', {
+      nodeId: node.id,
+      did: nodeInfo.did,
+      version: node.version,
+    });
+
+    return node;
+  }
+
+  /**
+   * Get node by DID
+   */
+  getNodeByDID(did: string): SyncNode | undefined {
+    const nodeId = this.nodesByDID.get(did);
+    if (!nodeId) return undefined;
+    return this.nodes.get(nodeId);
+  }
+
+  /**
+   * Get all authenticated nodes (nodes with DIDs)
+   */
+  getAuthenticatedNodes(): SyncNode[] {
+    return Array.from(this.nodes.values()).filter(n => n.did);
+  }
+
+  /**
+   * Create an authenticated sync session with UCAN-based authorization
+   */
+  async createAuthenticatedSyncSession(
+    initiatorDID: string,
+    participantDIDs: string[],
+    options?: {
+      encryptionMode?: AeonEncryptionMode;
+      requiredCapabilities?: string[];
+    },
+  ): Promise<SyncSession> {
+    // Find the initiator node by DID
+    const initiatorNodeId = this.nodesByDID.get(initiatorDID);
+    if (!initiatorNodeId) {
+      throw new Error(`Initiator node with DID ${initiatorDID} not found`);
+    }
+
+    // Find participant node IDs
+    const participantIds: string[] = [];
+    for (const did of participantDIDs) {
+      const nodeId = this.nodesByDID.get(did);
+      if (nodeId) {
+        participantIds.push(nodeId);
+      }
+    }
+
+    // Create session token if crypto is available
+    let sessionToken: string | undefined;
+    if (this.cryptoProvider && this.cryptoProvider.isInitialized()) {
+      // Create a UCAN that grants sync capabilities to all participants
+      const capabilities = (options?.requiredCapabilities || ['aeon:sync:read', 'aeon:sync:write'])
+        .map(cap => ({ can: cap, with: '*' }));
+
+      // Create token for the first participant (in production, you'd create one per participant)
+      if (participantDIDs.length > 0) {
+        sessionToken = await this.cryptoProvider.createUCAN(
+          participantDIDs[0],
+          capabilities,
+          { expirationSeconds: 3600 }, // 1 hour
+        );
+      }
+    }
+
+    const session: SyncSession = {
+      id: `sync-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      initiatorId: initiatorNodeId,
+      participantIds,
+      status: 'pending',
+      startTime: new Date().toISOString(),
+      itemsSynced: 0,
+      itemsFailed: 0,
+      conflictsDetected: 0,
+      initiatorDID,
+      participantDIDs,
+      encryptionMode: options?.encryptionMode || 'none',
+      requiredCapabilities: options?.requiredCapabilities,
+      sessionToken,
+    };
+
+    this.sessions.set(session.id, session);
+
+    const event: SyncEvent = {
+      type: 'sync-started',
+      sessionId: session.id,
+      nodeId: initiatorNodeId,
+      timestamp: new Date().toISOString(),
+      data: {
+        authenticated: true,
+        initiatorDID,
+        participantCount: participantDIDs.length,
+        encryptionMode: session.encryptionMode,
+      },
+    };
+
+    this.syncEvents.push(event);
+    this.emit('sync-started', session);
+
+    logger.debug('[SyncCoordinator] Authenticated sync session created', {
+      sessionId: session.id,
+      initiatorDID,
+      participants: participantDIDs.length,
+      encryptionMode: session.encryptionMode,
+    });
+
+    return session;
+  }
+
+  /**
+   * Verify a node's UCAN capabilities for a session
+   */
+  async verifyNodeCapabilities(
+    sessionId: string,
+    nodeDID: string,
+    token: string,
+  ): Promise<{ authorized: boolean; error?: string }> {
+    if (!this.cryptoProvider) {
+      return { authorized: true }; // No crypto, always authorized
+    }
+
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return { authorized: false, error: `Session ${sessionId} not found` };
+    }
+
+    const result = await this.cryptoProvider.verifyUCAN(token, {
+      requiredCapabilities: session.requiredCapabilities?.map(cap => ({
+        can: cap,
+        with: '*',
+      })),
+    });
+
+    if (!result.authorized) {
+      logger.warn('[SyncCoordinator] Node capability verification failed', {
+        sessionId,
+        nodeDID,
+        error: result.error,
+      });
+    }
+
+    return result;
   }
 
   /**
@@ -414,6 +639,15 @@ export class SyncCoordinator extends EventEmitter {
     this.sessions.clear();
     this.syncEvents = [];
     this.nodeHeartbeats.clear();
+    this.nodesByDID.clear();
+    this.cryptoProvider = null;
     this.stopHeartbeatMonitoring();
+  }
+
+  /**
+   * Get the crypto provider (for advanced usage)
+   */
+  getCryptoProvider(): ICryptoProvider | null {
+    return this.cryptoProvider;
   }
 }

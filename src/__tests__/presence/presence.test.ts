@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   AgentPresenceManager,
   getAgentPresenceManager,
@@ -177,6 +177,136 @@ describe('Presence Module', () => {
 
       const all = manager.getAllAgents();
       expect(all.length).toBe(0);
+    });
+
+    it('should get all presences', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.agentJoined('agent-2', 'Bob', 'assistant');
+
+      const presences = manager.getAllPresences();
+
+      expect(presences.length).toBe(2);
+      expect(presences.map((p) => p.agentId)).toContain('agent-1');
+      expect(presences.map((p) => p.agentId)).toContain('agent-2');
+    });
+
+    it('should clear expired presences', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.agentJoined('agent-2', 'Bob', 'user');
+
+      // Set agent-2 as offline
+      manager.agentLeft('agent-2');
+
+      // Modify lastSeen to be old (more than maxAge)
+      const presence = manager.getPresence('agent-2');
+      if (presence) {
+        // Make lastSeen very old
+        presence.lastSeen = new Date(Date.now() - 100000).toISOString();
+      }
+
+      // Clear presences older than 50000ms
+      manager.clearExpiredPresences(50000);
+
+      // agent-2 should be cleared (offline + old lastSeen)
+      expect(manager.getPresence('agent-2')).toBeUndefined();
+      // agent-1 should still exist (online, not expired)
+      expect(manager.getPresence('agent-1')).toBeDefined();
+    });
+
+    it('should not clear non-expired presences', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.agentLeft('agent-1'); // Mark as offline
+
+      // Clear with a very large maxAge (presences are still recent)
+      manager.clearExpiredPresences(999999999);
+
+      // Should still exist as lastSeen is recent
+      expect(manager.getPresence('agent-1')).toBeDefined();
+    });
+
+    it('should not clear online presences even if old', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+
+      // Modify lastSeen to be old
+      const presence = manager.getPresence('agent-1');
+      if (presence) {
+        presence.lastSeen = new Date(Date.now() - 100000).toISOString();
+      }
+
+      // Clear presences older than 50000ms
+      manager.clearExpiredPresences(50000);
+
+      // agent-1 should still exist (status is online, not offline)
+      expect(manager.getPresence('agent-1')).toBeDefined();
+    });
+
+    describe('heartbeat interval', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('should mark timed out agents as reconnecting', () => {
+        // Default thresholds: inactivityThreshold=60000, heartbeatTimeout=30000
+        const testManager = new AgentPresenceManager('heartbeat-test');
+
+        testManager.agentJoined('agent-1', 'Alice', 'user');
+
+        // Simulate agent being inactive beyond heartbeatTimeout (30s)
+        const presence = testManager.getPresence('agent-1');
+        if (presence) {
+          presence.lastSeen = new Date(Date.now() - 35000).toISOString(); // 35 seconds old
+        }
+
+        // Advance timers to trigger heartbeat check (10 seconds)
+        vi.advanceTimersByTime(10000);
+
+        // Agent should be marked as reconnecting (timeSinceLastSeen > heartbeatTimeout)
+        const updated = testManager.getPresence('agent-1');
+        expect(updated?.status).toBe('reconnecting');
+
+        testManager.destroy();
+      });
+
+      it('should mark very inactive agents as away then reconnecting', () => {
+        const testManager = new AgentPresenceManager('heartbeat-test-2');
+
+        testManager.agentJoined('agent-1', 'Alice', 'user');
+
+        // Simulate agent being inactive beyond inactivityThreshold (60s)
+        const presence = testManager.getPresence('agent-1');
+        if (presence) {
+          presence.lastSeen = new Date(Date.now() - 70000).toISOString(); // 70 seconds old
+        }
+
+        // Advance timers to trigger heartbeat check
+        vi.advanceTimersByTime(10000);
+
+        // Agent should be marked as reconnecting (both conditions trigger,
+        // first goes to 'away' then immediately to 'reconnecting')
+        const updated = testManager.getPresence('agent-1');
+        expect(updated?.status).toBe('reconnecting');
+
+        testManager.destroy();
+      });
+
+      it('should not change status of recently active agents', () => {
+        const testManager = new AgentPresenceManager('heartbeat-test-3');
+
+        testManager.agentJoined('agent-1', 'Alice', 'user');
+
+        // Advance timers but agent is still recently active
+        vi.advanceTimersByTime(10000);
+
+        // Agent should still be online
+        const updated = testManager.getPresence('agent-1');
+        expect(updated?.status).toBe('online');
+
+        testManager.destroy();
+      });
     });
   });
 
