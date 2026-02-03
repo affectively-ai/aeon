@@ -6,9 +6,15 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6+-blue.svg)](https://www.typescriptlang.org/)
 
+## Philosophy
+
+In Gnosticism, **Aeons** are not just time periods; they are divine beings or powers that emanate from the "One" (the Pleroma). They function as links or "levels" between the pure divine source and the material world, often existing in pairs (syzygies) to maintain balance.
+
+In the Affectively framework, if "halos" are the users, then **Aeons are the collaborative structures** - the channels that allow users to communicate with the higher-level logic of the platform. They bridge the gap between individual user state and the distributed system, maintaining harmony across the network.
+
 ## Overview
 
-**Aeon** (Greek: "an immeasurably long period of time") is a comprehensive TypeScript library for building distributed, collaborative applications. It provides the primitives needed for:
+**Aeon** is a comprehensive TypeScript library for building distributed, collaborative applications. It provides the primitives needed for:
 
 - **Distributed Synchronization** - Coordinate sync sessions across multiple nodes
 - **Schema Versioning** - Manage schema evolution with migrations and rollbacks
