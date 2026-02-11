@@ -6,6 +6,7 @@ import {
 } from '../../versioning/MigrationEngine';
 import { DataTransformer } from '../../versioning/DataTransformer';
 import { MigrationTracker } from '../../versioning/MigrationTracker';
+import { InMemoryStorageAdapter } from '../../persistence';
 
 describe('Versioning Module', () => {
   let versionManager: SchemaVersionManager;
@@ -1144,6 +1145,125 @@ describe('Versioning Module', () => {
 
       expect(janMigrations.length).toBe(1);
       expect(janMigrations[0].id).toBe('range-1');
+    });
+
+    it('should persist and restore migration tracker with integrity checks', async () => {
+      const adapter = new InMemoryStorageAdapter();
+      const persistentTracker = new MigrationTracker({
+        persistence: {
+          adapter,
+          key: 'migration-tracker:test',
+          autoPersist: false,
+        },
+      });
+
+      persistentTracker.trackMigration(
+        'persist-1',
+        '1.1.0',
+        'before-hash',
+        'after-hash',
+        4,
+        200,
+        4,
+        'test-user',
+      );
+
+      await persistentTracker.saveToPersistence();
+
+      const restoredTracker = new MigrationTracker({
+        persistence: {
+          adapter,
+          key: 'migration-tracker:test',
+          autoPersist: false,
+        },
+      });
+
+      const loaded = await restoredTracker.loadFromPersistence();
+      expect(loaded.migrations).toBe(1);
+      expect(loaded.snapshots).toBe(1);
+      expect(restoredTracker.getMigrations().length).toBe(1);
+    });
+
+    it('should detect tampered migration persistence payloads', async () => {
+      const adapter = new InMemoryStorageAdapter();
+      const persistentTracker = new MigrationTracker({
+        persistence: {
+          adapter,
+          key: 'migration-tracker:tamper',
+          autoPersist: false,
+        },
+      });
+
+      persistentTracker.trackMigration(
+        'tamper-1',
+        '1.1.0',
+        'before',
+        'after',
+        1,
+        100,
+        1,
+        'test-user',
+      );
+      await persistentTracker.saveToPersistence();
+
+      const raw = adapter.getItem('migration-tracker:tamper');
+      expect(raw).toBeTypeOf('string');
+
+      const parsed = JSON.parse(raw || '{}') as {
+        data?: { migrations?: Array<{ appliedBy?: string }> };
+      };
+      if (parsed.data?.migrations?.[0]) {
+        parsed.data.migrations[0].appliedBy = 'tampered-user';
+      }
+      adapter.setItem('migration-tracker:tamper', JSON.stringify(parsed));
+
+      const restoredTracker = new MigrationTracker({
+        persistence: {
+          adapter,
+          key: 'migration-tracker:tamper',
+          autoPersist: false,
+        },
+      });
+
+      await expect(restoredTracker.loadFromPersistence()).rejects.toThrow(
+        'Migration integrity verification failed',
+      );
+    });
+
+    it('should clear persisted migration tracker state', async () => {
+      const adapter = new InMemoryStorageAdapter();
+      const persistentTracker = new MigrationTracker({
+        persistence: {
+          adapter,
+          key: 'migration-tracker:clear',
+          autoPersist: false,
+        },
+      });
+
+      persistentTracker.trackMigration(
+        'clear-1',
+        '1.1.0',
+        'before',
+        'after',
+        1,
+        100,
+        1,
+        'test-user',
+      );
+      await persistentTracker.saveToPersistence();
+      await persistentTracker.clearPersistence();
+
+      const restoredTracker = new MigrationTracker({
+        persistence: {
+          adapter,
+          key: 'migration-tracker:clear',
+          autoPersist: false,
+        },
+      });
+
+      const loaded = await restoredTracker.loadFromPersistence();
+      expect(loaded.migrations).toBe(0);
+      expect(loaded.snapshots).toBe(0);
     });
   });
 });

@@ -13,6 +13,12 @@
  */
 
 import { logger } from '../utils/logger';
+import type {
+  PersistedEnvelope,
+  PersistenceDeserializer,
+  PersistenceSerializer,
+  StorageAdapter,
+} from '../persistence';
 
 export interface MigrationRecord {
   id: string;
@@ -31,6 +37,8 @@ export interface MigrationRecord {
   errorMessage?: string;
   appliedBy: string;
   metadata?: Record<string, unknown>;
+  previousHash?: string;
+  integrityHash?: string;
 }
 
 export interface RollbackPath {
@@ -40,22 +48,88 @@ export interface RollbackPath {
   estimatedDuration: number;
 }
 
+export interface MigrationIntegrityEntry {
+  recordId: string;
+  previousHash: string;
+  hash: string;
+}
+
+export interface MigrationTrackerPersistenceData {
+  migrations: MigrationRecord[];
+  snapshots: Array<{
+    recordId: string;
+    beforeHash: string;
+    afterHash: string;
+    itemCount: number;
+  }>;
+  integrity: {
+    algorithm: 'sha256-chain-v1';
+    entries: MigrationIntegrityEntry[];
+    rootHash: string;
+  };
+}
+
+export interface MigrationTrackerPersistenceConfig {
+  adapter: StorageAdapter;
+  key?: string;
+  autoPersist?: boolean;
+  autoLoad?: boolean;
+  persistDebounceMs?: number;
+  serializer?: PersistenceSerializer<MigrationTrackerPersistenceData>;
+  deserializer?: PersistenceDeserializer<MigrationTrackerPersistenceData>;
+}
+
+export interface MigrationTrackerOptions {
+  persistence?: MigrationTrackerPersistenceConfig;
+}
+
 /**
  * Migration Tracker
  * Tracks and manages migration history with rollback support
  */
 export class MigrationTracker {
+  private static readonly DEFAULT_PERSIST_KEY = 'aeon:migration-tracker:v1';
+  private static readonly INTEGRITY_ROOT = 'aeon:migration-integrity-root:v1';
   private migrations: MigrationRecord[] = [];
   private snapshots: Map<
     string,
     { beforeHash: string; afterHash: string; itemCount: number }
   > = new Map();
+  private persistence:
+    | (MigrationTrackerPersistenceConfig & { key: string })
+    | null = null;
+  private persistTimer: ReturnType<typeof setTimeout> | null = null;
+  private persistInFlight = false;
+  private persistPending = false;
+
+  constructor(options?: MigrationTrackerOptions) {
+    if (options?.persistence) {
+      this.persistence = {
+        ...options.persistence,
+        key:
+          options.persistence.key ?? MigrationTracker.DEFAULT_PERSIST_KEY,
+        autoPersist: options.persistence.autoPersist ?? true,
+        autoLoad: options.persistence.autoLoad ?? false,
+        persistDebounceMs: options.persistence.persistDebounceMs ?? 25,
+      };
+    }
+
+    if (this.persistence?.autoLoad) {
+      void this.loadFromPersistence().catch((error) => {
+        logger.error('[MigrationTracker] Failed to load persistence', {
+          key: this.persistence?.key,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+    }
+  }
 
   /**
    * Track a new migration
    */
   recordMigration(record: MigrationRecord): void {
     this.migrations.push({ ...record });
+    this.schedulePersist();
 
     logger.debug('[MigrationTracker] Migration recorded', {
       id: record.id,
@@ -313,7 +387,197 @@ export class MigrationTracker {
         status,
         hasError: !!error,
       });
+      this.schedulePersist();
     }
+  }
+
+  /**
+   * Persist tracker state with integrity chain verification metadata.
+   */
+  async saveToPersistence(): Promise<void> {
+    if (!this.persistence) {
+      return;
+    }
+
+    const normalizedMigrations = this.migrations.map((migration) => ({
+      ...migration,
+      previousHash: undefined,
+      integrityHash: undefined,
+    }));
+
+    const integrityEntries: MigrationIntegrityEntry[] = [];
+    let previousHash = MigrationTracker.INTEGRITY_ROOT;
+
+    for (const migration of normalizedMigrations) {
+      const hash = await this.computeDigestHex(
+        `${previousHash}|${this.stableStringify(migration)}`,
+      );
+      integrityEntries.push({
+        recordId: migration.id,
+        previousHash,
+        hash,
+      });
+      previousHash = hash;
+    }
+
+    const persistedMigrations = normalizedMigrations.map((migration, index) => ({
+      ...migration,
+      previousHash: integrityEntries[index]?.previousHash,
+      integrityHash: integrityEntries[index]?.hash,
+    }));
+
+    const data: MigrationTrackerPersistenceData = {
+      migrations: persistedMigrations,
+      snapshots: Array.from(this.snapshots.entries()).map(
+        ([recordId, snapshot]) => ({
+          recordId,
+          beforeHash: snapshot.beforeHash,
+          afterHash: snapshot.afterHash,
+          itemCount: snapshot.itemCount,
+        }),
+      ),
+      integrity: {
+        algorithm: 'sha256-chain-v1',
+        entries: integrityEntries,
+        rootHash: previousHash,
+      },
+    };
+
+    const envelope: PersistedEnvelope<MigrationTrackerPersistenceData> = {
+      version: 1,
+      updatedAt: Date.now(),
+      data,
+    };
+
+    const serialize =
+      this.persistence.serializer ??
+      ((value: PersistedEnvelope<MigrationTrackerPersistenceData>) =>
+        JSON.stringify(value));
+
+    await this.persistence.adapter.setItem(this.persistence.key, serialize(envelope));
+  }
+
+  /**
+   * Load tracker state and verify integrity chain.
+   */
+  async loadFromPersistence(): Promise<{
+    migrations: number;
+    snapshots: number;
+  }> {
+    if (!this.persistence) {
+      return { migrations: 0, snapshots: 0 };
+    }
+
+    const raw = await this.persistence.adapter.getItem(this.persistence.key);
+    if (!raw) {
+      return { migrations: 0, snapshots: 0 };
+    }
+
+    const deserialize =
+      this.persistence.deserializer ??
+      ((value: string) =>
+        JSON.parse(value) as PersistedEnvelope<MigrationTrackerPersistenceData>);
+
+    const envelope = deserialize(raw);
+    if (envelope.version !== 1 || !envelope.data) {
+      throw new Error('Invalid migration tracker persistence payload');
+    }
+
+    if (envelope.data.integrity.algorithm !== 'sha256-chain-v1') {
+      throw new Error('Unsupported migration integrity algorithm');
+    }
+
+    if (
+      envelope.data.integrity.entries.length !== envelope.data.migrations.length
+    ) {
+      throw new Error('Migration integrity entry count mismatch');
+    }
+
+    const validatedMigrations: MigrationRecord[] = [];
+    let previousHash = MigrationTracker.INTEGRITY_ROOT;
+
+    for (let i = 0; i < envelope.data.migrations.length; i++) {
+      const migration = envelope.data.migrations[i];
+      const integrity = envelope.data.integrity.entries[i];
+
+      if (!this.isValidMigrationRecord(migration)) {
+        throw new Error('Invalid persisted migration record');
+      }
+      if (
+        !integrity ||
+        integrity.recordId !== migration.id ||
+        integrity.previousHash !== previousHash
+      ) {
+        throw new Error('Migration integrity chain mismatch');
+      }
+
+      const expectedHash = await this.computeDigestHex(
+        `${previousHash}|${this.stableStringify({
+          ...migration,
+          previousHash: undefined,
+          integrityHash: undefined,
+        })}`,
+      );
+
+      if (expectedHash !== integrity.hash) {
+        throw new Error('Migration integrity verification failed');
+      }
+
+      validatedMigrations.push({
+        ...migration,
+        previousHash: integrity.previousHash,
+        integrityHash: integrity.hash,
+      });
+
+      previousHash = expectedHash;
+    }
+
+    if (previousHash !== envelope.data.integrity.rootHash) {
+      throw new Error('Migration integrity root hash mismatch');
+    }
+
+    const validatedSnapshots = new Map<
+      string,
+      { beforeHash: string; afterHash: string; itemCount: number }
+    >();
+
+    for (const snapshot of envelope.data.snapshots) {
+      if (
+        typeof snapshot.recordId !== 'string' ||
+        typeof snapshot.beforeHash !== 'string' ||
+        typeof snapshot.afterHash !== 'string' ||
+        typeof snapshot.itemCount !== 'number'
+      ) {
+        throw new Error('Invalid persisted migration snapshot');
+      }
+
+      validatedSnapshots.set(snapshot.recordId, {
+        beforeHash: snapshot.beforeHash,
+        afterHash: snapshot.afterHash,
+        itemCount: snapshot.itemCount,
+      });
+    }
+
+    this.migrations = validatedMigrations;
+    this.snapshots = validatedSnapshots;
+
+    logger.debug('[MigrationTracker] Loaded from persistence', {
+      key: this.persistence.key,
+      migrations: this.migrations.length,
+      snapshots: this.snapshots.size,
+    });
+
+    return { migrations: this.migrations.length, snapshots: this.snapshots.size };
+  }
+
+  /**
+   * Remove persisted migration tracker state.
+   */
+  async clearPersistence(): Promise<void> {
+    if (!this.persistence) {
+      return;
+    }
+    await this.persistence.adapter.removeItem(this.persistence.key);
   }
 
   /**
@@ -322,6 +586,7 @@ export class MigrationTracker {
   clear(): void {
     this.migrations = [];
     this.snapshots.clear();
+    this.schedulePersist();
   }
 
   /**
@@ -345,5 +610,123 @@ export class MigrationTracker {
       const time = new Date(m.timestamp).getTime();
       return time >= start && time <= end;
     });
+  }
+
+  private schedulePersist(): void {
+    if (!this.persistence || this.persistence.autoPersist === false) {
+      return;
+    }
+
+    if (this.persistTimer) {
+      clearTimeout(this.persistTimer);
+    }
+
+    this.persistTimer = setTimeout(() => {
+      void this.persistSafely();
+    }, this.persistence.persistDebounceMs ?? 25);
+  }
+
+  private async persistSafely(): Promise<void> {
+    if (!this.persistence) {
+      return;
+    }
+
+    if (this.persistInFlight) {
+      this.persistPending = true;
+      return;
+    }
+
+    this.persistInFlight = true;
+    try {
+      await this.saveToPersistence();
+    } catch (error) {
+      logger.error('[MigrationTracker] Persistence write failed', {
+        key: this.persistence.key,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      this.persistInFlight = false;
+      const shouldRunAgain = this.persistPending;
+      this.persistPending = false;
+      if (shouldRunAgain) {
+        void this.persistSafely();
+      }
+    }
+  }
+
+  private isValidMigrationRecord(value: unknown): value is MigrationRecord {
+    if (typeof value !== 'object' || value === null) {
+      return false;
+    }
+    const record = value as Partial<MigrationRecord>;
+    const validDirection = record.direction === 'up' || record.direction === 'down';
+    const validStatus =
+      record.status === 'pending' ||
+      record.status === 'applied' ||
+      record.status === 'failed' ||
+      record.status === 'rolled-back';
+    return (
+      typeof record.id === 'string' &&
+      typeof record.migrationId === 'string' &&
+      typeof record.timestamp === 'string' &&
+      typeof record.version === 'string' &&
+      validDirection &&
+      validStatus &&
+      typeof record.duration === 'number' &&
+      typeof record.itemsAffected === 'number' &&
+      typeof record.appliedBy === 'string'
+    );
+  }
+
+  private stableStringify(value: unknown): string {
+    if (value === null || typeof value !== 'object') {
+      return JSON.stringify(value);
+    }
+
+    if (Array.isArray(value)) {
+      return `[${value.map((item) => this.stableStringify(item)).join(',')}]`;
+    }
+
+    const entries = Object.entries(value as Record<string, unknown>).sort(
+      ([a], [b]) => a.localeCompare(b),
+    );
+
+    return `{${entries
+      .map(([key, entryValue]) =>
+        `${JSON.stringify(key)}:${this.stableStringify(entryValue)}`,
+      )
+      .join(',')}}`;
+  }
+
+  private async computeDigestHex(value: string): Promise<string> {
+    if (globalThis.crypto?.subtle) {
+      const bytes = new TextEncoder().encode(value);
+      const normalized = bytes.buffer.slice(
+        bytes.byteOffset,
+        bytes.byteOffset + bytes.byteLength,
+      );
+      const digest = await globalThis.crypto.subtle.digest(
+        'SHA-256',
+        normalized,
+      );
+      return this.toHex(new Uint8Array(digest));
+    }
+
+    return this.fallbackDigestHex(value);
+  }
+
+  private toHex(bytes: Uint8Array): string {
+    return Array.from(bytes)
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  private fallbackDigestHex(value: string): string {
+    let hash = 2166136261;
+    for (let i = 0; i < value.length; i++) {
+      hash ^= value.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(16).padStart(8, '0');
   }
 }
