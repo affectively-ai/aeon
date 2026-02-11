@@ -177,7 +177,8 @@ export const AEON_CAPABILITIES = {
   STATE_RECONCILE: 'aeon:state:reconcile',
 } as const;
 
-export type AeonCapability = (typeof AEON_CAPABILITIES)[keyof typeof AEON_CAPABILITIES];
+export type AeonCapability =
+  (typeof AEON_CAPABILITIES)[keyof typeof AEON_CAPABILITIES];
 
 /**
  * Crypto configuration for Aeon

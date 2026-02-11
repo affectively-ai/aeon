@@ -45,7 +45,11 @@ export interface ReconciliationResult {
   timestamp: string;
 }
 
-export type MergeStrategy = 'last-write-wins' | 'vector-clock' | 'majority-vote' | 'custom';
+export type MergeStrategy =
+  | 'last-write-wins'
+  | 'vector-clock'
+  | 'majority-vote'
+  | 'custom';
 
 /**
  * State Reconciler
@@ -60,7 +64,10 @@ export class StateReconciler {
   /**
    * Configure cryptographic provider for signed state versions
    */
-  configureCrypto(provider: ICryptoProvider, requireSigned: boolean = false): void {
+  configureCrypto(
+    provider: ICryptoProvider,
+    requireSigned: boolean = false,
+  ): void {
     this.cryptoProvider = provider;
     this.requireSignedVersions = requireSigned;
 
@@ -98,7 +105,7 @@ export class StateReconciler {
     const dataBytes = new TextEncoder().encode(JSON.stringify(data));
     const hashBytes = await this.cryptoProvider.hash(dataBytes);
     const hash = Array.from(hashBytes)
-      .map(b => b.toString(16).padStart(2, '0'))
+      .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
 
     // Sign the version
@@ -149,7 +156,7 @@ export class StateReconciler {
       if (this.cryptoProvider) {
         const hashBytes = await this.cryptoProvider.hash(dataBytes);
         const computedHash = Array.from(hashBytes)
-          .map(b => b.toString(16).padStart(2, '0'))
+          .map((b) => b.toString(16).padStart(2, '0'))
           .join('');
 
         if (computedHash !== version.hash) {
@@ -286,14 +293,17 @@ export class StateReconciler {
       return false;
     }
 
-    const hashes = new Set(versions.map(v => v.hash));
+    const hashes = new Set(versions.map((v) => v.hash));
     return hashes.size > 1;
   }
 
   /**
    * Compare two states and generate diff
    */
-  compareStates(state1: Record<string, unknown>, state2: Record<string, unknown>): StateDiff {
+  compareStates(
+    state1: Record<string, unknown>,
+    state2: Record<string, unknown>,
+  ): StateDiff {
     const diff: StateDiff = {
       added: {},
       modified: {},
@@ -329,8 +339,9 @@ export class StateReconciler {
     }
 
     // Sort by timestamp descending, most recent first
-    const sorted = [...versions].sort((a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    const sorted = [...versions].sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
 
     const latest = sorted[0];
@@ -364,8 +375,9 @@ export class StateReconciler {
 
     // For vector clock, use the version with highest timestamp
     // In production, this would use actual vector clocks
-    const sorted = [...versions].sort((a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    const sorted = [...versions].sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
 
     const latest = sorted[0];
@@ -534,12 +546,15 @@ export class StateReconciler {
 
     const strategyUsage: Record<string, number> = {};
     for (const result of this.reconciliationHistory) {
-      strategyUsage[result.strategy] = (strategyUsage[result.strategy] || 0) + 1;
+      strategyUsage[result.strategy] =
+        (strategyUsage[result.strategy] || 0) + 1;
     }
 
     return {
       totalReconciliations: this.reconciliationHistory.length,
-      successfulReconciliations: this.reconciliationHistory.filter(r => r.success).length,
+      successfulReconciliations: this.reconciliationHistory.filter(
+        (r) => r.success,
+      ).length,
       totalConflictsResolved: resolvedConflicts,
       averageConflictsPerReconciliation:
         this.reconciliationHistory.length > 0

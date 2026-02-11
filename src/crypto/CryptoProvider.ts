@@ -68,7 +68,11 @@ export interface ICryptoProvider {
   /**
    * Verify a signature from a remote node
    */
-  verify(did: string, signature: Uint8Array, data: Uint8Array): Promise<boolean>;
+  verify(
+    did: string,
+    signature: Uint8Array,
+    data: Uint8Array,
+  ): Promise<boolean>;
 
   /**
    * Verify a SignedSyncData envelope
@@ -82,7 +86,10 @@ export interface ICryptoProvider {
   /**
    * Encrypt data for a recipient
    */
-  encrypt(plaintext: Uint8Array, recipientDID: string): Promise<{
+  encrypt(
+    plaintext: Uint8Array,
+    recipientDID: string,
+  ): Promise<{
     alg: string;
     ct: string;
     iv: string;

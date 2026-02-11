@@ -69,7 +69,9 @@ export class DataTransformer {
       return rule.transformer(value);
     } catch (error) {
       if (rule.required) {
-        throw new Error(`Failed to transform required field ${field}: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(
+          `Failed to transform required field ${field}: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
 
       // Return default value or original value
@@ -155,14 +157,19 @@ export class DataTransformer {
   /**
    * Validate transformed data
    */
-  validateTransformation(original: unknown[], transformed: unknown[]): {
+  validateTransformation(
+    original: unknown[],
+    transformed: unknown[],
+  ): {
     valid: boolean;
     issues: string[];
   } {
     const issues: string[] = [];
 
     if (original.length !== transformed.length) {
-      issues.push(`Item count mismatch: ${original.length} -> ${transformed.length}`);
+      issues.push(
+        `Item count mismatch: ${original.length} -> ${transformed.length}`,
+      );
     }
 
     // Check that all items were processed
@@ -225,9 +232,15 @@ export class DataTransformer {
       totalBatches: this.transformationHistory.length,
       totalTransformed,
       totalFailed,
-      successRate: totalTransformed + totalFailed > 0 ? (totalTransformed / (totalTransformed + totalFailed)) * 100 : 0,
+      successRate:
+        totalTransformed + totalFailed > 0
+          ? (totalTransformed / (totalTransformed + totalFailed)) * 100
+          : 0,
       totalDurationMs: totalDuration,
-      averageBatchDurationMs: this.transformationHistory.length > 0 ? totalDuration / this.transformationHistory.length : 0,
+      averageBatchDurationMs:
+        this.transformationHistory.length > 0
+          ? totalDuration / this.transformationHistory.length
+          : 0,
     };
   }
 

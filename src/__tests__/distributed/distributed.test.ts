@@ -169,7 +169,10 @@ describe('Distributed Module', () => {
       });
 
       const session = coordinator.createSyncSession('node-1', ['node-2']);
-      coordinator.updateSyncSession(session.id, { status: 'completed', itemsSynced: 100 });
+      coordinator.updateSyncSession(session.id, {
+        status: 'completed',
+        itemsSynced: 100,
+      });
 
       const stats = coordinator.getStatistics();
       expect(stats.totalNodes).toBe(1);
@@ -195,9 +198,9 @@ describe('Distributed Module', () => {
     });
 
     it('should throw when updating status of non-existent node', () => {
-      expect(() => coordinator.updateNodeStatus('nonexistent', 'offline')).toThrow(
-        'Node nonexistent not found'
-      );
+      expect(() =>
+        coordinator.updateNodeStatus('nonexistent', 'offline'),
+      ).toThrow('Node nonexistent not found');
     });
 
     it('should record heartbeat', () => {
@@ -411,9 +414,12 @@ describe('Distributed Module', () => {
 
       it('should start heartbeat monitoring and detect unhealthy nodes', () => {
         let statusUpdates: string[] = [];
-        coordinator.on('node-status-changed', (data: { nodeId: string; status: string }) => {
-          statusUpdates.push(data.status);
-        });
+        coordinator.on(
+          'node-status-changed',
+          (data: { nodeId: string; status: string }) => {
+            statusUpdates.push(data.status);
+          },
+        );
 
         // Register an online node
         coordinator.registerNode({
@@ -562,7 +568,11 @@ describe('Distributed Module', () => {
     });
 
     it('should check replication health', () => {
-      const policy = replicationManager.createPolicy('test-policy', 1, 'eventual');
+      const policy = replicationManager.createPolicy(
+        'test-policy',
+        1,
+        'eventual',
+      );
 
       replicationManager.registerReplica({
         id: 'replica-1',
@@ -612,7 +622,7 @@ describe('Distributed Module', () => {
 
     it('should throw when removing non-existent replica', () => {
       expect(() => replicationManager.removeReplica('nonexistent')).toThrow(
-        'Replica nonexistent not found'
+        'Replica nonexistent not found',
       );
     });
 
@@ -652,7 +662,11 @@ describe('Distributed Module', () => {
     });
 
     it('should get consistency level', () => {
-      const policy = replicationManager.createPolicy('test-policy', 3, 'strong');
+      const policy = replicationManager.createPolicy(
+        'test-policy',
+        3,
+        'strong',
+      );
 
       const level = replicationManager.getConsistencyLevel(policy.id);
       expect(level).toBe('strong');
@@ -664,7 +678,11 @@ describe('Distributed Module', () => {
     });
 
     it('should get policy by id', () => {
-      const policy = replicationManager.createPolicy('test-policy', 3, 'strong');
+      const policy = replicationManager.createPolicy(
+        'test-policy',
+        3,
+        'strong',
+      );
 
       const retrieved = replicationManager.getPolicy(policy.id);
       expect(retrieved).toBeDefined();
@@ -768,14 +786,22 @@ describe('Distributed Module', () => {
     });
 
     it('should check if can satisfy eventual consistency', () => {
-      const policy = replicationManager.createPolicy('test-policy', 3, 'eventual');
+      const policy = replicationManager.createPolicy(
+        'test-policy',
+        3,
+        'eventual',
+      );
 
       const canSatisfy = replicationManager.canSatisfyConsistency(policy.id, 1);
       expect(canSatisfy).toBe(true); // Eventual always achievable
     });
 
     it('should check if can satisfy read-after-write consistency', () => {
-      const policy = replicationManager.createPolicy('test-policy', 3, 'read-after-write');
+      const policy = replicationManager.createPolicy(
+        'test-policy',
+        3,
+        'read-after-write',
+      );
 
       // No replicas - can't satisfy
       let canSatisfy = replicationManager.canSatisfyConsistency(policy.id, 1);
@@ -796,7 +822,11 @@ describe('Distributed Module', () => {
     });
 
     it('should check if can satisfy strong consistency', () => {
-      const policy = replicationManager.createPolicy('test-policy', 2, 'strong');
+      const policy = replicationManager.createPolicy(
+        'test-policy',
+        2,
+        'strong',
+      );
 
       // Only 1 replica - can't satisfy replication factor of 2
       replicationManager.registerReplica({
@@ -826,7 +856,10 @@ describe('Distributed Module', () => {
     });
 
     it('should return false for unknown policy in consistency check', () => {
-      const canSatisfy = replicationManager.canSatisfyConsistency('nonexistent', 1);
+      const canSatisfy = replicationManager.canSatisfyConsistency(
+        'nonexistent',
+        1,
+      );
       expect(canSatisfy).toBe(false);
     });
 
@@ -856,7 +889,10 @@ describe('Distributed Module', () => {
     });
 
     it('should create handshake message', () => {
-      const message = protocol.createHandshakeMessage('node-1', ['sync', 'replicate']);
+      const message = protocol.createHandshakeMessage('node-1', [
+        'sync',
+        'replicate',
+      ]);
 
       expect(message.type).toBe('handshake');
       expect(message.sender).toBe('node-1');
@@ -913,7 +949,10 @@ describe('Distributed Module', () => {
     });
 
     it('should process handshake', () => {
-      const message = protocol.createHandshakeMessage('node-1', ['sync', 'replicate']);
+      const message = protocol.createHandshakeMessage('node-1', [
+        'sync',
+        'replicate',
+      ]);
       const handshake = protocol.processHandshake(message);
 
       expect(handshake.nodeId).toBe('node-1');
@@ -922,7 +961,13 @@ describe('Distributed Module', () => {
 
     it('should get statistics', () => {
       protocol.createHandshakeMessage('node-1', ['sync']);
-      protocol.createSyncRequestMessage('node-1', 'node-2', 'session-1', '1.0', '1.1');
+      protocol.createSyncRequestMessage(
+        'node-1',
+        'node-2',
+        'session-1',
+        '1.0',
+        '1.1',
+      );
 
       const stats = protocol.getStatistics();
       expect(stats.totalMessages).toBe(2);
@@ -936,12 +981,19 @@ describe('Distributed Module', () => {
     });
 
     it('should create acknowledgement message', () => {
-      const message = protocol.createAckMessage('node-1', 'node-2', 'original-msg-123');
+      const message = protocol.createAckMessage(
+        'node-1',
+        'node-2',
+        'original-msg-123',
+      );
 
       expect(message.type).toBe('ack');
       expect(message.sender).toBe('node-1');
       expect(message.receiver).toBe('node-2');
-      expect((message.payload as { acknowledgedMessageId: string }).acknowledgedMessageId).toBe('original-msg-123');
+      expect(
+        (message.payload as { acknowledgedMessageId: string })
+          .acknowledgedMessageId,
+      ).toBe('original-msg-123');
     });
 
     it('should create error message', () => {
@@ -951,13 +1003,22 @@ describe('Distributed Module', () => {
         recoverable: true,
       };
 
-      const message = protocol.createErrorMessage('node-1', 'node-2', error, 'related-msg-123');
+      const message = protocol.createErrorMessage(
+        'node-1',
+        'node-2',
+        error,
+        'related-msg-123',
+      );
 
       expect(message.type).toBe('error');
       expect(message.sender).toBe('node-1');
       expect(message.receiver).toBe('node-2');
-      expect((message.payload as { error: typeof error }).error.code).toBe('SYNC_FAILED');
-      expect((message.payload as { relatedMessageId: string }).relatedMessageId).toBe('related-msg-123');
+      expect((message.payload as { error: typeof error }).error.code).toBe(
+        'SYNC_FAILED',
+      );
+      expect(
+        (message.payload as { relatedMessageId: string }).relatedMessageId,
+      ).toBe('related-msg-123');
     });
 
     it('should get message by id', () => {
@@ -973,7 +1034,13 @@ describe('Distributed Module', () => {
 
     it('should get all messages', () => {
       protocol.createHandshakeMessage('node-1', ['sync']);
-      protocol.createSyncRequestMessage('node-1', 'node-2', 'session-1', '1.0', '1.1');
+      protocol.createSyncRequestMessage(
+        'node-1',
+        'node-2',
+        'session-1',
+        '1.0',
+        '1.1',
+      );
 
       const all = protocol.getAllMessages();
       expect(all.length).toBe(2);
@@ -982,7 +1049,13 @@ describe('Distributed Module', () => {
     it('should get messages by type', () => {
       protocol.createHandshakeMessage('node-1', ['sync']);
       protocol.createHandshakeMessage('node-2', ['sync']);
-      protocol.createSyncRequestMessage('node-1', 'node-2', 'session-1', '1.0', '1.1');
+      protocol.createSyncRequestMessage(
+        'node-1',
+        'node-2',
+        'session-1',
+        '1.0',
+        '1.1',
+      );
 
       const handshakes = protocol.getMessagesByType('handshake');
       expect(handshakes.length).toBe(2);
@@ -1004,9 +1077,27 @@ describe('Distributed Module', () => {
     });
 
     it('should get pending messages for receiver', () => {
-      protocol.createSyncRequestMessage('node-1', 'node-2', 'session-1', '1.0', '1.1');
-      protocol.createSyncRequestMessage('node-1', 'node-2', 'session-2', '1.0', '1.1');
-      protocol.createSyncRequestMessage('node-1', 'node-3', 'session-3', '1.0', '1.1');
+      protocol.createSyncRequestMessage(
+        'node-1',
+        'node-2',
+        'session-1',
+        '1.0',
+        '1.1',
+      );
+      protocol.createSyncRequestMessage(
+        'node-1',
+        'node-2',
+        'session-2',
+        '1.0',
+        '1.1',
+      );
+      protocol.createSyncRequestMessage(
+        'node-1',
+        'node-3',
+        'session-3',
+        '1.0',
+        '1.1',
+      );
 
       const forNode2 = protocol.getPendingMessages('node-2');
       expect(forNode2.length).toBe(2);
@@ -1016,7 +1107,10 @@ describe('Distributed Module', () => {
     });
 
     it('should get handshakes', () => {
-      const message = protocol.createHandshakeMessage('node-1', ['sync', 'replicate']);
+      const message = protocol.createHandshakeMessage('node-1', [
+        'sync',
+        'replicate',
+      ]);
       protocol.processHandshake(message);
 
       const handshakes = protocol.getHandshakes();
@@ -1058,8 +1152,22 @@ describe('Distributed Module', () => {
     });
 
     it('should detect conflicts', () => {
-      reconciler.recordStateVersion('user:123', '1.0', new Date().toISOString(), 'node-1', 'hash-a', { name: 'Alice' });
-      reconciler.recordStateVersion('user:123', '1.0', new Date().toISOString(), 'node-2', 'hash-b', { name: 'Bob' });
+      reconciler.recordStateVersion(
+        'user:123',
+        '1.0',
+        new Date().toISOString(),
+        'node-1',
+        'hash-a',
+        { name: 'Alice' },
+      );
+      reconciler.recordStateVersion(
+        'user:123',
+        '1.0',
+        new Date().toISOString(),
+        'node-2',
+        'hash-b',
+        { name: 'Bob' },
+      );
 
       expect(reconciler.detectConflicts('user:123')).toBe(true);
     });
@@ -1077,8 +1185,20 @@ describe('Distributed Module', () => {
 
     it('should reconcile with last-write-wins strategy', () => {
       const versions = [
-        { version: '1.0', timestamp: '2024-01-01T00:00:00Z', nodeId: 'node-1', hash: 'a', data: { name: 'Alice' } },
-        { version: '1.0', timestamp: '2024-01-01T00:00:01Z', nodeId: 'node-2', hash: 'b', data: { name: 'Bob' } },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:00Z',
+          nodeId: 'node-1',
+          hash: 'a',
+          data: { name: 'Alice' },
+        },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:01Z',
+          nodeId: 'node-2',
+          hash: 'b',
+          data: { name: 'Bob' },
+        },
       ];
 
       const result = reconciler.reconcileLastWriteWins(versions);
@@ -1090,9 +1210,27 @@ describe('Distributed Module', () => {
 
     it('should reconcile with majority vote strategy', () => {
       const versions = [
-        { version: '1.0', timestamp: '2024-01-01T00:00:00Z', nodeId: 'node-1', hash: 'a', data: { name: 'Alice' } },
-        { version: '1.0', timestamp: '2024-01-01T00:00:01Z', nodeId: 'node-2', hash: 'a', data: { name: 'Alice' } },
-        { version: '1.0', timestamp: '2024-01-01T00:00:02Z', nodeId: 'node-3', hash: 'b', data: { name: 'Bob' } },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:00Z',
+          nodeId: 'node-1',
+          hash: 'a',
+          data: { name: 'Alice' },
+        },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:01Z',
+          nodeId: 'node-2',
+          hash: 'a',
+          data: { name: 'Alice' },
+        },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:02Z',
+          nodeId: 'node-3',
+          hash: 'b',
+          data: { name: 'Bob' },
+        },
       ];
 
       const result = reconciler.reconcileMajorityVote(versions);
@@ -1128,8 +1266,22 @@ describe('Distributed Module', () => {
     });
 
     it('should get statistics', () => {
-      reconciler.recordStateVersion('user:123', '1.0', new Date().toISOString(), 'node-1', 'hash-a', { name: 'Alice' });
-      reconciler.recordStateVersion('user:123', '1.0', new Date().toISOString(), 'node-2', 'hash-b', { name: 'Bob' });
+      reconciler.recordStateVersion(
+        'user:123',
+        '1.0',
+        new Date().toISOString(),
+        'node-1',
+        'hash-a',
+        { name: 'Alice' },
+      );
+      reconciler.recordStateVersion(
+        'user:123',
+        '1.0',
+        new Date().toISOString(),
+        'node-2',
+        'hash-b',
+        { name: 'Bob' },
+      );
 
       const versions = reconciler.getStateVersions('user:123');
       reconciler.reconcileLastWriteWins(versions);
@@ -1141,8 +1293,20 @@ describe('Distributed Module', () => {
 
     it('should reconcile with vector clock strategy', () => {
       const versions = [
-        { version: '1.0', timestamp: '2024-01-01T00:00:00Z', nodeId: 'node-1', hash: 'a', data: { name: 'Old' } },
-        { version: '1.0', timestamp: '2024-01-01T00:00:02Z', nodeId: 'node-2', hash: 'b', data: { name: 'New' } },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:00Z',
+          nodeId: 'node-1',
+          hash: 'a',
+          data: { name: 'Old' },
+        },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:02Z',
+          nodeId: 'node-2',
+          hash: 'b',
+          data: { name: 'New' },
+        },
       ];
 
       const result = reconciler.reconcileVectorClock(versions);
@@ -1154,9 +1318,27 @@ describe('Distributed Module', () => {
 
     it('should count conflicts in vector clock reconciliation', () => {
       const versions = [
-        { version: '1.0', timestamp: '2024-01-01T00:00:00Z', nodeId: 'node-1', hash: 'a', data: { name: 'First' } },
-        { version: '1.0', timestamp: '2024-01-01T00:00:05Z', nodeId: 'node-2', hash: 'b', data: { name: 'Second' } },
-        { version: '1.0', timestamp: '2024-01-01T00:00:10Z', nodeId: 'node-3', hash: 'c', data: { name: 'Third' } },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:00Z',
+          nodeId: 'node-1',
+          hash: 'a',
+          data: { name: 'First' },
+        },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:05Z',
+          nodeId: 'node-2',
+          hash: 'b',
+          data: { name: 'Second' },
+        },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:10Z',
+          nodeId: 'node-3',
+          hash: 'c',
+          data: { name: 'Third' },
+        },
       ];
 
       const result = reconciler.reconcileVectorClock(versions);
@@ -1166,12 +1348,28 @@ describe('Distributed Module', () => {
     });
 
     it('should throw when reconciling with empty versions for vector clock', () => {
-      expect(() => reconciler.reconcileVectorClock([])).toThrow('No versions to reconcile');
+      expect(() => reconciler.reconcileVectorClock([])).toThrow(
+        'No versions to reconcile',
+      );
     });
 
     it('should get all state versions', () => {
-      reconciler.recordStateVersion('user:123', '1.0', new Date().toISOString(), 'node-1', 'hash-a', { name: 'Alice' });
-      reconciler.recordStateVersion('user:456', '1.0', new Date().toISOString(), 'node-1', 'hash-b', { name: 'Bob' });
+      reconciler.recordStateVersion(
+        'user:123',
+        '1.0',
+        new Date().toISOString(),
+        'node-1',
+        'hash-a',
+        { name: 'Alice' },
+      );
+      reconciler.recordStateVersion(
+        'user:456',
+        '1.0',
+        new Date().toISOString(),
+        'node-1',
+        'hash-b',
+        { name: 'Bob' },
+      );
 
       const allVersions = reconciler.getAllStateVersions();
 
@@ -1183,8 +1381,20 @@ describe('Distributed Module', () => {
 
     it('should get reconciliation history', () => {
       const versions = [
-        { version: '1.0', timestamp: '2024-01-01T00:00:00Z', nodeId: 'node-1', hash: 'a', data: { name: 'Alice' } },
-        { version: '1.0', timestamp: '2024-01-01T00:00:01Z', nodeId: 'node-2', hash: 'b', data: { name: 'Bob' } },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:00Z',
+          nodeId: 'node-1',
+          hash: 'a',
+          data: { name: 'Alice' },
+        },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:01Z',
+          nodeId: 'node-2',
+          hash: 'b',
+          data: { name: 'Bob' },
+        },
       ];
 
       reconciler.reconcileLastWriteWins(versions);
@@ -1195,9 +1405,22 @@ describe('Distributed Module', () => {
     });
 
     it('should clear state', () => {
-      reconciler.recordStateVersion('user:123', '1.0', new Date().toISOString(), 'node-1', 'hash-a', { name: 'Alice' });
+      reconciler.recordStateVersion(
+        'user:123',
+        '1.0',
+        new Date().toISOString(),
+        'node-1',
+        'hash-a',
+        { name: 'Alice' },
+      );
       reconciler.reconcileLastWriteWins([
-        { version: '1.0', timestamp: '2024-01-01T00:00:00Z', nodeId: 'node-1', hash: 'a', data: {} },
+        {
+          version: '1.0',
+          timestamp: '2024-01-01T00:00:00Z',
+          nodeId: 'node-1',
+          hash: 'a',
+          data: {},
+        },
       ]);
 
       reconciler.clear();

@@ -11,11 +11,7 @@
  */
 
 export { SyncCoordinator } from './SyncCoordinator';
-export type {
-  SyncNode,
-  SyncSession,
-  SyncEvent,
-} from './SyncCoordinator';
+export type { SyncNode, SyncSession, SyncEvent } from './SyncCoordinator';
 
 export { ReplicationManager } from './ReplicationManager';
 export type {

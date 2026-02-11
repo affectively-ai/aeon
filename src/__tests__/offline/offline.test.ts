@@ -23,8 +23,18 @@ describe('Offline Module', () => {
     });
 
     it('should enqueue with priority', () => {
-      const highOp = queue.enqueue('create', { name: 'high' }, 'session-1', 'high');
-      const lowOp = queue.enqueue('create', { name: 'low' }, 'session-1', 'low');
+      const highOp = queue.enqueue(
+        'create',
+        { name: 'high' },
+        'session-1',
+        'high',
+      );
+      const lowOp = queue.enqueue(
+        'create',
+        { name: 'low' },
+        'session-1',
+        'low',
+      );
 
       expect(highOp.priority).toBe('high');
       expect(lowOp.priority).toBe('low');
@@ -60,7 +70,13 @@ describe('Offline Module', () => {
     });
 
     it('should mark operation as failed with retry', () => {
-      const op = queue.enqueue('create', { name: 'test' }, 'session-1', 'normal', 3);
+      const op = queue.enqueue(
+        'create',
+        { name: 'test' },
+        'session-1',
+        'normal',
+        3,
+      );
       queue.markSyncing([op.id]);
       queue.markFailed(op.id, new Error('Network error'));
 
@@ -71,7 +87,13 @@ describe('Offline Module', () => {
     });
 
     it('should mark operation as permanently failed after max retries', () => {
-      const op = queue.enqueue('create', { name: 'test' }, 'session-1', 'normal', 2);
+      const op = queue.enqueue(
+        'create',
+        { name: 'test' },
+        'session-1',
+        'normal',
+        2,
+      );
 
       queue.markSyncing([op.id]);
       queue.markFailed(op.id, new Error('Error 1'));
@@ -137,7 +159,13 @@ describe('Offline Module', () => {
     });
 
     it('should retry failed operations', () => {
-      const op = queue.enqueue('create', { name: 'test' }, 'session-1', 'normal', 1);
+      const op = queue.enqueue(
+        'create',
+        { name: 'test' },
+        'session-1',
+        'normal',
+        1,
+      );
       queue.markSyncing([op.id]);
       queue.markFailed(op.id, new Error('Error'));
 
@@ -164,8 +192,20 @@ describe('Offline Module', () => {
     });
 
     it('should clear failed operations', () => {
-      const op1 = queue.enqueue('create', { name: 'test1' }, 'session-1', 'normal', 1);
-      const op2 = queue.enqueue('create', { name: 'test2' }, 'session-1', 'normal', 1);
+      const op1 = queue.enqueue(
+        'create',
+        { name: 'test1' },
+        'session-1',
+        'normal',
+        1,
+      );
+      const op2 = queue.enqueue(
+        'create',
+        { name: 'test2' },
+        'session-1',
+        'normal',
+        1,
+      );
       queue.enqueue('create', { name: 'test3' }, 'session-1');
 
       // Make op1 and op2 fail

@@ -56,7 +56,12 @@ export interface SyncSession {
 }
 
 export interface SyncEvent {
-  type: 'node-joined' | 'node-left' | 'sync-started' | 'sync-completed' | 'conflict-detected';
+  type:
+    | 'node-joined'
+    | 'node-left'
+    | 'sync-started'
+    | 'sync-completed'
+    | 'conflict-detected';
   sessionId?: string;
   nodeId: string;
   timestamp: string;
@@ -104,7 +109,10 @@ export class SyncCoordinator extends EventEmitter {
    * Register a node with DID-based identity
    */
   async registerAuthenticatedNode(
-    nodeInfo: Omit<SyncNode, 'did' | 'publicSigningKey' | 'publicEncryptionKey'> & {
+    nodeInfo: Omit<
+      SyncNode,
+      'did' | 'publicSigningKey' | 'publicEncryptionKey'
+    > & {
       did: string;
       publicSigningKey: JsonWebKey;
       publicEncryptionKey?: JsonWebKey;
@@ -160,7 +168,7 @@ export class SyncCoordinator extends EventEmitter {
    * Get all authenticated nodes (nodes with DIDs)
    */
   getAuthenticatedNodes(): SyncNode[] {
-    return Array.from(this.nodes.values()).filter(n => n.did);
+    return Array.from(this.nodes.values()).filter((n) => n.did);
   }
 
   /**
@@ -193,8 +201,9 @@ export class SyncCoordinator extends EventEmitter {
     let sessionToken: string | undefined;
     if (this.cryptoProvider && this.cryptoProvider.isInitialized()) {
       // Create a UCAN that grants sync capabilities to all participants
-      const capabilities = (options?.requiredCapabilities || ['aeon:sync:read', 'aeon:sync:write'])
-        .map(cap => ({ can: cap, with: '*' }));
+      const capabilities = (
+        options?.requiredCapabilities || ['aeon:sync:read', 'aeon:sync:write']
+      ).map((cap) => ({ can: cap, with: '*' }));
 
       // Create token for the first participant (in production, you'd create one per participant)
       if (participantDIDs.length > 0) {
@@ -268,7 +277,7 @@ export class SyncCoordinator extends EventEmitter {
     }
 
     const result = await this.cryptoProvider.verifyUCAN(token, {
-      requiredCapabilities: session.requiredCapabilities?.map(cap => ({
+      requiredCapabilities: session.requiredCapabilities?.map((cap) => ({
         can: cap,
         with: '*',
       })),
@@ -335,7 +344,10 @@ export class SyncCoordinator extends EventEmitter {
   /**
    * Create a new sync session
    */
-  createSyncSession(initiatorId: string, participantIds: string[]): SyncSession {
+  createSyncSession(
+    initiatorId: string,
+    participantIds: string[],
+  ): SyncSession {
     const node = this.nodes.get(initiatorId);
     if (!node) {
       throw new Error(`Initiator node ${initiatorId} not found`);
@@ -376,10 +388,7 @@ export class SyncCoordinator extends EventEmitter {
   /**
    * Update sync session
    */
-  updateSyncSession(
-    sessionId: string,
-    updates: Partial<SyncSession>,
-  ): void {
+  updateSyncSession(sessionId: string, updates: Partial<SyncSession>): void {
     const session = this.sessions.get(sessionId);
     if (!session) {
       throw new Error(`Session ${sessionId} not found`);
@@ -412,7 +421,11 @@ export class SyncCoordinator extends EventEmitter {
   /**
    * Record a conflict during sync
    */
-  recordConflict(sessionId: string, nodeId: string, conflictData?: unknown): void {
+  recordConflict(
+    sessionId: string,
+    nodeId: string,
+    conflictData?: unknown,
+  ): void {
     const session = this.sessions.get(sessionId);
     if (session) {
       session.conflictsDetected++;
@@ -485,14 +498,14 @@ export class SyncCoordinator extends EventEmitter {
    * Get online nodes
    */
   getOnlineNodes(): SyncNode[] {
-    return Array.from(this.nodes.values()).filter(n => n.status === 'online');
+    return Array.from(this.nodes.values()).filter((n) => n.status === 'online');
   }
 
   /**
    * Get nodes by capability
    */
   getNodesByCapability(capability: string): SyncNode[] {
-    return Array.from(this.nodes.values()).filter(n =>
+    return Array.from(this.nodes.values()).filter((n) =>
       n.capabilities.includes(capability),
     );
   }
@@ -515,7 +528,9 @@ export class SyncCoordinator extends EventEmitter {
    * Get active sync sessions
    */
   getActiveSyncSessions(): SyncSession[] {
-    return Array.from(this.sessions.values()).filter(s => s.status === 'active');
+    return Array.from(this.sessions.values()).filter(
+      (s) => s.status === 'active',
+    );
   }
 
   /**
@@ -523,7 +538,7 @@ export class SyncCoordinator extends EventEmitter {
    */
   getSessionsForNode(nodeId: string): SyncSession[] {
     return Array.from(this.sessions.values()).filter(
-      s => s.initiatorId === nodeId || s.participantIds.includes(nodeId),
+      (s) => s.initiatorId === nodeId || s.participantIds.includes(nodeId),
     );
   }
 
@@ -532,12 +547,18 @@ export class SyncCoordinator extends EventEmitter {
    */
   getStatistics() {
     const sessions = Array.from(this.sessions.values());
-    const completed = sessions.filter(s => s.status === 'completed').length;
-    const failed = sessions.filter(s => s.status === 'failed').length;
-    const active = sessions.filter(s => s.status === 'active').length;
+    const completed = sessions.filter((s) => s.status === 'completed').length;
+    const failed = sessions.filter((s) => s.status === 'failed').length;
+    const active = sessions.filter((s) => s.status === 'active').length;
 
-    const totalItemsSynced = sessions.reduce((sum, s) => sum + s.itemsSynced, 0);
-    const totalConflicts = sessions.reduce((sum, s) => sum + s.conflictsDetected, 0);
+    const totalItemsSynced = sessions.reduce(
+      (sum, s) => sum + s.itemsSynced,
+      0,
+    );
+    const totalConflicts = sessions.reduce(
+      (sum, s) => sum + s.conflictsDetected,
+      0,
+    );
 
     return {
       totalNodes: this.nodes.size,
@@ -547,10 +568,12 @@ export class SyncCoordinator extends EventEmitter {
       activeSessions: active,
       completedSessions: completed,
       failedSessions: failed,
-      successRate: sessions.length > 0 ? (completed / sessions.length) * 100 : 0,
+      successRate:
+        sessions.length > 0 ? (completed / sessions.length) * 100 : 0,
       totalItemsSynced,
       totalConflicts,
-      averageConflictsPerSession: sessions.length > 0 ? totalConflicts / sessions.length : 0,
+      averageConflictsPerSession:
+        sessions.length > 0 ? totalConflicts / sessions.length : 0,
     };
   }
 
@@ -569,7 +592,7 @@ export class SyncCoordinator extends EventEmitter {
    * Get sync events for session
    */
   getSessionEvents(sessionId: string): SyncEvent[] {
-    return this.syncEvents.filter(e => e.sessionId === sessionId);
+    return this.syncEvents.filter((e) => e.sessionId === sessionId);
   }
 
   /**
@@ -616,7 +639,9 @@ export class SyncCoordinator extends EventEmitter {
       }
     }, interval);
 
-    logger.debug('[SyncCoordinator] Heartbeat monitoring started', { interval });
+    logger.debug('[SyncCoordinator] Heartbeat monitoring started', {
+      interval,
+    });
   }
 
   /**

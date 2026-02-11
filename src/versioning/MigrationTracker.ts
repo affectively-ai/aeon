@@ -46,7 +46,10 @@ export interface RollbackPath {
  */
 export class MigrationTracker {
   private migrations: MigrationRecord[] = [];
-  private snapshots: Map<string, { beforeHash: string; afterHash: string; itemCount: number }> = new Map();
+  private snapshots: Map<
+    string,
+    { beforeHash: string; afterHash: string; itemCount: number }
+  > = new Map();
 
   /**
    * Track a new migration
@@ -104,21 +107,21 @@ export class MigrationTracker {
    * Get all migration records
    */
   getMigrations(): MigrationRecord[] {
-    return this.migrations.map(m => ({ ...m }));
+    return this.migrations.map((m) => ({ ...m }));
   }
 
   /**
    * Get migrations for a specific version
    */
   getMigrationsForVersion(version: string): MigrationRecord[] {
-    return this.migrations.filter(m => m.version === version);
+    return this.migrations.filter((m) => m.version === version);
   }
 
   /**
    * Get migration by ID
    */
   getMigration(id: string): MigrationRecord | undefined {
-    return this.migrations.find(m => m.id === id);
+    return this.migrations.find((m) => m.id === id);
   }
 
   /**
@@ -126,8 +129,10 @@ export class MigrationTracker {
    */
   canRollback(fromVersion: string, toVersion: string): boolean {
     // Find all migrations from fromVersion going down to toVersion
-    const fromIndex = this.migrations.findIndex(m => m.version === fromVersion);
-    const toIndex = this.migrations.findIndex(m => m.version === toVersion);
+    const fromIndex = this.migrations.findIndex(
+      (m) => m.version === fromVersion,
+    );
+    const toIndex = this.migrations.findIndex((m) => m.version === toVersion);
 
     if (fromIndex === -1 || toIndex === -1) {
       return false;
@@ -157,8 +162,10 @@ export class MigrationTracker {
     let estimatedDuration = 0;
 
     if (canRollback) {
-      const fromIndex = this.migrations.findIndex(m => m.version === fromVersion);
-      const toIndex = this.migrations.findIndex(m => m.version === toVersion);
+      const fromIndex = this.migrations.findIndex(
+        (m) => m.version === fromVersion,
+      );
+      const toIndex = this.migrations.findIndex((m) => m.version === toVersion);
 
       for (let i = fromIndex; i > toIndex; i--) {
         const migration = this.migrations[i];
@@ -182,21 +189,21 @@ export class MigrationTracker {
    * Get applied migrations
    */
   getAppliedMigrations(): MigrationRecord[] {
-    return this.migrations.filter(m => m.status === 'applied');
+    return this.migrations.filter((m) => m.status === 'applied');
   }
 
   /**
    * Get failed migrations
    */
   getFailedMigrations(): MigrationRecord[] {
-    return this.migrations.filter(m => m.status === 'failed');
+    return this.migrations.filter((m) => m.status === 'failed');
   }
 
   /**
    * Get pending migrations
    */
   getPendingMigrations(): MigrationRecord[] {
-    return this.migrations.filter(m => m.status === 'pending');
+    return this.migrations.filter((m) => m.status === 'pending');
   }
 
   /**
@@ -210,7 +217,7 @@ export class MigrationTracker {
    * Get migration timeline
    */
   getTimeline(): Array<{ timestamp: string; version: string; status: string }> {
-    return this.migrations.map(m => ({
+    return this.migrations.map((m) => ({
       timestamp: m.timestamp,
       version: m.version,
       status: m.status,
@@ -221,13 +228,25 @@ export class MigrationTracker {
    * Get migration statistics
    */
   getStatistics() {
-    const applied = this.migrations.filter(m => m.status === 'applied').length;
-    const failed = this.migrations.filter(m => m.status === 'failed').length;
-    const pending = this.migrations.filter(m => m.status === 'pending').length;
-    const rolledBack = this.migrations.filter(m => m.status === 'rolled-back').length;
+    const applied = this.migrations.filter(
+      (m) => m.status === 'applied',
+    ).length;
+    const failed = this.migrations.filter((m) => m.status === 'failed').length;
+    const pending = this.migrations.filter(
+      (m) => m.status === 'pending',
+    ).length;
+    const rolledBack = this.migrations.filter(
+      (m) => m.status === 'rolled-back',
+    ).length;
 
-    const totalDuration = this.migrations.reduce((sum, m) => sum + m.duration, 0);
-    const totalAffected = this.migrations.reduce((sum, m) => sum + m.itemsAffected, 0);
+    const totalDuration = this.migrations.reduce(
+      (sum, m) => sum + m.duration,
+      0,
+    );
+    const totalAffected = this.migrations.reduce(
+      (sum, m) => sum + m.itemsAffected,
+      0,
+    );
 
     return {
       total: this.migrations.length,
@@ -235,9 +254,13 @@ export class MigrationTracker {
       failed,
       pending,
       rolledBack,
-      successRate: this.migrations.length > 0 ? (applied / this.migrations.length) * 100 : 0,
+      successRate:
+        this.migrations.length > 0
+          ? (applied / this.migrations.length) * 100
+          : 0,
       totalDurationMs: totalDuration,
-      averageDurationMs: this.migrations.length > 0 ? totalDuration / this.migrations.length : 0,
+      averageDurationMs:
+        this.migrations.length > 0 ? totalDuration / this.migrations.length : 0,
       totalItemsAffected: totalAffected,
     };
   }
@@ -247,10 +270,10 @@ export class MigrationTracker {
    */
   getAuditTrail(migrationId?: string) {
     const filtered = migrationId
-      ? this.migrations.filter(m => m.migrationId === migrationId)
+      ? this.migrations.filter((m) => m.migrationId === migrationId)
       : this.migrations;
 
-    return filtered.map(m => ({
+    return filtered.map((m) => ({
       id: m.id,
       timestamp: m.timestamp,
       migrationId: m.migrationId,
@@ -273,8 +296,12 @@ export class MigrationTracker {
   /**
    * Update migration status
    */
-  updateMigrationStatus(recordId: string, status: MigrationRecord['status'], error?: string): void {
-    const migration = this.migrations.find(m => m.id === recordId);
+  updateMigrationStatus(
+    recordId: string,
+    status: MigrationRecord['status'],
+    error?: string,
+  ): void {
+    const migration = this.migrations.find((m) => m.id === recordId);
     if (migration) {
       migration.status = status;
       if (error) {
@@ -307,11 +334,14 @@ export class MigrationTracker {
   /**
    * Find migrations by time range
    */
-  getMigrationsByTimeRange(startTime: string, endTime: string): MigrationRecord[] {
+  getMigrationsByTimeRange(
+    startTime: string,
+    endTime: string,
+  ): MigrationRecord[] {
     const start = new Date(startTime).getTime();
     const end = new Date(endTime).getTime();
 
-    return this.migrations.filter(m => {
+    return this.migrations.filter((m) => {
       const time = new Date(m.timestamp).getTime();
       return time >= start && time <= end;
     });

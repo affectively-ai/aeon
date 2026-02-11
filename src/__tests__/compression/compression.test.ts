@@ -49,7 +49,10 @@ describe('Compression Module', () => {
       const batch = await engine.compress(data);
       // In test environment without native compression, data may not be compressed
       // Use smaller chunk size to ensure multiple chunks
-      const chunkSize = Math.min(64 * 1024, Math.ceil(batch.compressed.length / 2));
+      const chunkSize = Math.min(
+        64 * 1024,
+        Math.ceil(batch.compressed.length / 2),
+      );
       const chunks = engine.splitIntoChunks(batch, chunkSize);
 
       expect(chunks.length).toBeGreaterThanOrEqual(1);

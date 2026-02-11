@@ -7,12 +7,7 @@
 /**
  * Operation type - what action is being performed
  */
-export type OperationType =
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'sync'
-  | 'batch';
+export type OperationType = 'create' | 'update' | 'delete' | 'sync' | 'batch';
 
 /**
  * Operation priority for sync ordering

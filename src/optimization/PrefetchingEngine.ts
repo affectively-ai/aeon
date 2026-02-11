@@ -220,7 +220,7 @@ export class PrefetchingEngine {
 
     // Deduplicate and sort
     const deduped = Array.from(
-      new Map(predictions.map((p) => [p.operationType, p])).values()
+      new Map(predictions.map((p) => [p.operationType, p])).values(),
     ).sort((a, b) => b.probability - a.probability);
 
     logger.debug('[PrefetchingEngine] Predictions', {
@@ -239,7 +239,7 @@ export class PrefetchingEngine {
   addPrefetchedBatch(
     operationType: string,
     compressed: Uint8Array,
-    originalSize: number
+    originalSize: number,
   ): PrefetchedBatch {
     if (!this.prefetchCache.has(operationType)) {
       this.prefetchCache.set(operationType, []);

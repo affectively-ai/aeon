@@ -65,7 +65,9 @@ describe('Logger Module', () => {
 
   describe('disableLogging', () => {
     it('should disable all logging', () => {
-      const consoleSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, 'debug')
+        .mockImplementation(() => {});
 
       disableLogging();
 
@@ -97,10 +99,22 @@ describe('Logger Module', () => {
       nsLogger.warn('warn message');
       nsLogger.error('error message');
 
-      expect(customLogger.debug).toHaveBeenCalledWith('[MyModule]', 'debug message');
-      expect(customLogger.info).toHaveBeenCalledWith('[MyModule]', 'info message');
-      expect(customLogger.warn).toHaveBeenCalledWith('[MyModule]', 'warn message');
-      expect(customLogger.error).toHaveBeenCalledWith('[MyModule]', 'error message');
+      expect(customLogger.debug).toHaveBeenCalledWith(
+        '[MyModule]',
+        'debug message',
+      );
+      expect(customLogger.info).toHaveBeenCalledWith(
+        '[MyModule]',
+        'info message',
+      );
+      expect(customLogger.warn).toHaveBeenCalledWith(
+        '[MyModule]',
+        'warn message',
+      );
+      expect(customLogger.error).toHaveBeenCalledWith(
+        '[MyModule]',
+        'error message',
+      );
     });
   });
 

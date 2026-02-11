@@ -80,7 +80,8 @@ export class ReplicationManager {
   private replicas: Map<string, Replica> = new Map();
   private policies: Map<string, ReplicationPolicy> = new Map();
   private replicationEvents: ReplicationEvent[] = [];
-  private syncStatus: Map<string, { synced: number; failed: number }> = new Map();
+  private syncStatus: Map<string, { synced: number; failed: number }> =
+    new Map();
 
   // Crypto support
   private cryptoProvider: ICryptoProvider | null = null;
@@ -169,7 +170,7 @@ export class ReplicationManager {
    * Get all encrypted replicas
    */
   getEncryptedReplicas(): Replica[] {
-    return Array.from(this.replicas.values()).filter(r => r.encrypted);
+    return Array.from(this.replicas.values()).filter((r) => r.encrypted);
   }
 
   /**
@@ -184,7 +185,10 @@ export class ReplicationManager {
     }
 
     const dataBytes = new TextEncoder().encode(JSON.stringify(data));
-    const encrypted = await this.cryptoProvider.encrypt(dataBytes, targetReplicaDID);
+    const encrypted = await this.cryptoProvider.encrypt(
+      dataBytes,
+      targetReplicaDID,
+    );
 
     const localDID = this.cryptoProvider.getLocalDID();
 
@@ -275,17 +279,20 @@ export class ReplicationManager {
     const policy = policyId ? this.policies.get(policyId) : undefined;
 
     const result = await this.cryptoProvider.verifyUCAN(token, {
-      requiredCapabilities: policy?.requiredCapabilities?.map(cap => ({
+      requiredCapabilities: policy?.requiredCapabilities?.map((cap) => ({
         can: cap,
         with: '*',
       })),
     });
 
     if (!result.authorized) {
-      logger.warn('[ReplicationManager] Replica capability verification failed', {
-        replicaDID,
-        error: result.error,
-      });
+      logger.warn(
+        '[ReplicationManager] Replica capability verification failed',
+        {
+          replicaDID,
+          error: result.error,
+        },
+      );
     }
 
     return result;
@@ -421,7 +428,9 @@ export class ReplicationManager {
    * Get replicas for node
    */
   getReplicasForNode(nodeId: string): Replica[] {
-    return Array.from(this.replicas.values()).filter(r => r.nodeId === nodeId);
+    return Array.from(this.replicas.values()).filter(
+      (r) => r.nodeId === nodeId,
+    );
   }
 
   /**
@@ -429,7 +438,7 @@ export class ReplicationManager {
    */
   getHealthyReplicas(): Replica[] {
     return Array.from(this.replicas.values()).filter(
-      r => r.status === 'secondary' || r.status === 'primary',
+      (r) => r.status === 'secondary' || r.status === 'primary',
     );
   }
 
@@ -437,14 +446,18 @@ export class ReplicationManager {
    * Get syncing replicas
    */
   getSyncingReplicas(): Replica[] {
-    return Array.from(this.replicas.values()).filter(r => r.status === 'syncing');
+    return Array.from(this.replicas.values()).filter(
+      (r) => r.status === 'syncing',
+    );
   }
 
   /**
    * Get failed replicas
    */
   getFailedReplicas(): Replica[] {
-    return Array.from(this.replicas.values()).filter(r => r.status === 'failed');
+    return Array.from(this.replicas.values()).filter(
+      (r) => r.status === 'failed',
+    );
   }
 
   /**
@@ -462,10 +475,12 @@ export class ReplicationManager {
     }
 
     const healthy = this.getHealthyReplicas();
-    const maxLag = Math.max(0, ...healthy.map(r => r.lagMillis));
+    const maxLag = Math.max(0, ...healthy.map((r) => r.lagMillis));
 
     return {
-      healthy: healthy.length >= policy.replicationFactor && maxLag <= policy.maxReplicationLag,
+      healthy:
+        healthy.length >= policy.replicationFactor &&
+        maxLag <= policy.maxReplicationLag,
       replicasInPolicy: policy.replicationFactor,
       healthyReplicas: healthy.length,
       replicationLag: maxLag,
@@ -475,7 +490,9 @@ export class ReplicationManager {
   /**
    * Get consistency level
    */
-  getConsistencyLevel(policyId: string): 'eventual' | 'read-after-write' | 'strong' {
+  getConsistencyLevel(
+    policyId: string,
+  ): 'eventual' | 'read-after-write' | 'strong' {
     const policy = this.policies.get(policyId);
     if (!policy) {
       return 'eventual';
@@ -521,9 +538,15 @@ export class ReplicationManager {
     const failed = this.getFailedReplicas().length;
     const total = this.replicas.size;
 
-    const replicationLags = Array.from(this.replicas.values()).map(r => r.lagMillis);
-    const avgLag = replicationLags.length > 0 ? replicationLags.reduce((a, b) => a + b) / replicationLags.length : 0;
-    const maxLag = replicationLags.length > 0 ? Math.max(...replicationLags) : 0;
+    const replicationLags = Array.from(this.replicas.values()).map(
+      (r) => r.lagMillis,
+    );
+    const avgLag =
+      replicationLags.length > 0
+        ? replicationLags.reduce((a, b) => a + b) / replicationLags.length
+        : 0;
+    const maxLag =
+      replicationLags.length > 0 ? Math.max(...replicationLags) : 0;
 
     return {
       totalReplicas: total,

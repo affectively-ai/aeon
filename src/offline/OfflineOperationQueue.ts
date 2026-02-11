@@ -74,7 +74,7 @@ export class OfflineOperationQueue extends EventEmitter<OfflineQueueEvents> {
     data: Record<string, unknown>,
     sessionId: string,
     priority: OperationPriority = 'normal',
-    maxRetries?: number
+    maxRetries?: number,
   ): OfflineOperation {
     if (this.queue.size >= this.maxQueueSize) {
       // Remove oldest low-priority operation
@@ -121,7 +121,8 @@ export class OfflineOperationQueue extends EventEmitter<OfflineQueueEvents> {
       .sort((a, b) => {
         // Sort by priority first, then by creation time
         const priorityOrder = { high: 0, normal: 1, low: 2 };
-        const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+        const priorityDiff =
+          priorityOrder[a.priority] - priorityOrder[b.priority];
         if (priorityDiff !== 0) return priorityDiff;
         return a.createdAt - b.createdAt;
       });
@@ -203,7 +204,7 @@ export class OfflineOperationQueue extends EventEmitter<OfflineQueueEvents> {
    */
   getPendingOperations(): OfflineOperation[] {
     return Array.from(this.queue.values()).filter(
-      (op) => op.status === 'pending'
+      (op) => op.status === 'pending',
     );
   }
 
@@ -212,7 +213,7 @@ export class OfflineOperationQueue extends EventEmitter<OfflineQueueEvents> {
    */
   getPendingCount(): number {
     return Array.from(this.queue.values()).filter(
-      (op) => op.status === 'pending'
+      (op) => op.status === 'pending',
     ).length;
   }
 

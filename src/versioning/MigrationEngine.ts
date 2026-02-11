@@ -100,7 +100,9 @@ export class MigrationEngine {
       migration.up(data);
 
       result.success = true;
-      result.itemsAffected = Array.isArray(data) ? (data as unknown[]).length : 1;
+      result.itemsAffected = Array.isArray(data)
+        ? (data as unknown[]).length
+        : 1;
       result.duration = Date.now() - startTime;
 
       // Track as applied
@@ -169,12 +171,14 @@ export class MigrationEngine {
       migration.down(data);
 
       result.success = true;
-      result.itemsAffected = Array.isArray(data) ? (data as unknown[]).length : 1;
+      result.itemsAffected = Array.isArray(data)
+        ? (data as unknown[]).length
+        : 1;
       result.duration = Date.now() - startTime;
 
       // Remove from applied migrations
       this.state.appliedMigrations = this.state.appliedMigrations.filter(
-        id => id !== migrationId,
+        (id) => id !== migrationId,
       );
 
       this.executedMigrations.push(result);
@@ -195,7 +199,9 @@ export class MigrationEngine {
         error: result.errors[0],
       });
 
-      throw new Error(`Rollback for ${migrationId} failed: ${result.errors[0]}`);
+      throw new Error(
+        `Rollback for ${migrationId} failed: ${result.errors[0]}`,
+      );
     }
   }
 
@@ -246,7 +252,7 @@ export class MigrationEngine {
    */
   getPendingMigrations(): Migration[] {
     return this.getAllMigrations().filter(
-      m => !this.state.appliedMigrations.includes(m.id),
+      (m) => !this.state.appliedMigrations.includes(m.id),
     );
   }
 
@@ -254,18 +260,30 @@ export class MigrationEngine {
    * Get migration statistics
    */
   getStatistics() {
-    const successful = this.executedMigrations.filter(m => m.success).length;
-    const failed = this.executedMigrations.filter(m => !m.success).length;
-    const totalDuration = this.executedMigrations.reduce((sum, m) => sum + m.duration, 0);
-    const totalAffected = this.executedMigrations.reduce((sum, m) => sum + m.itemsAffected, 0);
+    const successful = this.executedMigrations.filter((m) => m.success).length;
+    const failed = this.executedMigrations.filter((m) => !m.success).length;
+    const totalDuration = this.executedMigrations.reduce(
+      (sum, m) => sum + m.duration,
+      0,
+    );
+    const totalAffected = this.executedMigrations.reduce(
+      (sum, m) => sum + m.itemsAffected,
+      0,
+    );
 
     return {
       totalExecuted: this.executedMigrations.length,
       successful,
       failed,
-      successRate: this.executedMigrations.length > 0 ? (successful / this.executedMigrations.length) * 100 : 0,
+      successRate:
+        this.executedMigrations.length > 0
+          ? (successful / this.executedMigrations.length) * 100
+          : 0,
       totalDurationMs: totalDuration,
-      averageDurationMs: this.executedMigrations.length > 0 ? totalDuration / this.executedMigrations.length : 0,
+      averageDurationMs:
+        this.executedMigrations.length > 0
+          ? totalDuration / this.executedMigrations.length
+          : 0,
       totalAffected,
     };
   }

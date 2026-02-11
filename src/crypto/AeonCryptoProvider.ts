@@ -278,7 +278,8 @@ export class AeonCryptoProvider implements ICryptoProvider {
     this.sessionKeys.set(peerDID, {
       key,
       createdAt: now,
-      expiresAt: now + (this.config.sessionKeyExpiration || 24 * 60 * 60 * 1000),
+      expiresAt:
+        now + (this.config.sessionKeyExpiration || 24 * 60 * 60 * 1000),
     });
 
     return key;
@@ -361,10 +362,15 @@ export class AeonCryptoProvider implements ICryptoProvider {
       throw new Error('Identity not initialized');
     }
 
-    return createUCAN(this.identity, audience as any, capabilities as Capability[], {
-      expirationSeconds: options?.expirationSeconds,
-      proofs: options?.proofs,
-    });
+    return createUCAN(
+      this.identity,
+      audience as any,
+      capabilities as Capability[],
+      {
+        expirationSeconds: options?.expirationSeconds,
+        proofs: options?.proofs,
+      },
+    );
   }
 
   async verifyUCAN(

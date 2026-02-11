@@ -100,7 +100,9 @@ export class SchemaVersionManager {
    */
   setCurrentVersion(version: SchemaVersion): void {
     if (!this.versions.has(this.versionToString(version))) {
-      throw new Error(`Version ${this.versionToString(version)} not registered`);
+      throw new Error(
+        `Version ${this.versionToString(version)} not registered`,
+      );
     }
 
     this.currentVersion = version;
@@ -154,12 +156,21 @@ export class SchemaVersionManager {
   /**
    * Check if migration path exists
    */
-  canMigrate(fromVersion: SchemaVersion | string, toVersion: SchemaVersion | string): boolean {
-    const fromStr = typeof fromVersion === 'string' ? fromVersion : this.versionToString(fromVersion);
-    const toStr = typeof toVersion === 'string' ? toVersion : this.versionToString(toVersion);
+  canMigrate(
+    fromVersion: SchemaVersion | string,
+    toVersion: SchemaVersion | string,
+  ): boolean {
+    const fromStr =
+      typeof fromVersion === 'string'
+        ? fromVersion
+        : this.versionToString(fromVersion);
+    const toStr =
+      typeof toVersion === 'string'
+        ? toVersion
+        : this.versionToString(toVersion);
 
     const rules = this.compatibilityMatrix.get(fromStr) || [];
-    return rules.some(r => r.to === toStr && r.requiresMigration);
+    return rules.some((r) => r.to === toStr && r.requiresMigration);
   }
 
   /**
@@ -186,7 +197,8 @@ export class SchemaVersionManager {
           // Find the closest path to target
           if (
             this.compareVersions(nextVersion, toVersion) <= 0 ||
-            this.compareVersions(current, nextVersion) < this.compareVersions(current, toVersion)
+            this.compareVersions(current, nextVersion) <
+              this.compareVersions(current, toVersion)
           ) {
             current = nextVersion;
             path.push(current);
@@ -210,7 +222,10 @@ export class SchemaVersionManager {
    * Compare two versions
    * Returns: -1 if v1 < v2, 0 if equal, 1 if v1 > v2
    */
-  compareVersions(v1: SchemaVersion | string, v2: SchemaVersion | string): number {
+  compareVersions(
+    v1: SchemaVersion | string,
+    v2: SchemaVersion | string,
+  ): number {
     const ver1 = typeof v1 === 'string' ? this.parseVersion(v1) : v1;
     const ver2 = typeof v2 === 'string' ? this.parseVersion(v2) : v2;
 
@@ -274,7 +289,7 @@ export class SchemaVersionManager {
   getVersionMetadata(version: SchemaVersion): VersionMetadata {
     const history = this.versionHistory;
     const currentIndex = history.findIndex(
-      v => this.versionToString(v) === this.versionToString(version),
+      (v) => this.versionToString(v) === this.versionToString(version),
     );
 
     return {

@@ -92,7 +92,8 @@ export class SyncProtocol {
   private messageQueue: SyncMessage[] = [];
   private messageMap: Map<string, SyncMessage> = new Map();
   private handshakes: Map<string, Handshake> = new Map();
-  private protocolErrors: Array<{ error: ProtocolError; timestamp: string }> = [];
+  private protocolErrors: Array<{ error: ProtocolError; timestamp: string }> =
+    [];
   private messageCounter: number = 0;
 
   // Crypto support
@@ -317,9 +318,16 @@ export class SyncProtocol {
     };
 
     // Encrypt if requested and we have a recipient
-    if (encrypt && message.receiver && this.cryptoConfig?.encryptionMode !== 'none') {
+    if (
+      encrypt &&
+      message.receiver &&
+      this.cryptoConfig?.encryptionMode !== 'none'
+    ) {
       const payloadBytes = new TextEncoder().encode(JSON.stringify(payload));
-      const encrypted = await this.cryptoProvider.encrypt(payloadBytes, message.receiver);
+      const encrypted = await this.cryptoProvider.encrypt(
+        payloadBytes,
+        message.receiver,
+      );
 
       message.payload = encrypted;
       message.auth.encrypted = true;
@@ -399,10 +407,7 @@ export class SyncProtocol {
   /**
    * Create handshake message
    */
-  createHandshakeMessage(
-    nodeId: string,
-    capabilities: string[],
-  ): SyncMessage {
+  createHandshakeMessage(nodeId: string, capabilities: string[]): SyncMessage {
     const message: SyncMessage = {
       type: 'handshake',
       version: this.version,
@@ -515,7 +520,11 @@ export class SyncProtocol {
   /**
    * Create acknowledgement message
    */
-  createAckMessage(sender: string, receiver: string, messageId: string): SyncMessage {
+  createAckMessage(
+    sender: string,
+    receiver: string,
+    messageId: string,
+  ): SyncMessage {
     const message: SyncMessage = {
       type: 'ack',
       version: this.version,
@@ -617,7 +626,9 @@ export class SyncProtocol {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      throw new Error(`Failed to serialize message: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to serialize message: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -639,7 +650,9 @@ export class SyncProtocol {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      throw new Error(`Failed to deserialize message: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to deserialize message: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -683,21 +696,21 @@ export class SyncProtocol {
    * Get messages by type
    */
   getMessagesByType(type: SyncMessage['type']): SyncMessage[] {
-    return this.messageQueue.filter(m => m.type === type);
+    return this.messageQueue.filter((m) => m.type === type);
   }
 
   /**
    * Get messages from sender
    */
   getMessagesFromSender(sender: string): SyncMessage[] {
-    return this.messageQueue.filter(m => m.sender === sender);
+    return this.messageQueue.filter((m) => m.sender === sender);
   }
 
   /**
    * Get pending messages
    */
   getPendingMessages(receiver: string): SyncMessage[] {
-    return this.messageQueue.filter(m => m.receiver === receiver);
+    return this.messageQueue.filter((m) => m.receiver === receiver);
   }
 
   /**
@@ -717,7 +730,9 @@ export class SyncProtocol {
     }
 
     const errorCount = this.protocolErrors.length;
-    const recoverableErrors = this.protocolErrors.filter(e => e.error.recoverable).length;
+    const recoverableErrors = this.protocolErrors.filter(
+      (e) => e.error.recoverable,
+    ).length;
 
     return {
       totalMessages: this.messageQueue.length,

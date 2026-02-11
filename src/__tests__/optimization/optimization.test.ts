@@ -96,9 +96,7 @@ describe('Optimization Module', () => {
     });
 
     it('should return empty predictions with insufficient history', () => {
-      const recentOps = [
-        { type: 'create', size: 100, timestamp: Date.now() },
-      ];
+      const recentOps = [{ type: 'create', size: 100, timestamp: Date.now() }];
 
       const predictions = engine.predictNextOperations(recentOps);
 

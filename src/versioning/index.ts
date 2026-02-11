@@ -32,7 +32,4 @@ export type {
 } from './DataTransformer';
 
 export { MigrationTracker } from './MigrationTracker';
-export type {
-  MigrationRecord,
-  RollbackPath,
-} from './MigrationTracker';
+export type { MigrationRecord, RollbackPath } from './MigrationTracker';

@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SchemaVersionManager } from '../../versioning/SchemaVersionManager';
-import { MigrationEngine, type Migration } from '../../versioning/MigrationEngine';
+import {
+  MigrationEngine,
+  type Migration,
+} from '../../versioning/MigrationEngine';
 import { DataTransformer } from '../../versioning/DataTransformer';
 import { MigrationTracker } from '../../versioning/MigrationTracker';
 
@@ -34,8 +37,12 @@ describe('Versioning Module', () => {
     });
 
     it('should track multiple schema versions', () => {
-      versionManager.registerVersion(versionManager.createVersion(1, 1, 0, 'V1.1', false));
-      versionManager.registerVersion(versionManager.createVersion(2, 0, 0, 'V2', true));
+      versionManager.registerVersion(
+        versionManager.createVersion(1, 1, 0, 'V1.1', false),
+      );
+      versionManager.registerVersion(
+        versionManager.createVersion(2, 0, 0, 'V2', true),
+      );
 
       const history = versionManager.getVersionHistory();
       expect(history.length).toBeGreaterThanOrEqual(3); // Including initial 1.0.0
@@ -57,7 +64,9 @@ describe('Versioning Module', () => {
     });
 
     it('should register compatibility rules', () => {
-      versionManager.registerVersion(versionManager.createVersion(1, 0, 1, 'V1.0.1', false));
+      versionManager.registerVersion(
+        versionManager.createVersion(1, 0, 1, 'V1.0.1', false),
+      );
 
       versionManager.registerCompatibility({
         from: '1.0.0',
@@ -127,7 +136,13 @@ describe('Versioning Module', () => {
 
     it('should return empty path when no migration path exists', () => {
       const fromVersion = versionManager.parseVersion('1.0.0');
-      const toVersion = versionManager.createVersion(99, 0, 0, 'Far future', true);
+      const toVersion = versionManager.createVersion(
+        99,
+        0,
+        0,
+        'Far future',
+        true,
+      );
 
       versionManager.registerVersion(toVersion);
 
@@ -138,7 +153,13 @@ describe('Versioning Module', () => {
     });
 
     it('should get version metadata', () => {
-      const v1_1_0 = versionManager.createVersion(1, 1, 0, 'V1.1.0 update', false);
+      const v1_1_0 = versionManager.createVersion(
+        1,
+        1,
+        0,
+        'V1.1.0 update',
+        false,
+      );
       versionManager.registerVersion(v1_1_0);
 
       const metadata = versionManager.getVersionMetadata(v1_1_0);
@@ -192,9 +213,15 @@ describe('Versioning Module', () => {
     });
 
     it('should get all versions sorted', () => {
-      versionManager.registerVersion(versionManager.createVersion(1, 2, 0, 'V1.2', false));
-      versionManager.registerVersion(versionManager.createVersion(1, 1, 0, 'V1.1', false));
-      versionManager.registerVersion(versionManager.createVersion(2, 0, 0, 'V2', true));
+      versionManager.registerVersion(
+        versionManager.createVersion(1, 2, 0, 'V1.2', false),
+      );
+      versionManager.registerVersion(
+        versionManager.createVersion(1, 1, 0, 'V1.1', false),
+      );
+      versionManager.registerVersion(
+        versionManager.createVersion(2, 0, 0, 'V2', true),
+      );
 
       const allVersions = versionManager.getAllVersions();
 
@@ -202,15 +229,22 @@ describe('Versioning Module', () => {
 
       // Verify sorted order
       for (let i = 1; i < allVersions.length; i++) {
-        const comparison = versionManager.compareVersions(allVersions[i - 1], allVersions[i]);
+        const comparison = versionManager.compareVersions(
+          allVersions[i - 1],
+          allVersions[i],
+        );
         expect(comparison).toBeLessThanOrEqual(0);
       }
     });
 
     it('should clear all versions', () => {
-      versionManager.registerVersion(versionManager.createVersion(2, 0, 0, 'V2', true));
+      versionManager.registerVersion(
+        versionManager.createVersion(2, 0, 0, 'V2', true),
+      );
 
-      expect(versionManager.getVersionHistory().length).toBeGreaterThanOrEqual(2);
+      expect(versionManager.getVersionHistory().length).toBeGreaterThanOrEqual(
+        2,
+      );
 
       versionManager.clear();
 
@@ -221,14 +255,22 @@ describe('Versioning Module', () => {
     it('should throw when getting current version after clear', () => {
       versionManager.clear();
 
-      expect(() => versionManager.getCurrentVersion()).toThrow('No current version set');
+      expect(() => versionManager.getCurrentVersion()).toThrow(
+        'No current version set',
+      );
     });
 
     it('should throw when setting unregistered version as current', () => {
-      const unregistered = versionManager.createVersion(99, 0, 0, 'Not registered', false);
+      const unregistered = versionManager.createVersion(
+        99,
+        0,
+        0,
+        'Not registered',
+        false,
+      );
 
       expect(() => versionManager.setCurrentVersion(unregistered)).toThrow(
-        'Version 99.0.0 not registered'
+        'Version 99.0.0 not registered',
       );
     });
   });
@@ -270,7 +312,10 @@ describe('Versioning Module', () => {
       migrationEngine.registerMigration(migration);
 
       const testData = { id: 1, name: 'test' };
-      const result = await migrationEngine.executeMigration('up-migration-1', testData);
+      const result = await migrationEngine.executeMigration(
+        'up-migration-1',
+        testData,
+      );
 
       expect(result.success).toBe(true);
       expect(result.itemsAffected).toBe(1);
@@ -297,7 +342,10 @@ describe('Versioning Module', () => {
       migrationEngine.registerMigration(migration);
 
       const testData = { id: 1, name: 'test', newField: 'value' };
-      const result = await migrationEngine.rollbackMigration('rollback-migration-1', testData);
+      const result = await migrationEngine.rollbackMigration(
+        'rollback-migration-1',
+        testData,
+      );
 
       expect(result.success).toBe(true);
     });
@@ -393,7 +441,9 @@ describe('Versioning Module', () => {
 
       const history = migrationEngine.getExecutionHistory();
       expect(history.length).toBeGreaterThanOrEqual(1);
-      expect(history.find((h) => h.migrationId === 'history-test-1')).toBeDefined();
+      expect(
+        history.find((h) => h.migrationId === 'history-test-1'),
+      ).toBeDefined();
     });
 
     it('should get all migrations', () => {
@@ -463,7 +513,9 @@ describe('Versioning Module', () => {
       migrationEngine.registerMigration(migration);
       await migrationEngine.executeMigration('clear-test-1', {});
 
-      expect(migrationEngine.getAllMigrations().length).toBeGreaterThanOrEqual(1);
+      expect(migrationEngine.getAllMigrations().length).toBeGreaterThanOrEqual(
+        1,
+      );
 
       migrationEngine.clear();
 
@@ -476,7 +528,8 @@ describe('Versioning Module', () => {
     it('should register a transformation rule', () => {
       dataTransformer.registerRule({
         field: 'email',
-        transformer: (value: unknown) => (typeof value === 'string' ? value.toLowerCase() : value),
+        transformer: (value: unknown) =>
+          typeof value === 'string' ? value.toLowerCase() : value,
       });
 
       const rule = dataTransformer.getRule('email');
@@ -487,7 +540,8 @@ describe('Versioning Module', () => {
     it('should transform a single field', () => {
       dataTransformer.registerRule({
         field: 'status',
-        transformer: (value: unknown) => (value === 'pending' ? 'active' : value),
+        transformer: (value: unknown) =>
+          value === 'pending' ? 'active' : value,
       });
 
       const transformed = dataTransformer.transformField('status', 'pending');
@@ -497,12 +551,14 @@ describe('Versioning Module', () => {
     it('should transform an object with multiple fields', () => {
       dataTransformer.registerRule({
         field: 'email',
-        transformer: (value: unknown) => (typeof value === 'string' ? value.toLowerCase() : value),
+        transformer: (value: unknown) =>
+          typeof value === 'string' ? value.toLowerCase() : value,
       });
 
       dataTransformer.registerRule({
         field: 'status',
-        transformer: (value: unknown) => (value === 'pending' ? 'active' : value),
+        transformer: (value: unknown) =>
+          value === 'pending' ? 'active' : value,
       });
 
       const original = { email: 'TEST@EXAMPLE.COM', status: 'pending' };
@@ -515,7 +571,8 @@ describe('Versioning Module', () => {
     it('should transform a collection of items', () => {
       dataTransformer.registerRule({
         field: 'status',
-        transformer: (value: unknown) => (value === 'pending' ? 'active' : value),
+        transformer: (value: unknown) =>
+          value === 'pending' ? 'active' : value,
       });
 
       const items = [
@@ -550,9 +607,15 @@ describe('Versioning Module', () => {
 
     it('should validate transformation', () => {
       const original = [{ id: 1 }, { id: 2 }];
-      const transformed = [{ id: 1, status: 'active' }, { id: 2, status: 'active' }];
+      const transformed = [
+        { id: 1, status: 'active' },
+        { id: 2, status: 'active' },
+      ];
 
-      const validation = dataTransformer.validateTransformation(original, transformed);
+      const validation = dataTransformer.validateTransformation(
+        original,
+        transformed,
+      );
 
       expect(validation.valid).toBe(true);
       expect(validation.issues.length).toBe(0);
@@ -562,10 +625,15 @@ describe('Versioning Module', () => {
       const original = [{ id: 1 }, { id: 2 }, { id: 3 }];
       const transformed = [{ id: 1 }];
 
-      const validation = dataTransformer.validateTransformation(original, transformed);
+      const validation = dataTransformer.validateTransformation(
+        original,
+        transformed,
+      );
 
       expect(validation.valid).toBe(false);
-      expect(validation.issues.some(i => i.includes('count mismatch'))).toBe(true);
+      expect(validation.issues.some((i) => i.includes('count mismatch'))).toBe(
+        true,
+      );
     });
 
     it('should get transformation history', () => {
@@ -586,7 +654,10 @@ describe('Versioning Module', () => {
         transformer: (v) => v,
       });
 
-      dataTransformer.transformCollection([{ status: 'pending' }, { status: 'active' }]);
+      dataTransformer.transformCollection([
+        { status: 'pending' },
+        { status: 'active' },
+      ]);
 
       const stats = dataTransformer.getStatistics();
       expect(stats.totalBatches).toBe(1);
@@ -771,8 +842,26 @@ describe('Versioning Module', () => {
     });
 
     it('should check canRollback', () => {
-      migrationTracker.trackMigration('m-1', '1.0.0', 'hash-1', 'hash-2', 10, 100, 10, 'user');
-      migrationTracker.trackMigration('m-2', '1.1.0', 'hash-2', 'hash-3', 10, 100, 10, 'user');
+      migrationTracker.trackMigration(
+        'm-1',
+        '1.0.0',
+        'hash-1',
+        'hash-2',
+        10,
+        100,
+        10,
+        'user',
+      );
+      migrationTracker.trackMigration(
+        'm-2',
+        '1.1.0',
+        'hash-2',
+        'hash-3',
+        10,
+        100,
+        10,
+        'user',
+      );
 
       // Should be able to rollback because snapshots exist
       const canRollback = migrationTracker.canRollback('1.1.0', '1.0.0');
@@ -785,8 +874,26 @@ describe('Versioning Module', () => {
     });
 
     it('should get rollback path', () => {
-      migrationTracker.trackMigration('m-1', '1.0.0', 'hash-1', 'hash-2', 10, 100, 10, 'user');
-      migrationTracker.trackMigration('m-2', '1.1.0', 'hash-2', 'hash-3', 10, 150, 15, 'user');
+      migrationTracker.trackMigration(
+        'm-1',
+        '1.0.0',
+        'hash-1',
+        'hash-2',
+        10,
+        100,
+        10,
+        'user',
+      );
+      migrationTracker.trackMigration(
+        'm-2',
+        '1.1.0',
+        'hash-2',
+        'hash-3',
+        10,
+        150,
+        15,
+        'user',
+      );
 
       const path = migrationTracker.getRollbackPath('1.1.0', '1.0.0');
 

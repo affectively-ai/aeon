@@ -91,9 +91,15 @@ export class CompressionEngine {
 
     if (this.supportsNativeCompression()) {
       try {
-        compressed = await this.compressNative(inputData, this.preferredAlgorithm);
+        compressed = await this.compressNative(
+          inputData,
+          this.preferredAlgorithm,
+        );
       } catch (error) {
-        logger.warn('[CompressionEngine] Native compression failed, using fallback', error);
+        logger.warn(
+          '[CompressionEngine] Native compression failed, using fallback',
+          error,
+        );
         compressed = inputData;
         algorithm = 'none';
       }
@@ -149,7 +155,7 @@ export class CompressionEngine {
       try {
         decompressed = await this.decompressNative(
           batch.compressed,
-          batch.algorithm
+          batch.algorithm,
         );
       } catch (error) {
         logger.warn('[CompressionEngine] Native decompression failed', error);
@@ -179,13 +185,19 @@ export class CompressionEngine {
    */
   private async compressNative(
     data: Uint8Array,
-    algorithm: 'gzip' | 'deflate'
+    algorithm: 'gzip' | 'deflate',
   ): Promise<Uint8Array> {
     const stream = new CompressionStream(algorithm);
     const writer = stream.writable.getWriter();
     const reader = stream.readable.getReader();
 
-    writer.write(new Uint8Array(data.buffer, data.byteOffset, data.byteLength) as BufferSource);
+    writer.write(
+      new Uint8Array(
+        data.buffer,
+        data.byteOffset,
+        data.byteLength,
+      ) as BufferSource,
+    );
     writer.close();
 
     const chunks: Uint8Array[] = [];
@@ -216,13 +228,19 @@ export class CompressionEngine {
    */
   private async decompressNative(
     data: Uint8Array,
-    algorithm: 'gzip' | 'deflate'
+    algorithm: 'gzip' | 'deflate',
   ): Promise<Uint8Array> {
     const stream = new DecompressionStream(algorithm);
     const writer = stream.writable.getWriter();
     const reader = stream.readable.getReader();
 
-    writer.write(new Uint8Array(data.buffer, data.byteOffset, data.byteLength) as BufferSource);
+    writer.write(
+      new Uint8Array(
+        data.buffer,
+        data.byteOffset,
+        data.byteLength,
+      ) as BufferSource,
+    );
     writer.close();
 
     const chunks: Uint8Array[] = [];
@@ -251,7 +269,10 @@ export class CompressionEngine {
   /**
    * Split compressed batch into chunks for transmission
    */
-  splitIntoChunks(batch: CompressedBatch, chunkSize = 64 * 1024): CompressedChunk[] {
+  splitIntoChunks(
+    batch: CompressedBatch,
+    chunkSize = 64 * 1024,
+  ): CompressedChunk[] {
     const chunks: CompressedChunk[] = [];
     const data = batch.compressed;
     const total = Math.ceil(data.byteLength / chunkSize);
@@ -284,11 +305,16 @@ export class CompressionEngine {
     // Verify all chunks present
     const total = sorted[0]?.total ?? 0;
     if (sorted.length !== total) {
-      throw new Error(`Missing chunks: got ${sorted.length}, expected ${total}`);
+      throw new Error(
+        `Missing chunks: got ${sorted.length}, expected ${total}`,
+      );
     }
 
     // Combine
-    const totalLength = sorted.reduce((sum, chunk) => sum + chunk.data.length, 0);
+    const totalLength = sorted.reduce(
+      (sum, chunk) => sum + chunk.data.length,
+      0,
+    );
     const combined = new Uint8Array(totalLength);
     let offset = 0;
 

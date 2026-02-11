@@ -33,12 +33,21 @@ export interface PresenceUpdate {
 }
 
 export interface PresenceEvents {
-  presence_updated: (data: { agentId: string; presence: AgentPresence }) => void;
+  presence_updated: (data: {
+    agentId: string;
+    presence: AgentPresence;
+  }) => void;
   agent_joined: (data: { agentId: string; presence: AgentPresence }) => void;
   agent_left: (data: { agentId: string; presence: AgentPresence }) => void;
-  cursor_updated: (data: { agentId: string; cursorPosition: { x: number; y: number; path: string } }) => void;
+  cursor_updated: (data: {
+    agentId: string;
+    cursorPosition: { x: number; y: number; path: string };
+  }) => void;
   section_updated: (data: { agentId: string; activeSection: string }) => void;
-  status_updated: (data: { agentId: string; status: AgentPresence['status'] }) => void;
+  status_updated: (data: {
+    agentId: string;
+    status: AgentPresence['status'];
+  }) => void;
 }
 
 // ============================================================================
@@ -64,7 +73,7 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
    */
   updatePresence(
     agentId: string,
-    presence: Omit<AgentPresence, 'joinedAt' | 'lastSeen'>
+    presence: Omit<AgentPresence, 'joinedAt' | 'lastSeen'>,
   ): void {
     const existing = this.presences.get(agentId);
     const now = new Date().toISOString();
@@ -92,7 +101,7 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
     agentId: string,
     name: string,
     role: AgentPresence['role'] = 'user',
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): void {
     const now = new Date().toISOString();
 
@@ -109,7 +118,11 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
     this.presences.set(agentId, presence);
     this.emit('agent_joined', { agentId, presence });
 
-    logger.debug('[AgentPresenceManager] Agent joined', { agentId, name, role });
+    logger.debug('[AgentPresenceManager] Agent joined', {
+      agentId,
+      name,
+      role,
+    });
   }
 
   /**
@@ -209,7 +222,7 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
    */
   getOnlineAgents(): AgentPresence[] {
     return Array.from(this.presences.values()).filter(
-      (p) => p.status === 'online'
+      (p) => p.status === 'online',
     );
   }
 
@@ -252,16 +265,16 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
     return {
       totalAgents: this.presences.size,
       onlineAgents: Array.from(this.presences.values()).filter(
-        (p) => p.status === 'online'
+        (p) => p.status === 'online',
       ).length,
       offlineAgents: Array.from(this.presences.values()).filter(
-        (p) => p.status === 'offline'
+        (p) => p.status === 'offline',
       ).length,
       awayAgents: Array.from(this.presences.values()).filter(
-        (p) => p.status === 'away'
+        (p) => p.status === 'away',
       ).length,
       reconnectingAgents: Array.from(this.presences.values()).filter(
-        (p) => p.status === 'reconnecting'
+        (p) => p.status === 'reconnecting',
       ).length,
     };
   }
@@ -305,7 +318,7 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
    */
   getInSection(section: string): AgentPresence[] {
     return Array.from(this.presences.values()).filter(
-      (p) => p.activeSection === section && p.status === 'online'
+      (p) => p.activeSection === section && p.status === 'online',
     );
   }
 
@@ -390,7 +403,9 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
     this.stopHeartbeatMonitoring();
     this.presences.clear();
     this.removeAllListeners();
-    logger.debug('[AgentPresenceManager] Destroyed', { sessionId: this.sessionId });
+    logger.debug('[AgentPresenceManager] Destroyed', {
+      sessionId: this.sessionId,
+    });
   }
 }
 
@@ -400,7 +415,9 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
 
 const instances = new Map<string, AgentPresenceManager>();
 
-export function getAgentPresenceManager(sessionId: string): AgentPresenceManager {
+export function getAgentPresenceManager(
+  sessionId: string,
+): AgentPresenceManager {
   if (!instances.has(sessionId)) {
     instances.set(sessionId, new AgentPresenceManager(sessionId));
   }
