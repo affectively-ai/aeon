@@ -10,7 +10,6 @@ import type {
   AeonCapabilityResult,
   SignedSyncData,
   SecureNodeInfo,
-  DEFAULT_CRYPTO_CONFIG,
 } from './types';
 
 // Import from auth library
@@ -295,10 +294,12 @@ export class AeonCryptoProvider implements ICryptoProvider {
     tag: string;
     encryptedAt: number;
   }> {
+    const sessionKeyBuffer = new Uint8Array(sessionKey).buffer;
+
     // Import session key as CryptoKey
     const aesKey = await crypto.subtle.importKey(
       'raw',
-      sessionKey,
+      sessionKeyBuffer,
       { name: 'AES-GCM', length: 256 },
       false,
       ['encrypt'],
@@ -323,10 +324,12 @@ export class AeonCryptoProvider implements ICryptoProvider {
     },
     sessionKey: Uint8Array,
   ): Promise<Uint8Array> {
+    const sessionKeyBuffer = new Uint8Array(sessionKey).buffer;
+
     // Import session key as CryptoKey
     const aesKey = await crypto.subtle.importKey(
       'raw',
-      sessionKey,
+      sessionKeyBuffer,
       { name: 'AES-GCM', length: 256 },
       false,
       ['decrypt'],

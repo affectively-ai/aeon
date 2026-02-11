@@ -17,6 +17,12 @@
 import { logger } from '../utils/logger';
 import type { ICryptoProvider } from '../crypto/CryptoProvider';
 import type { AeonEncryptionMode } from '../crypto/types';
+import type {
+  PersistedEnvelope,
+  PersistenceDeserializer,
+  PersistenceSerializer,
+  StorageAdapter,
+} from '../persistence';
 
 export interface Replica {
   id: string;
@@ -72,11 +78,32 @@ export interface EncryptedReplicationData {
   encryptedAt: number;
 }
 
+export interface ReplicationPersistenceData {
+  replicas: Replica[];
+  policies: ReplicationPolicy[];
+  syncStatus: Array<{ nodeId: string; synced: number; failed: number }>;
+}
+
+export interface ReplicationPersistenceConfig {
+  adapter: StorageAdapter;
+  key?: string;
+  autoPersist?: boolean;
+  autoLoad?: boolean;
+  persistDebounceMs?: number;
+  serializer?: PersistenceSerializer<ReplicationPersistenceData>;
+  deserializer?: PersistenceDeserializer<ReplicationPersistenceData>;
+}
+
+export interface ReplicationManagerOptions {
+  persistence?: ReplicationPersistenceConfig;
+}
+
 /**
  * Replication Manager
  * Manages data replication across distributed nodes
  */
 export class ReplicationManager {
+  private static readonly DEFAULT_PERSIST_KEY = 'aeon:replication-state:v1';
   private replicas: Map<string, Replica> = new Map();
   private policies: Map<string, ReplicationPolicy> = new Map();
   private replicationEvents: ReplicationEvent[] = [];
@@ -86,6 +113,33 @@ export class ReplicationManager {
   // Crypto support
   private cryptoProvider: ICryptoProvider | null = null;
   private replicasByDID: Map<string, string> = new Map(); // DID -> replicaId
+  private persistence: (ReplicationPersistenceConfig & { key: string }) | null =
+    null;
+  private persistTimer: ReturnType<typeof setTimeout> | null = null;
+  private persistInFlight = false;
+  private persistPending = false;
+
+  constructor(options?: ReplicationManagerOptions) {
+    if (options?.persistence) {
+      this.persistence = {
+        ...options.persistence,
+        key:
+          options.persistence.key ?? ReplicationManager.DEFAULT_PERSIST_KEY,
+        autoPersist: options.persistence.autoPersist ?? true,
+        autoLoad: options.persistence.autoLoad ?? false,
+        persistDebounceMs: options.persistence.persistDebounceMs ?? 25,
+      };
+    }
+
+    if (this.persistence?.autoLoad) {
+      void this.loadFromPersistence().catch((error) => {
+        logger.error('[ReplicationManager] Failed to load persistence', {
+          key: this.persistence?.key,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+    }
+  }
 
   /**
    * Configure cryptographic provider for encrypted replication
@@ -114,7 +168,7 @@ export class ReplicationManager {
       publicSigningKey?: JsonWebKey;
       publicEncryptionKey?: JsonWebKey;
     },
-    encrypted: boolean = false,
+    encrypted = false,
   ): Promise<Replica> {
     const authenticatedReplica: Replica = {
       ...replica,
@@ -147,6 +201,7 @@ export class ReplicationManager {
     };
 
     this.replicationEvents.push(event);
+    this.schedulePersist();
 
     logger.debug('[ReplicationManager] Authenticated replica registered', {
       replicaId: replica.id,
@@ -316,6 +371,7 @@ export class ReplicationManager {
     };
 
     this.replicationEvents.push(event);
+    this.schedulePersist();
 
     logger.debug('[ReplicationManager] Replica registered', {
       replicaId: replica.id,
@@ -343,6 +399,7 @@ export class ReplicationManager {
     };
 
     this.replicationEvents.push(event);
+    this.schedulePersist();
 
     logger.debug('[ReplicationManager] Replica removed', { replicaId });
   }
@@ -354,8 +411,8 @@ export class ReplicationManager {
     name: string,
     replicationFactor: number,
     consistencyLevel: 'eventual' | 'read-after-write' | 'strong',
-    syncInterval: number = 1000,
-    maxReplicationLag: number = 10000,
+    syncInterval = 1000,
+    maxReplicationLag = 10000,
   ): ReplicationPolicy {
     const policy: ReplicationPolicy = {
       id: `policy-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -367,6 +424,7 @@ export class ReplicationManager {
     };
 
     this.policies.set(policy.id, policy);
+    this.schedulePersist();
 
     logger.debug('[ReplicationManager] Policy created', {
       policyId: policy.id,
@@ -384,8 +442,8 @@ export class ReplicationManager {
   updateReplicaStatus(
     replicaId: string,
     status: Replica['status'],
-    lagBytes: number = 0,
-    lagMillis: number = 0,
+    lagBytes = 0,
+    lagMillis = 0,
   ): void {
     const replica = this.replicas.get(replicaId);
     if (!replica) {
@@ -422,6 +480,8 @@ export class ReplicationManager {
       lagBytes,
       lagMillis,
     });
+
+    this.schedulePersist();
   }
 
   /**
@@ -628,6 +688,214 @@ export class ReplicationManager {
   }
 
   /**
+   * Persist current replication state snapshot.
+   */
+  async saveToPersistence(): Promise<void> {
+    if (!this.persistence) {
+      return;
+    }
+
+    const data: ReplicationPersistenceData = {
+      replicas: this.getAllReplicas(),
+      policies: this.getAllPolicies(),
+      syncStatus: Array.from(this.syncStatus.entries()).map(
+        ([nodeId, state]) => ({
+          nodeId,
+          synced: state.synced,
+          failed: state.failed,
+        }),
+      ),
+    };
+
+    const envelope: PersistedEnvelope<ReplicationPersistenceData> = {
+      version: 1,
+      updatedAt: Date.now(),
+      data,
+    };
+
+    const serialize =
+      this.persistence.serializer ??
+      ((value: PersistedEnvelope<ReplicationPersistenceData>) =>
+        JSON.stringify(value));
+
+    await this.persistence.adapter.setItem(this.persistence.key, serialize(envelope));
+  }
+
+  /**
+   * Load replication snapshot from persistence.
+   */
+  async loadFromPersistence(): Promise<{
+    replicas: number;
+    policies: number;
+    syncStatus: number;
+  }> {
+    if (!this.persistence) {
+      return { replicas: 0, policies: 0, syncStatus: 0 };
+    }
+
+    const raw = await this.persistence.adapter.getItem(this.persistence.key);
+    if (!raw) {
+      return { replicas: 0, policies: 0, syncStatus: 0 };
+    }
+
+    const deserialize =
+      this.persistence.deserializer ??
+      ((value: string) =>
+        JSON.parse(value) as PersistedEnvelope<ReplicationPersistenceData>);
+
+    const envelope = deserialize(raw);
+    if (envelope.version !== 1 || !envelope.data) {
+      throw new Error('Invalid replication persistence payload');
+    }
+
+    this.replicas.clear();
+    this.policies.clear();
+    this.syncStatus.clear();
+    this.replicasByDID.clear();
+
+    let importedReplicas = 0;
+    for (const replica of envelope.data.replicas) {
+      if (this.isValidReplica(replica)) {
+        this.replicas.set(replica.id, replica);
+        if (replica.did) {
+          this.replicasByDID.set(replica.did, replica.id);
+        }
+        importedReplicas++;
+      }
+    }
+
+    let importedPolicies = 0;
+    for (const policy of envelope.data.policies) {
+      if (this.isValidPolicy(policy)) {
+        this.policies.set(policy.id, policy);
+        importedPolicies++;
+      }
+    }
+
+    let importedSyncStatus = 0;
+    for (const status of envelope.data.syncStatus) {
+      if (
+        typeof status.nodeId === 'string' &&
+        typeof status.synced === 'number' &&
+        typeof status.failed === 'number'
+      ) {
+        this.syncStatus.set(status.nodeId, {
+          synced: status.synced,
+          failed: status.failed,
+        });
+        importedSyncStatus++;
+      }
+    }
+
+    logger.debug('[ReplicationManager] Loaded from persistence', {
+      key: this.persistence.key,
+      replicas: importedReplicas,
+      policies: importedPolicies,
+      syncStatus: importedSyncStatus,
+    });
+
+    return {
+      replicas: importedReplicas,
+      policies: importedPolicies,
+      syncStatus: importedSyncStatus,
+    };
+  }
+
+  /**
+   * Remove persisted replication snapshot.
+   */
+  async clearPersistence(): Promise<void> {
+    if (!this.persistence) {
+      return;
+    }
+    await this.persistence.adapter.removeItem(this.persistence.key);
+  }
+
+  private schedulePersist(): void {
+    if (!this.persistence || this.persistence.autoPersist === false) {
+      return;
+    }
+
+    if (this.persistTimer) {
+      clearTimeout(this.persistTimer);
+    }
+
+    this.persistTimer = setTimeout(() => {
+      void this.persistSafely();
+    }, this.persistence.persistDebounceMs ?? 25);
+  }
+
+  private async persistSafely(): Promise<void> {
+    if (!this.persistence) {
+      return;
+    }
+
+    if (this.persistInFlight) {
+      this.persistPending = true;
+      return;
+    }
+
+    this.persistInFlight = true;
+    try {
+      await this.saveToPersistence();
+    } catch (error) {
+      logger.error('[ReplicationManager] Persistence write failed', {
+        key: this.persistence.key,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      this.persistInFlight = false;
+      const shouldRunAgain = this.persistPending;
+      this.persistPending = false;
+      if (shouldRunAgain) {
+        void this.persistSafely();
+      }
+    }
+  }
+
+  private isValidReplica(value: unknown): value is Replica {
+    if (typeof value !== 'object' || value === null) {
+      return false;
+    }
+    const candidate = value as Partial<Replica>;
+    const validStatus =
+      candidate.status === 'primary' ||
+      candidate.status === 'secondary' ||
+      candidate.status === 'syncing' ||
+      candidate.status === 'failed';
+
+    return (
+      typeof candidate.id === 'string' &&
+      typeof candidate.nodeId === 'string' &&
+      validStatus &&
+      typeof candidate.lastSyncTime === 'string' &&
+      typeof candidate.lagBytes === 'number' &&
+      typeof candidate.lagMillis === 'number'
+    );
+  }
+
+  private isValidPolicy(value: unknown): value is ReplicationPolicy {
+    if (typeof value !== 'object' || value === null) {
+      return false;
+    }
+
+    const candidate = value as Partial<ReplicationPolicy>;
+    const validConsistency =
+      candidate.consistencyLevel === 'eventual' ||
+      candidate.consistencyLevel === 'read-after-write' ||
+      candidate.consistencyLevel === 'strong';
+
+    return (
+      typeof candidate.id === 'string' &&
+      typeof candidate.name === 'string' &&
+      typeof candidate.replicationFactor === 'number' &&
+      validConsistency &&
+      typeof candidate.syncInterval === 'number' &&
+      typeof candidate.maxReplicationLag === 'number'
+    );
+  }
+
+  /**
    * Clear all state (for testing)
    */
   clear(): void {
@@ -637,6 +905,7 @@ export class ReplicationManager {
     this.syncStatus.clear();
     this.replicasByDID.clear();
     this.cryptoProvider = null;
+    this.schedulePersist();
   }
 
   /**

@@ -35,6 +35,9 @@ export * from './core';
 // Utils
 export * from './utils';
 
+// Persistence module
+export * from './persistence';
+
 // Versioning module (Phase 15)
 export * from './versioning';
 

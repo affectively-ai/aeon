@@ -3,6 +3,7 @@ import { SyncCoordinator } from '../../distributed/SyncCoordinator';
 import { ReplicationManager } from '../../distributed/ReplicationManager';
 import { SyncProtocol } from '../../distributed/SyncProtocol';
 import { StateReconciler } from '../../distributed/StateReconciler';
+import { InMemoryStorageAdapter } from '../../persistence';
 
 describe('Distributed Module', () => {
   describe('SyncCoordinator', () => {
@@ -413,7 +414,7 @@ describe('Distributed Module', () => {
       });
 
       it('should start heartbeat monitoring and detect unhealthy nodes', () => {
-        let statusUpdates: string[] = [];
+        const statusUpdates: string[] = [];
         coordinator.on(
           'node-status-changed',
           (data: { nodeId: string; status: string }) => {
@@ -879,6 +880,103 @@ describe('Distributed Module', () => {
       expect(replicationManager.getAllReplicas().length).toBe(0);
       expect(replicationManager.getAllPolicies().length).toBe(0);
     });
+
+    describe('persistence', () => {
+      it('should persist and restore replication state', async () => {
+        const adapter = new InMemoryStorageAdapter();
+        const persistentManager = new ReplicationManager({
+          persistence: {
+            adapter,
+            key: 'replication:test',
+            autoPersist: false,
+          },
+        });
+
+        persistentManager.registerReplica({
+          id: 'replica-1',
+          nodeId: 'node-1',
+          status: 'primary',
+          lastSyncTime: new Date().toISOString(),
+          lagBytes: 10,
+          lagMillis: 20,
+        });
+        const policy = persistentManager.createPolicy(
+          'policy-1',
+          2,
+          'read-after-write',
+          2000,
+          5000,
+        );
+        expect(policy).toBeDefined();
+
+        await persistentManager.saveToPersistence();
+
+        const restoredManager = new ReplicationManager({
+          persistence: {
+            adapter,
+            key: 'replication:test',
+            autoPersist: false,
+          },
+        });
+
+        const loaded = await restoredManager.loadFromPersistence();
+        expect(loaded.replicas).toBe(1);
+        expect(loaded.policies).toBe(1);
+        expect(restoredManager.getAllReplicas().length).toBe(1);
+        expect(restoredManager.getAllPolicies().length).toBe(1);
+      });
+
+      it('should clear persisted replication state', async () => {
+        const adapter = new InMemoryStorageAdapter();
+        const persistentManager = new ReplicationManager({
+          persistence: {
+            adapter,
+            key: 'replication:clear',
+            autoPersist: false,
+          },
+        });
+
+        persistentManager.registerReplica({
+          id: 'replica-1',
+          nodeId: 'node-1',
+          status: 'primary',
+          lastSyncTime: new Date().toISOString(),
+          lagBytes: 0,
+          lagMillis: 0,
+        });
+        await persistentManager.saveToPersistence();
+        await persistentManager.clearPersistence();
+
+        const restoredManager = new ReplicationManager({
+          persistence: {
+            adapter,
+            key: 'replication:clear',
+            autoPersist: false,
+          },
+        });
+
+        const loaded = await restoredManager.loadFromPersistence();
+        expect(loaded.replicas).toBe(0);
+        expect(loaded.policies).toBe(0);
+      });
+
+      it('should reject invalid replication payload', async () => {
+        const adapter = new InMemoryStorageAdapter();
+        adapter.setItem('replication:invalid', '{"version":999,"data":{}}');
+
+        const persistentManager = new ReplicationManager({
+          persistence: {
+            adapter,
+            key: 'replication:invalid',
+            autoPersist: false,
+          },
+        });
+
+        await expect(persistentManager.loadFromPersistence()).rejects.toThrow(
+          'Invalid replication persistence payload',
+        );
+      });
+    });
   });
 
   describe('SyncProtocol', () => {
@@ -1127,6 +1225,96 @@ describe('Distributed Module', () => {
 
       expect(protocol.getAllMessages().length).toBe(0);
       expect(protocol.getHandshakes().size).toBe(0);
+    });
+
+    describe('persistence', () => {
+      it('should persist and restore protocol state', async () => {
+        const adapter = new InMemoryStorageAdapter();
+        const persistentProtocol = new SyncProtocol({
+          persistence: {
+            adapter,
+            key: 'sync-protocol:test',
+            autoPersist: false,
+          },
+        });
+
+        const handshakeMessage = persistentProtocol.createHandshakeMessage(
+          'node-1',
+          ['sync'],
+        );
+        persistentProtocol.processHandshake(handshakeMessage);
+        persistentProtocol.createSyncRequestMessage(
+          'node-1',
+          'node-2',
+          'session-1',
+          '1.0.0',
+          '1.1.0',
+        );
+        persistentProtocol.createErrorMessage('node-1', 'node-2', {
+          code: 'SYNC_FAILED',
+          message: 'Intentional test error',
+          recoverable: true,
+        });
+
+        await persistentProtocol.saveToPersistence();
+
+        const restoredProtocol = new SyncProtocol({
+          persistence: {
+            adapter,
+            key: 'sync-protocol:test',
+            autoPersist: false,
+          },
+        });
+
+        const loaded = await restoredProtocol.loadFromPersistence();
+        expect(loaded.messages).toBe(3);
+        expect(loaded.handshakes).toBe(1);
+        expect(loaded.errors).toBe(1);
+      });
+
+      it('should clear persisted protocol state', async () => {
+        const adapter = new InMemoryStorageAdapter();
+        const persistentProtocol = new SyncProtocol({
+          persistence: {
+            adapter,
+            key: 'sync-protocol:clear',
+            autoPersist: false,
+          },
+        });
+
+        persistentProtocol.createHandshakeMessage('node-1', ['sync']);
+        await persistentProtocol.saveToPersistence();
+        await persistentProtocol.clearPersistence();
+
+        const restoredProtocol = new SyncProtocol({
+          persistence: {
+            adapter,
+            key: 'sync-protocol:clear',
+            autoPersist: false,
+          },
+        });
+
+        const loaded = await restoredProtocol.loadFromPersistence();
+        expect(loaded.messages).toBe(0);
+        expect(loaded.handshakes).toBe(0);
+      });
+
+      it('should reject invalid persisted protocol payload', async () => {
+        const adapter = new InMemoryStorageAdapter();
+        adapter.setItem('sync-protocol:invalid', '{"version":999,"data":{}}');
+
+        const persistentProtocol = new SyncProtocol({
+          persistence: {
+            adapter,
+            key: 'sync-protocol:invalid',
+            autoPersist: false,
+          },
+        });
+
+        await expect(persistentProtocol.loadFromPersistence()).rejects.toThrow(
+          'Invalid sync protocol persistence payload',
+        );
+      });
     });
   });
 

@@ -19,6 +19,12 @@ import type {
   AeonEncryptionMode,
   AuthenticatedMessageFields,
 } from '../crypto/types';
+import type {
+  PersistedEnvelope,
+  PersistenceDeserializer,
+  PersistenceSerializer,
+  StorageAdapter,
+} from '../persistence';
 
 export interface SyncMessage {
   type: 'handshake' | 'sync-request' | 'sync-response' | 'ack' | 'error';
@@ -83,11 +89,34 @@ export interface ProtocolError {
   recoverable: boolean;
 }
 
+export interface SyncProtocolPersistenceData {
+  protocolVersion: string;
+  messageCounter: number;
+  messageQueue: SyncMessage[];
+  handshakes: Array<{ nodeId: string; handshake: Handshake }>;
+  protocolErrors: Array<{ error: ProtocolError; timestamp: string }>;
+}
+
+export interface SyncProtocolPersistenceConfig {
+  adapter: StorageAdapter;
+  key?: string;
+  autoPersist?: boolean;
+  autoLoad?: boolean;
+  persistDebounceMs?: number;
+  serializer?: PersistenceSerializer<SyncProtocolPersistenceData>;
+  deserializer?: PersistenceDeserializer<SyncProtocolPersistenceData>;
+}
+
+export interface SyncProtocolOptions {
+  persistence?: SyncProtocolPersistenceConfig;
+}
+
 /**
  * Sync Protocol
  * Handles synchronization protocol messages and handshaking
  */
 export class SyncProtocol {
+  private static readonly DEFAULT_PERSIST_KEY = 'aeon:sync-protocol:v1';
   private version: string = '1.0.0';
   private messageQueue: SyncMessage[] = [];
   private messageMap: Map<string, SyncMessage> = new Map();
@@ -99,6 +128,32 @@ export class SyncProtocol {
   // Crypto support
   private cryptoProvider: ICryptoProvider | null = null;
   private cryptoConfig: SyncProtocolCryptoConfig | null = null;
+  private persistence: (SyncProtocolPersistenceConfig & { key: string }) | null =
+    null;
+  private persistTimer: ReturnType<typeof setTimeout> | null = null;
+  private persistInFlight = false;
+  private persistPending = false;
+
+  constructor(options?: SyncProtocolOptions) {
+    if (options?.persistence) {
+      this.persistence = {
+        ...options.persistence,
+        key: options.persistence.key ?? SyncProtocol.DEFAULT_PERSIST_KEY,
+        autoPersist: options.persistence.autoPersist ?? true,
+        autoLoad: options.persistence.autoLoad ?? false,
+        persistDebounceMs: options.persistence.persistDebounceMs ?? 25,
+      };
+    }
+
+    if (this.persistence?.autoLoad) {
+      void this.loadFromPersistence().catch((error) => {
+        logger.error('[SyncProtocol] Failed to load persistence', {
+          key: this.persistence?.key,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+    }
+  }
 
   /**
    * Configure cryptographic provider for authenticated/encrypted messages
@@ -207,6 +262,7 @@ export class SyncProtocol {
 
     this.messageMap.set(message.messageId, message);
     this.messageQueue.push(message);
+    this.schedulePersist();
 
     logger.debug('[SyncProtocol] Authenticated handshake created', {
       messageId: message.messageId,
@@ -233,6 +289,7 @@ export class SyncProtocol {
     // If crypto is not configured, just process normally
     if (!this.cryptoProvider || !this.cryptoConfig) {
       this.handshakes.set(message.sender, handshake);
+      this.schedulePersist();
       return { valid: true, handshake };
     }
 
@@ -284,6 +341,7 @@ export class SyncProtocol {
     }
 
     this.handshakes.set(message.sender, handshake);
+    this.schedulePersist();
 
     logger.debug('[SyncProtocol] Authenticated handshake verified', {
       messageId: message.messageId,
@@ -425,6 +483,7 @@ export class SyncProtocol {
 
     this.messageMap.set(message.messageId, message);
     this.messageQueue.push(message);
+    this.schedulePersist();
 
     logger.debug('[SyncProtocol] Handshake message created', {
       messageId: message.messageId,
@@ -463,6 +522,7 @@ export class SyncProtocol {
 
     this.messageMap.set(message.messageId, message);
     this.messageQueue.push(message);
+    this.schedulePersist();
 
     logger.debug('[SyncProtocol] Sync request created', {
       messageId: message.messageId,
@@ -506,6 +566,7 @@ export class SyncProtocol {
 
     this.messageMap.set(message.messageId, message);
     this.messageQueue.push(message);
+    this.schedulePersist();
 
     logger.debug('[SyncProtocol] Sync response created', {
       messageId: message.messageId,
@@ -537,6 +598,7 @@ export class SyncProtocol {
 
     this.messageMap.set(message.messageId, message);
     this.messageQueue.push(message);
+    this.schedulePersist();
 
     return message;
   }
@@ -570,6 +632,7 @@ export class SyncProtocol {
       error,
       timestamp: new Date().toISOString(),
     });
+    this.schedulePersist();
 
     logger.error('[SyncProtocol] Error message created', {
       messageId: message.messageId,
@@ -602,9 +665,8 @@ export class SyncProtocol {
       errors.push('Timestamp is required');
     }
 
-    try {
-      new Date(message.timestamp);
-    } catch {
+    const timestampValue = new Date(message.timestamp);
+    if (Number.isNaN(timestampValue.getTime())) {
       errors.push('Invalid timestamp format');
     }
 
@@ -668,6 +730,7 @@ export class SyncProtocol {
     const nodeId = message.sender;
 
     this.handshakes.set(nodeId, handshake);
+    this.schedulePersist();
 
     logger.debug('[SyncProtocol] Handshake processed', {
       nodeId,
@@ -752,6 +815,210 @@ export class SyncProtocol {
   }
 
   /**
+   * Persist protocol state for reconnect/replay.
+   */
+  async saveToPersistence(): Promise<void> {
+    if (!this.persistence) {
+      return;
+    }
+
+    const data: SyncProtocolPersistenceData = {
+      protocolVersion: this.version,
+      messageCounter: this.messageCounter,
+      messageQueue: this.getAllMessages(),
+      handshakes: Array.from(this.handshakes.entries()).map(
+        ([nodeId, handshake]) => ({
+          nodeId,
+          handshake,
+        }),
+      ),
+      protocolErrors: this.getErrors(),
+    };
+
+    const envelope: PersistedEnvelope<SyncProtocolPersistenceData> = {
+      version: 1,
+      updatedAt: Date.now(),
+      data,
+    };
+
+    const serialize =
+      this.persistence.serializer ??
+      ((value: PersistedEnvelope<SyncProtocolPersistenceData>) =>
+        JSON.stringify(value));
+
+    await this.persistence.adapter.setItem(this.persistence.key, serialize(envelope));
+  }
+
+  /**
+   * Load protocol state from persistence.
+   */
+  async loadFromPersistence(): Promise<{
+    messages: number;
+    handshakes: number;
+    errors: number;
+  }> {
+    if (!this.persistence) {
+      return { messages: 0, handshakes: 0, errors: 0 };
+    }
+
+    const raw = await this.persistence.adapter.getItem(this.persistence.key);
+    if (!raw) {
+      return { messages: 0, handshakes: 0, errors: 0 };
+    }
+
+    const deserialize =
+      this.persistence.deserializer ??
+      ((value: string) =>
+        JSON.parse(value) as PersistedEnvelope<SyncProtocolPersistenceData>);
+
+    const envelope = deserialize(raw);
+    if (envelope.version !== 1 || !envelope.data) {
+      throw new Error('Invalid sync protocol persistence payload');
+    }
+
+    const nextMessages: SyncMessage[] = [];
+    for (const message of envelope.data.messageQueue) {
+      const validation = this.validateMessage(message);
+      if (!validation.valid) {
+        throw new Error(
+          `Invalid persisted message ${message?.messageId ?? 'unknown'}: ${validation.errors.join(', ')}`,
+        );
+      }
+      nextMessages.push(message);
+    }
+
+    const nextHandshakes = new Map<string, Handshake>();
+    for (const entry of envelope.data.handshakes) {
+      if (
+        typeof entry.nodeId !== 'string' ||
+        !this.isValidHandshake(entry.handshake)
+      ) {
+        throw new Error('Invalid persisted handshake payload');
+      }
+      nextHandshakes.set(entry.nodeId, entry.handshake);
+    }
+
+    const nextErrors: Array<{ error: ProtocolError; timestamp: string }> = [];
+    for (const entry of envelope.data.protocolErrors) {
+      if (!this.isValidProtocolErrorEntry(entry)) {
+        throw new Error('Invalid persisted protocol error payload');
+      }
+      nextErrors.push(entry);
+    }
+
+    this.messageQueue = nextMessages;
+    this.messageMap = new Map(nextMessages.map((m) => [m.messageId, m]));
+    this.handshakes = nextHandshakes;
+    this.protocolErrors = nextErrors;
+    this.messageCounter = Math.max(
+      envelope.data.messageCounter || 0,
+      this.messageQueue.length,
+    );
+
+    logger.debug('[SyncProtocol] Loaded from persistence', {
+      key: this.persistence.key,
+      messages: this.messageQueue.length,
+      handshakes: this.handshakes.size,
+      errors: this.protocolErrors.length,
+    });
+
+    return {
+      messages: this.messageQueue.length,
+      handshakes: this.handshakes.size,
+      errors: this.protocolErrors.length,
+    };
+  }
+
+  /**
+   * Clear persisted protocol checkpoint.
+   */
+  async clearPersistence(): Promise<void> {
+    if (!this.persistence) {
+      return;
+    }
+    await this.persistence.adapter.removeItem(this.persistence.key);
+  }
+
+  private schedulePersist(): void {
+    if (!this.persistence || this.persistence.autoPersist === false) {
+      return;
+    }
+
+    if (this.persistTimer) {
+      clearTimeout(this.persistTimer);
+    }
+
+    this.persistTimer = setTimeout(() => {
+      void this.persistSafely();
+    }, this.persistence.persistDebounceMs ?? 25);
+  }
+
+  private async persistSafely(): Promise<void> {
+    if (!this.persistence) {
+      return;
+    }
+
+    if (this.persistInFlight) {
+      this.persistPending = true;
+      return;
+    }
+
+    this.persistInFlight = true;
+    try {
+      await this.saveToPersistence();
+    } catch (error) {
+      logger.error('[SyncProtocol] Persistence write failed', {
+        key: this.persistence.key,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      this.persistInFlight = false;
+      const shouldRunAgain = this.persistPending;
+      this.persistPending = false;
+      if (shouldRunAgain) {
+        void this.persistSafely();
+      }
+    }
+  }
+
+  private isValidHandshake(value: unknown): value is Handshake {
+    if (typeof value !== 'object' || value === null) {
+      return false;
+    }
+    const handshake = value as Partial<Handshake>;
+    const validState =
+      handshake.state === 'initiating' ||
+      handshake.state === 'responding' ||
+      handshake.state === 'completed';
+
+    return (
+      typeof handshake.protocolVersion === 'string' &&
+      typeof handshake.nodeId === 'string' &&
+      Array.isArray(handshake.capabilities) &&
+      handshake.capabilities.every((cap) => typeof cap === 'string') &&
+      validState
+    );
+  }
+
+  private isValidProtocolErrorEntry(
+    entry: unknown,
+  ): entry is { error: ProtocolError; timestamp: string } {
+    if (typeof entry !== 'object' || entry === null) {
+      return false;
+    }
+    const candidate = entry as {
+      error?: Partial<ProtocolError>;
+      timestamp?: string;
+    };
+    return (
+      typeof candidate.timestamp === 'string' &&
+      typeof candidate.error?.code === 'string' &&
+      typeof candidate.error.message === 'string' &&
+      typeof candidate.error.recoverable === 'boolean'
+    );
+  }
+
+  /**
    * Generate message ID
    */
   private generateMessageId(): string {
@@ -770,6 +1037,7 @@ export class SyncProtocol {
     this.messageCounter = 0;
     this.cryptoProvider = null;
     this.cryptoConfig = null;
+    this.schedulePersist();
   }
 
   /**

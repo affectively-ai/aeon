@@ -4,6 +4,7 @@ import {
   getOfflineOperationQueue,
   resetOfflineOperationQueue,
 } from '../../offline/OfflineOperationQueue';
+import { InMemoryStorageAdapter } from '../../persistence';
 
 describe('Offline Module', () => {
   describe('OfflineOperationQueue', () => {
@@ -300,6 +301,80 @@ describe('Offline Module', () => {
 
         // Should not emit queue-empty because op2 is still pending
         expect(queueEmptyEmitted).toBe(false);
+      });
+    });
+
+    describe('persistence', () => {
+      it('should persist and restore queue state', async () => {
+        const adapter = new InMemoryStorageAdapter();
+        const queueWithPersistence = new OfflineOperationQueue({
+          persistence: {
+            adapter,
+            key: 'offline:test',
+            autoPersist: false,
+          },
+        });
+
+        queueWithPersistence.enqueue('create', { id: 'a' }, 'session-1');
+        queueWithPersistence.enqueue('update', { id: 'b' }, 'session-1');
+
+        await queueWithPersistence.saveToPersistence();
+
+        const restoredQueue = new OfflineOperationQueue({
+          persistence: {
+            adapter,
+            key: 'offline:test',
+            autoPersist: false,
+          },
+        });
+
+        const importedCount = await restoredQueue.loadFromPersistence();
+        expect(importedCount).toBe(2);
+        expect(restoredQueue.getStats().totalOperations).toBe(2);
+      });
+
+      it('should clear persisted state', async () => {
+        const adapter = new InMemoryStorageAdapter();
+        const queueWithPersistence = new OfflineOperationQueue({
+          persistence: {
+            adapter,
+            key: 'offline:clear',
+            autoPersist: false,
+          },
+        });
+
+        queueWithPersistence.enqueue('create', { id: 'a' }, 'session-1');
+        await queueWithPersistence.saveToPersistence();
+
+        await queueWithPersistence.clearPersistence();
+
+        const restoredQueue = new OfflineOperationQueue({
+          persistence: {
+            adapter,
+            key: 'offline:clear',
+            autoPersist: false,
+          },
+        });
+
+        const importedCount = await restoredQueue.loadFromPersistence();
+        expect(importedCount).toBe(0);
+      });
+
+      it('should reject invalid persisted payloads', async () => {
+        const adapter = new InMemoryStorageAdapter();
+        adapter.setItem('offline:invalid', '{"version":999,"data":[]}');
+
+        const queueWithPersistence = new OfflineOperationQueue({
+          persistence: {
+            adapter,
+            key: 'offline:invalid',
+            autoPersist: false,
+          },
+        });
+
+        await expect(
+          queueWithPersistence.loadFromPersistence(),
+        ).rejects.toThrow('Invalid offline queue persistence payload');
       });
     });
   });

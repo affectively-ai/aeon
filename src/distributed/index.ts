@@ -18,6 +18,9 @@ export type {
   Replica,
   ReplicationPolicy,
   ReplicationEvent,
+  ReplicationPersistenceData,
+  ReplicationPersistenceConfig,
+  ReplicationManagerOptions,
 } from './ReplicationManager';
 
 export { SyncProtocol } from './SyncProtocol';
@@ -27,6 +30,9 @@ export type {
   SyncRequest,
   SyncResponse,
   ProtocolError,
+  SyncProtocolPersistenceData,
+  SyncProtocolPersistenceConfig,
+  SyncProtocolOptions,
 } from './SyncProtocol';
 
 export { StateReconciler } from './StateReconciler';

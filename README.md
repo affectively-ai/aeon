@@ -22,6 +22,8 @@ In the Affectively framework, if "halos" are the users, then **Aeons are the col
 - **Conflict Resolution** - Multiple strategies for resolving divergent state
 - **Real-time Presence** - Track node health and status in real-time
 
+Roadmap vision: see [ROADMAP.md](./ROADMAP.md).
+
 ## Installation
 
 ```bash
