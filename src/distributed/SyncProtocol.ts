@@ -117,13 +117,13 @@ export interface SyncProtocolOptions {
  */
 export class SyncProtocol {
   private static readonly DEFAULT_PERSIST_KEY = 'aeon:sync-protocol:v1';
-  private version: string = '1.0.0';
+  private version = '1.0.0';
   private messageQueue: SyncMessage[] = [];
   private messageMap: Map<string, SyncMessage> = new Map();
   private handshakes: Map<string, Handshake> = new Map();
   private protocolErrors: Array<{ error: ProtocolError; timestamp: string }> =
     [];
-  private messageCounter: number = 0;
+  private messageCounter = 0;
 
   // Crypto support
   private cryptoProvider: ICryptoProvider | null = null;
@@ -357,7 +357,7 @@ export class SyncProtocol {
   async signMessage<T>(
     message: SyncMessage,
     payload: T,
-    encrypt: boolean = false,
+    encrypt = false,
   ): Promise<SyncMessage> {
     if (!this.cryptoProvider || !this.cryptoProvider.isInitialized()) {
       throw new Error('Crypto provider not initialized');
@@ -544,8 +544,8 @@ export class SyncProtocol {
     fromVersion: string,
     toVersion: string,
     data: unknown[],
-    hasMore: boolean = false,
-    offset: number = 0,
+    hasMore = false,
+    offset = 0,
   ): SyncMessage {
     const message: SyncMessage = {
       type: 'sync-response',
@@ -874,6 +874,13 @@ export class SyncProtocol {
     const envelope = deserialize(raw);
     if (envelope.version !== 1 || !envelope.data) {
       throw new Error('Invalid sync protocol persistence payload');
+    }
+    if (
+      !Array.isArray(envelope.data.messageQueue) ||
+      !Array.isArray(envelope.data.handshakes) ||
+      !Array.isArray(envelope.data.protocolErrors)
+    ) {
+      throw new Error('Invalid sync protocol persistence structure');
     }
 
     const nextMessages: SyncMessage[] = [];

@@ -1,6 +1,6 @@
 {
   "name": "@affectively/aeon",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Distributed synchronization, schema versioning, and conflict resolution for real-time collaborative applications",
   "keywords": [
     "distributed",
@@ -51,6 +51,46 @@
         "default": "./dist/core/index.cjs"
       }
     },
+    "./offline": {
+      "import": {
+        "types": "./dist/offline/index.d.ts",
+        "default": "./dist/offline/index.js"
+      },
+      "require": {
+        "types": "./dist/offline/index.d.cts",
+        "default": "./dist/offline/index.cjs"
+      }
+    },
+    "./compression": {
+      "import": {
+        "types": "./dist/compression/index.d.ts",
+        "default": "./dist/compression/index.js"
+      },
+      "require": {
+        "types": "./dist/compression/index.d.cts",
+        "default": "./dist/compression/index.cjs"
+      }
+    },
+    "./optimization": {
+      "import": {
+        "types": "./dist/optimization/index.d.ts",
+        "default": "./dist/optimization/index.js"
+      },
+      "require": {
+        "types": "./dist/optimization/index.d.cts",
+        "default": "./dist/optimization/index.cjs"
+      }
+    },
+    "./presence": {
+      "import": {
+        "types": "./dist/presence/index.d.ts",
+        "default": "./dist/presence/index.js"
+      },
+      "require": {
+        "types": "./dist/presence/index.d.cts",
+        "default": "./dist/presence/index.cjs"
+      }
+    },
     "./versioning": {
       "import": {
         "types": "./dist/versioning/index.d.ts",
@@ -89,6 +129,16 @@
       "require": {
         "types": "./dist/crypto/index.d.cts",
         "default": "./dist/crypto/index.cjs"
+      }
+    },
+    "./persistence": {
+      "import": {
+        "types": "./dist/persistence/index.d.ts",
+        "default": "./dist/persistence/index.js"
+      },
+      "require": {
+        "types": "./dist/persistence/index.d.cts",
+        "default": "./dist/persistence/index.cjs"
       }
     }
   },

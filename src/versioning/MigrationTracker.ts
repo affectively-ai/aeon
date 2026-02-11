@@ -150,7 +150,7 @@ export class MigrationTracker {
     itemCount: number,
     duration: number,
     itemsAffected: number,
-    appliedBy: string = 'system',
+    appliedBy = 'system',
   ): void {
     const record: MigrationRecord = {
       id: `${migrationId}-${Date.now()}`,
@@ -481,6 +481,15 @@ export class MigrationTracker {
     const envelope = deserialize(raw);
     if (envelope.version !== 1 || !envelope.data) {
       throw new Error('Invalid migration tracker persistence payload');
+    }
+    if (
+      !Array.isArray(envelope.data.migrations) ||
+      !Array.isArray(envelope.data.snapshots) ||
+      !envelope.data.integrity ||
+      !Array.isArray(envelope.data.integrity.entries) ||
+      typeof envelope.data.integrity.rootHash !== 'string'
+    ) {
+      throw new Error('Invalid migration tracker persistence structure');
     }
 
     if (envelope.data.integrity.algorithm !== 'sha256-chain-v1') {

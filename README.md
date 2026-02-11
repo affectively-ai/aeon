@@ -181,6 +181,14 @@ Shared types and utilities used across all modules.
 import type { Operation, VectorClock, PresenceInfo } from '@affectively/aeon/core';
 ```
 
+### Persistence (`@affectively/aeon/persistence`)
+
+Optional persistence boundaries and adapters for durable Aeon state.
+
+- `StorageAdapter` - runtime-agnostic adapter contract
+- `InMemoryStorageAdapter` - reference adapter for tests/dev
+- `DashStorageAdapter` - local-first adapter with optional debounced sync batching for D1/R2-backed resilience
+
 ### Offline (`@affectively/aeon/offline`)
 
 Offline-first operation management.

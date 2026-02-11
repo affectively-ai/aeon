@@ -747,6 +747,13 @@ export class ReplicationManager {
     if (envelope.version !== 1 || !envelope.data) {
       throw new Error('Invalid replication persistence payload');
     }
+    if (
+      !Array.isArray(envelope.data.replicas) ||
+      !Array.isArray(envelope.data.policies) ||
+      !Array.isArray(envelope.data.syncStatus)
+    ) {
+      throw new Error('Invalid replication persistence structure');
+    }
 
     this.replicas.clear();
     this.policies.clear();
