@@ -71,6 +71,121 @@ describe('Presence Module', () => {
       expect(presence?.activeSection).toBe('section-2');
     });
 
+    it('should update focused node', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.updateFocusNode('agent-1', '/page/header/title');
+
+      const presence = manager.getPresence('agent-1');
+      expect(presence?.focusNode).toBe('/page/header/title');
+    });
+
+    it('should update selection range', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.updateSelection('agent-1', {
+        start: 4,
+        end: 12,
+        direction: 'forward',
+        path: '/doc/title',
+      });
+
+      const presence = manager.getPresence('agent-1');
+      expect(presence?.selectionRange).toEqual({
+        start: 4,
+        end: 12,
+        direction: 'forward',
+        path: '/doc/title',
+      });
+    });
+
+    it('should update typing state', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.updateTyping('agent-1', true, 'title', true);
+
+      const presence = manager.getPresence('agent-1');
+      expect(presence?.typingState?.isTyping).toBe(true);
+      expect(presence?.typingState?.field).toBe('title');
+      expect(presence?.typingState?.isComposing).toBe(true);
+      expect(presence?.typingState?.startedAt).toBeDefined();
+      expect(presence?.typingState?.stoppedAt).toBeUndefined();
+    });
+
+    it('should update scroll state', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.updateScroll('agent-1', {
+        depth: 0.74,
+        y: 892,
+        viewportHeight: 900,
+        documentHeight: 1200,
+        path: '/dashboard',
+      });
+
+      const presence = manager.getPresence('agent-1');
+      expect(presence?.scrollState).toEqual({
+        depth: 0.74,
+        y: 892,
+        viewportHeight: 900,
+        documentHeight: 1200,
+        path: '/dashboard',
+      });
+    });
+
+    it('should clamp scroll depth', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.updateScroll('agent-1', { depth: 1.7 });
+
+      const presence = manager.getPresence('agent-1');
+      expect(presence?.scrollState?.depth).toBe(1);
+    });
+
+    it('should update viewport', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.updateViewport('agent-1', 1440, 900);
+
+      const presence = manager.getPresence('agent-1');
+      expect(presence?.viewport).toEqual({ width: 1440, height: 900 });
+    });
+
+    it('should update and clear input state', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.updateInputState('agent-1', {
+        field: 'title',
+        hasFocus: true,
+        valueLength: 13,
+        selectionStart: 13,
+        selectionEnd: 13,
+        isComposing: false,
+        inputMode: 'text',
+      });
+
+      let presence = manager.getPresence('agent-1');
+      expect(presence?.inputState?.field).toBe('title');
+      expect(presence?.inputState?.valueLength).toBe(13);
+
+      manager.clearInputState('agent-1');
+      presence = manager.getPresence('agent-1');
+      expect(presence?.inputState).toBeUndefined();
+    });
+
+    it('should update and clear emotion state', () => {
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.updateEmotionState('agent-1', {
+        primary: 'focused',
+        confidence: 0.91,
+        valence: 0.2,
+        arousal: 0.6,
+        source: 'self-report',
+      });
+
+      let presence = manager.getPresence('agent-1');
+      expect(presence?.emotionState?.primary).toBe('focused');
+      expect(presence?.emotionState?.confidence).toBe(0.91);
+      expect(presence?.emotionState?.updatedAt).toBeDefined();
+
+      manager.clearEmotionState('agent-1');
+      presence = manager.getPresence('agent-1');
+      expect(presence?.emotionState).toBeUndefined();
+    });
+
     it('should update status', () => {
       manager.agentJoined('agent-1', 'Alice', 'user');
       manager.updateStatus('agent-1', 'away');
@@ -167,6 +282,34 @@ describe('Presence Module', () => {
       manager.agentJoined('agent-1', 'Alice', 'user');
 
       expect(joinedAgent).toBeDefined();
+    });
+
+    it('should emit rich presence events', () => {
+      let typingEvent = false;
+      let focusEvent = false;
+      let emotionEvent = false;
+
+      manager.on('typing_updated', () => {
+        typingEvent = true;
+      });
+      manager.on('focus_updated', () => {
+        focusEvent = true;
+      });
+      manager.on('emotion_updated', () => {
+        emotionEvent = true;
+      });
+
+      manager.agentJoined('agent-1', 'Alice', 'user');
+      manager.updateTyping('agent-1', true, 'body');
+      manager.updateFocusNode('agent-1', '/doc/body');
+      manager.updateEmotionState('agent-1', {
+        primary: 'curious',
+        confidence: 0.8,
+      });
+
+      expect(typingEvent).toBe(true);
+      expect(focusEvent).toBe(true);
+      expect(emotionEvent).toBe(true);
     });
 
     it('should clear presences', () => {

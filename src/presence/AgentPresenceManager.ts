@@ -23,7 +23,64 @@ export interface AgentPresence {
   lastSeen: string;
   cursorPosition?: { x: number; y: number; path: string };
   activeSection?: string;
+  focusNode?: string;
+  selectionRange?: AgentSelectionRange;
+  typingState?: AgentTypingState;
+  scrollState?: AgentScrollState;
+  viewport?: AgentViewportState;
+  inputState?: AgentInputState;
+  emotionState?: AgentEmotionState;
   metadata?: Record<string, unknown>;
+}
+
+export interface AgentSelectionRange {
+  start: number;
+  end: number;
+  direction?: 'forward' | 'backward' | 'none';
+  path?: string;
+}
+
+export interface AgentTypingState {
+  isTyping: boolean;
+  field?: string;
+  isComposing?: boolean;
+  startedAt?: string;
+  stoppedAt?: string;
+}
+
+export interface AgentScrollState {
+  depth: number;
+  y?: number;
+  viewportHeight?: number;
+  documentHeight?: number;
+  path?: string;
+}
+
+export interface AgentViewportState {
+  width: number;
+  height: number;
+}
+
+export interface AgentInputState {
+  field: string;
+  hasFocus: boolean;
+  valueLength?: number;
+  selectionStart?: number;
+  selectionEnd?: number;
+  isComposing?: boolean;
+  inputMode?: string;
+}
+
+export interface AgentEmotionState {
+  primary?: string;
+  secondary?: string;
+  confidence?: number;
+  intensity?: number;
+  valence?: number;
+  arousal?: number;
+  dominance?: number;
+  source?: 'self-report' | 'inferred' | 'sensor' | 'hybrid';
+  updatedAt?: string;
 }
 
 export interface PresenceUpdate {
@@ -44,6 +101,31 @@ export interface PresenceEvents {
     cursorPosition: { x: number; y: number; path: string };
   }) => void;
   section_updated: (data: { agentId: string; activeSection: string }) => void;
+  focus_updated: (data: { agentId: string; focusNode: string }) => void;
+  selection_updated: (data: {
+    agentId: string;
+    selectionRange: AgentSelectionRange;
+  }) => void;
+  typing_updated: (data: {
+    agentId: string;
+    typingState: AgentTypingState;
+  }) => void;
+  scroll_updated: (data: {
+    agentId: string;
+    scrollState: AgentScrollState;
+  }) => void;
+  viewport_updated: (data: {
+    agentId: string;
+    viewport: AgentViewportState;
+  }) => void;
+  input_state_updated: (data: {
+    agentId: string;
+    inputState?: AgentInputState;
+  }) => void;
+  emotion_updated: (data: {
+    agentId: string;
+    emotionState?: AgentEmotionState;
+  }) => void;
   status_updated: (data: {
     agentId: string;
     status: AgentPresence['status'];
@@ -174,6 +256,198 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
       this.emit('section_updated', {
         agentId,
         activeSection: section,
+      });
+    }
+  }
+
+  /**
+   * Update focused node path
+   */
+  updateFocusNode(agentId: string, nodePath: string): void {
+    const presence = this.presences.get(agentId);
+
+    if (presence) {
+      presence.focusNode = nodePath;
+      presence.lastSeen = new Date().toISOString();
+
+      this.presences.set(agentId, presence);
+      this.emit('focus_updated', {
+        agentId,
+        focusNode: nodePath,
+      });
+    }
+  }
+
+  /**
+   * Update text selection range
+   */
+  updateSelection(agentId: string, selectionRange: AgentSelectionRange): void {
+    const presence = this.presences.get(agentId);
+
+    if (presence) {
+      presence.selectionRange = selectionRange;
+      presence.lastSeen = new Date().toISOString();
+
+      this.presences.set(agentId, presence);
+      this.emit('selection_updated', {
+        agentId,
+        selectionRange,
+      });
+    }
+  }
+
+  /**
+   * Update typing state
+   */
+  updateTyping(
+    agentId: string,
+    isTyping: boolean,
+    field?: string,
+    isComposing = false,
+  ): void {
+    const presence = this.presences.get(agentId);
+
+    if (presence) {
+      const now = new Date().toISOString();
+      const previous = presence.typingState;
+      const typingState: AgentTypingState = {
+        isTyping,
+        field,
+        isComposing,
+        startedAt:
+          isTyping && !previous?.isTyping
+            ? now
+            : isTyping
+              ? previous?.startedAt
+              : undefined,
+        stoppedAt: isTyping ? undefined : now,
+      };
+
+      presence.typingState = typingState;
+      presence.lastSeen = now;
+
+      this.presences.set(agentId, presence);
+      this.emit('typing_updated', {
+        agentId,
+        typingState,
+      });
+    }
+  }
+
+  /**
+   * Update scroll state
+   */
+  updateScroll(agentId: string, scrollState: AgentScrollState): void {
+    const presence = this.presences.get(agentId);
+
+    if (presence) {
+      presence.scrollState = {
+        ...scrollState,
+        depth: Math.max(0, Math.min(1, scrollState.depth)),
+      };
+      presence.lastSeen = new Date().toISOString();
+
+      this.presences.set(agentId, presence);
+      this.emit('scroll_updated', {
+        agentId,
+        scrollState: presence.scrollState,
+      });
+    }
+  }
+
+  /**
+   * Update viewport size
+   */
+  updateViewport(agentId: string, width: number, height: number): void {
+    const presence = this.presences.get(agentId);
+
+    if (presence) {
+      presence.viewport = { width, height };
+      presence.lastSeen = new Date().toISOString();
+
+      this.presences.set(agentId, presence);
+      this.emit('viewport_updated', {
+        agentId,
+        viewport: presence.viewport,
+      });
+    }
+  }
+
+  /**
+   * Update input state
+   */
+  updateInputState(agentId: string, inputState: AgentInputState): void {
+    const presence = this.presences.get(agentId);
+
+    if (presence) {
+      presence.inputState = inputState;
+      presence.lastSeen = new Date().toISOString();
+
+      this.presences.set(agentId, presence);
+      this.emit('input_state_updated', {
+        agentId,
+        inputState,
+      });
+    }
+  }
+
+  /**
+   * Clear input state
+   */
+  clearInputState(agentId: string): void {
+    const presence = this.presences.get(agentId);
+
+    if (presence) {
+      presence.inputState = undefined;
+      presence.lastSeen = new Date().toISOString();
+
+      this.presences.set(agentId, presence);
+      this.emit('input_state_updated', {
+        agentId,
+        inputState: undefined,
+      });
+    }
+  }
+
+  /**
+   * Update emotional state
+   */
+  updateEmotionState(
+    agentId: string,
+    emotionState: Omit<AgentEmotionState, 'updatedAt'>,
+  ): void {
+    const presence = this.presences.get(agentId);
+
+    if (presence) {
+      const enrichedState: AgentEmotionState = {
+        ...emotionState,
+        updatedAt: new Date().toISOString(),
+      };
+      presence.emotionState = enrichedState;
+      presence.lastSeen = new Date().toISOString();
+
+      this.presences.set(agentId, presence);
+      this.emit('emotion_updated', {
+        agentId,
+        emotionState: enrichedState,
+      });
+    }
+  }
+
+  /**
+   * Clear emotional state
+   */
+  clearEmotionState(agentId: string): void {
+    const presence = this.presences.get(agentId);
+
+    if (presence) {
+      presence.emotionState = undefined;
+      presence.lastSeen = new Date().toISOString();
+
+      this.presences.set(agentId, presence);
+      this.emit('emotion_updated', {
+        agentId,
+        emotionState: undefined,
       });
     }
   }

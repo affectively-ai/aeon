@@ -113,6 +113,68 @@ export interface CRDTOperation {
     vectorClock: VectorClock;
 }
 /**
+ * Presence selection range
+ */
+export interface PresenceSelection {
+    start: number;
+    end: number;
+    direction?: 'forward' | 'backward' | 'none';
+    path?: string;
+}
+/**
+ * Presence typing signal
+ */
+export interface PresenceTyping {
+    isTyping: boolean;
+    field?: string;
+    isComposing?: boolean;
+    startedAt?: number;
+    stoppedAt?: number;
+}
+/**
+ * Presence scroll signal
+ */
+export interface PresenceScroll {
+    depth: number;
+    y?: number;
+    viewportHeight?: number;
+    documentHeight?: number;
+    path?: string;
+}
+/**
+ * Presence viewport signal
+ */
+export interface PresenceViewport {
+    width: number;
+    height: number;
+}
+/**
+ * Presence input signal
+ */
+export interface PresenceInputState {
+    field: string;
+    hasFocus: boolean;
+    valueLength?: number;
+    selectionStart?: number;
+    selectionEnd?: number;
+    isComposing?: boolean;
+    inputMode?: string;
+}
+/**
+ * Presence emotional state signal
+ */
+export interface PresenceEmotion {
+    primary?: string;
+    secondary?: string;
+    confidence?: number;
+    intensity?: number;
+    valence?: number;
+    arousal?: number;
+    dominance?: number;
+    source?: 'self-report' | 'inferred' | 'sensor' | 'hybrid';
+    updatedAt?: number;
+}
+/**
  * Presence information for real-time collaboration
  */
 export interface PresenceInfo {
@@ -122,10 +184,13 @@ export interface PresenceInfo {
         x: number;
         y: number;
     };
-    selection?: {
-        start: number;
-        end: number;
-    };
+    focusNode?: string;
+    selection?: PresenceSelection;
+    typing?: PresenceTyping;
+    scroll?: PresenceScroll;
+    viewport?: PresenceViewport;
+    inputState?: PresenceInputState;
+    emotion?: PresenceEmotion;
     metadata?: Record<string, unknown>;
     lastActivity: number;
 }
