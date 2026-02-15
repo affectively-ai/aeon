@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
   DashStorageAdapter,
   type DashStorageBackend,
@@ -23,14 +23,6 @@ class MapBackend implements DashStorageBackend {
 }
 
 describe('DashStorageAdapter', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it('should store and retrieve values from backend', async () => {
     const adapter = new DashStorageAdapter(new MapBackend());
 
@@ -43,10 +35,11 @@ describe('DashStorageAdapter', () => {
 
   it('should batch and sync latest key changes', async () => {
     const changes: DashStorageChange[][] = [];
+    const syncChangesFn = mock(async (batch: DashStorageChange[]) => {
+      changes.push(batch);
+    });
     const syncClient: DashSyncClient = {
-      syncChanges: vi.fn(async (batch: DashStorageChange[]) => {
-        changes.push(batch);
-      }),
+      syncChanges: syncChangesFn,
     };
 
     const adapter = new DashStorageAdapter(new MapBackend(), {
@@ -58,9 +51,10 @@ describe('DashStorageAdapter', () => {
     await adapter.setItem('k1', 'v2');
     await adapter.setItem('k2', 'v3');
 
-    await vi.advanceTimersByTimeAsync(25);
+    // Wait for the debounce timer to fire (slightly more than 20ms)
+    await new Promise((r) => setTimeout(r, 30));
 
-    expect(syncClient.syncChanges).toHaveBeenCalledTimes(1);
+    expect(syncChangesFn).toHaveBeenCalledTimes(1);
     expect(changes[0].length).toBe(2);
 
     const k1Change = changes[0].find((change) => change.key === 'k1');
@@ -69,13 +63,14 @@ describe('DashStorageAdapter', () => {
 
   it('should requeue changes when sync fails', async () => {
     let attempts = 0;
+    const syncChangesFn = mock(async () => {
+      attempts++;
+      if (attempts === 1) {
+        throw new Error('sync failed');
+      }
+    });
     const syncClient: DashSyncClient = {
-      syncChanges: vi.fn(async () => {
-        attempts++;
-        if (attempts === 1) {
-          throw new Error('sync failed');
-        }
-      }),
+      syncChanges: syncChangesFn,
     };
 
     const adapter = new DashStorageAdapter(new MapBackend(), {
@@ -84,11 +79,13 @@ describe('DashStorageAdapter', () => {
     });
 
     await adapter.setItem('k1', 'v1');
-    await vi.advanceTimersByTimeAsync(25);
+    // Wait for the first sync attempt to fire and fail
+    await new Promise((r) => setTimeout(r, 30));
     expect(adapter.getPendingSyncCount()).toBe(1);
 
-    await vi.advanceTimersByTimeAsync(25);
-    expect(syncClient.syncChanges).toHaveBeenCalledTimes(2);
+    // Wait for the retry sync to fire and succeed
+    await new Promise((r) => setTimeout(r, 30));
+    expect(syncChangesFn).toHaveBeenCalledTimes(2);
     expect(adapter.getPendingSyncCount()).toBe(0);
   });
 });
