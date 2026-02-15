@@ -32,6 +32,4 @@ export type PersistenceSerializer<T> = (value: PersistedEnvelope<T>) => string;
 /**
  * Deserialization hook for custom privacy/security implementations.
  */
-export type PersistenceDeserializer<T> = (
-  raw: string,
-) => PersistedEnvelope<T>;
+export type PersistenceDeserializer<T> = (raw: string) => PersistedEnvelope<T>;

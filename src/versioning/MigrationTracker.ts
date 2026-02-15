@@ -106,8 +106,7 @@ export class MigrationTracker {
     if (options?.persistence) {
       this.persistence = {
         ...options.persistence,
-        key:
-          options.persistence.key ?? MigrationTracker.DEFAULT_PERSIST_KEY,
+        key: options.persistence.key ?? MigrationTracker.DEFAULT_PERSIST_KEY,
         autoPersist: options.persistence.autoPersist ?? true,
         autoLoad: options.persistence.autoLoad ?? false,
         persistDebounceMs: options.persistence.persistDebounceMs ?? 25,
@@ -150,7 +149,7 @@ export class MigrationTracker {
     itemCount: number,
     duration: number,
     itemsAffected: number,
-    appliedBy = 'system',
+    appliedBy = 'system'
   ): void {
     const record: MigrationRecord = {
       id: `${migrationId}-${Date.now()}`,
@@ -204,7 +203,7 @@ export class MigrationTracker {
   canRollback(fromVersion: string, toVersion: string): boolean {
     // Find all migrations from fromVersion going down to toVersion
     const fromIndex = this.migrations.findIndex(
-      (m) => m.version === fromVersion,
+      (m) => m.version === fromVersion
     );
     const toIndex = this.migrations.findIndex((m) => m.version === toVersion);
 
@@ -237,7 +236,7 @@ export class MigrationTracker {
 
     if (canRollback) {
       const fromIndex = this.migrations.findIndex(
-        (m) => m.version === fromVersion,
+        (m) => m.version === fromVersion
       );
       const toIndex = this.migrations.findIndex((m) => m.version === toVersion);
 
@@ -303,23 +302,23 @@ export class MigrationTracker {
    */
   getStatistics() {
     const applied = this.migrations.filter(
-      (m) => m.status === 'applied',
+      (m) => m.status === 'applied'
     ).length;
     const failed = this.migrations.filter((m) => m.status === 'failed').length;
     const pending = this.migrations.filter(
-      (m) => m.status === 'pending',
+      (m) => m.status === 'pending'
     ).length;
     const rolledBack = this.migrations.filter(
-      (m) => m.status === 'rolled-back',
+      (m) => m.status === 'rolled-back'
     ).length;
 
     const totalDuration = this.migrations.reduce(
       (sum, m) => sum + m.duration,
-      0,
+      0
     );
     const totalAffected = this.migrations.reduce(
       (sum, m) => sum + m.itemsAffected,
-      0,
+      0
     );
 
     return {
@@ -373,7 +372,7 @@ export class MigrationTracker {
   updateMigrationStatus(
     recordId: string,
     status: MigrationRecord['status'],
-    error?: string,
+    error?: string
   ): void {
     const migration = this.migrations.find((m) => m.id === recordId);
     if (migration) {
@@ -410,7 +409,7 @@ export class MigrationTracker {
 
     for (const migration of normalizedMigrations) {
       const hash = await this.computeDigestHex(
-        `${previousHash}|${this.stableStringify(migration)}`,
+        `${previousHash}|${this.stableStringify(migration)}`
       );
       integrityEntries.push({
         recordId: migration.id,
@@ -420,11 +419,13 @@ export class MigrationTracker {
       previousHash = hash;
     }
 
-    const persistedMigrations = normalizedMigrations.map((migration, index) => ({
-      ...migration,
-      previousHash: integrityEntries[index]?.previousHash,
-      integrityHash: integrityEntries[index]?.hash,
-    }));
+    const persistedMigrations = normalizedMigrations.map(
+      (migration, index) => ({
+        ...migration,
+        previousHash: integrityEntries[index]?.previousHash,
+        integrityHash: integrityEntries[index]?.hash,
+      })
+    );
 
     const data: MigrationTrackerPersistenceData = {
       migrations: persistedMigrations,
@@ -434,7 +435,7 @@ export class MigrationTracker {
           beforeHash: snapshot.beforeHash,
           afterHash: snapshot.afterHash,
           itemCount: snapshot.itemCount,
-        }),
+        })
       ),
       integrity: {
         algorithm: 'sha256-chain-v1',
@@ -454,7 +455,10 @@ export class MigrationTracker {
       ((value: PersistedEnvelope<MigrationTrackerPersistenceData>) =>
         JSON.stringify(value));
 
-    await this.persistence.adapter.setItem(this.persistence.key, serialize(envelope));
+    await this.persistence.adapter.setItem(
+      this.persistence.key,
+      serialize(envelope)
+    );
   }
 
   /**
@@ -476,7 +480,9 @@ export class MigrationTracker {
     const deserialize =
       this.persistence.deserializer ??
       ((value: string) =>
-        JSON.parse(value) as PersistedEnvelope<MigrationTrackerPersistenceData>);
+        JSON.parse(
+          value
+        ) as PersistedEnvelope<MigrationTrackerPersistenceData>);
 
     const envelope = deserialize(raw);
     if (envelope.version !== 1 || !envelope.data) {
@@ -525,7 +531,7 @@ export class MigrationTracker {
           ...migration,
           previousHash: undefined,
           integrityHash: undefined,
-        })}`,
+        })}`
       );
 
       if (expectedHash !== integrity.hash) {
@@ -576,7 +582,10 @@ export class MigrationTracker {
       snapshots: this.snapshots.size,
     });
 
-    return { migrations: this.migrations.length, snapshots: this.snapshots.size };
+    return {
+      migrations: this.migrations.length,
+      snapshots: this.snapshots.size,
+    };
   }
 
   /**
@@ -610,7 +619,7 @@ export class MigrationTracker {
    */
   getMigrationsByTimeRange(
     startTime: string,
-    endTime: string,
+    endTime: string
   ): MigrationRecord[] {
     const start = new Date(startTime).getTime();
     const end = new Date(endTime).getTime();
@@ -668,7 +677,8 @@ export class MigrationTracker {
       return false;
     }
     const record = value as Partial<MigrationRecord>;
-    const validDirection = record.direction === 'up' || record.direction === 'down';
+    const validDirection =
+      record.direction === 'up' || record.direction === 'down';
     const validStatus =
       record.status === 'pending' ||
       record.status === 'applied' ||
@@ -697,12 +707,13 @@ export class MigrationTracker {
     }
 
     const entries = Object.entries(value as Record<string, unknown>).sort(
-      ([a], [b]) => a.localeCompare(b),
+      ([a], [b]) => a.localeCompare(b)
     );
 
     return `{${entries
-      .map(([key, entryValue]) =>
-        `${JSON.stringify(key)}:${this.stableStringify(entryValue)}`,
+      .map(
+        ([key, entryValue]) =>
+          `${JSON.stringify(key)}:${this.stableStringify(entryValue)}`
       )
       .join(',')}}`;
   }
@@ -712,11 +723,11 @@ export class MigrationTracker {
       const bytes = new TextEncoder().encode(value);
       const normalized = bytes.buffer.slice(
         bytes.byteOffset,
-        bytes.byteOffset + bytes.byteLength,
+        bytes.byteOffset + bytes.byteLength
       );
       const digest = await globalThis.crypto.subtle.digest(
         'SHA-256',
-        normalized,
+        normalized
       );
       return this.toHex(new Uint8Array(digest));
     }

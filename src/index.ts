@@ -58,3 +58,7 @@ export * from './presence';
 
 // Crypto module (UCAN + ZK encryption)
 export * from './crypto';
+
+// Re-export React bindings from aeon-pages for convenience
+// These are used extensively across edge-web-app tool pages
+export { Link, useAeonPage } from '../../aeon-pages/packages/react/src/index';

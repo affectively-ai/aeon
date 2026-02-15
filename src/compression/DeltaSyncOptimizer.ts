@@ -113,7 +113,7 @@ export class DeltaSyncOptimizer {
       this.stats.totalOriginalSize += originalSize;
 
       const deltaSize = new TextEncoder().encode(
-        JSON.stringify(delta),
+        JSON.stringify(delta)
       ).byteLength;
       this.stats.totalDeltaSize += deltaSize;
 
@@ -162,7 +162,7 @@ export class DeltaSyncOptimizer {
 
     // If delta is too large, send as full instead
     const deltaSize = new TextEncoder().encode(
-      JSON.stringify(deltaData),
+      JSON.stringify(deltaData)
     ).byteLength;
 
     const finalDelta =
@@ -202,19 +202,19 @@ export class DeltaSyncOptimizer {
     const totalOriginalSize = operations.reduce(
       (sum, op) =>
         sum + new TextEncoder().encode(JSON.stringify(op)).byteLength,
-      0,
+      0
     );
 
     const totalDeltaSize = deltas.reduce(
       (sum, delta) =>
         sum + new TextEncoder().encode(JSON.stringify(delta)).byteLength,
-      0,
+      0
     );
 
     const reductionPercent =
       totalOriginalSize > 0
         ? Math.round(
-            ((totalOriginalSize - totalDeltaSize) / totalOriginalSize) * 100,
+            ((totalOriginalSize - totalDeltaSize) / totalOriginalSize) * 100
           )
         : 0;
 
@@ -325,7 +325,7 @@ export class DeltaSyncOptimizer {
       this.stats.averageReductionPercent = Math.round(
         ((this.stats.totalOriginalSize - this.stats.totalDeltaSize) /
           this.stats.totalOriginalSize) *
-          100,
+          100
       );
     }
 

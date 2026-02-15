@@ -71,7 +71,7 @@ export interface ICryptoProvider {
   verify(
     did: string,
     signature: Uint8Array,
-    data: Uint8Array,
+    data: Uint8Array
   ): Promise<boolean>;
 
   /**
@@ -88,7 +88,7 @@ export interface ICryptoProvider {
    */
   encrypt(
     plaintext: Uint8Array,
-    recipientDID: string,
+    recipientDID: string
   ): Promise<{
     alg: string;
     ct: string;
@@ -109,7 +109,7 @@ export interface ICryptoProvider {
       tag: string;
       epk?: JsonWebKey;
     },
-    senderDID?: string,
+    senderDID?: string
   ): Promise<Uint8Array>;
 
   /**
@@ -122,7 +122,7 @@ export interface ICryptoProvider {
    */
   encryptWithSessionKey(
     plaintext: Uint8Array,
-    sessionKey: Uint8Array,
+    sessionKey: Uint8Array
   ): Promise<{
     alg: string;
     ct: string;
@@ -140,7 +140,7 @@ export interface ICryptoProvider {
       iv: string;
       tag: string;
     },
-    sessionKey: Uint8Array,
+    sessionKey: Uint8Array
   ): Promise<Uint8Array>;
 
   // ===========================================================================
@@ -156,7 +156,7 @@ export interface ICryptoProvider {
     options?: {
       expirationSeconds?: number;
       proofs?: string[];
-    },
+    }
   ): Promise<string>;
 
   /**
@@ -167,7 +167,7 @@ export interface ICryptoProvider {
     options?: {
       expectedAudience?: string;
       requiredCapabilities?: Array<{ can: string; with: string }>;
-    },
+    }
   ): Promise<AeonCapabilityResult>;
 
   /**
@@ -179,7 +179,7 @@ export interface ICryptoProvider {
     capabilities: Array<{ can: string; with: string }>,
     options?: {
       expirationSeconds?: number;
-    },
+    }
   ): Promise<string>;
 
   // ===========================================================================

@@ -78,15 +78,16 @@ export class OfflineOperationQueue extends EventEmitter<OfflineQueueEvents> {
   private syncingIds: Set<string> = new Set();
   private maxQueueSize = 1000;
   private defaultMaxRetries = 3;
-  private persistence: (OfflineQueuePersistenceConfig & { key: string }) | null =
-    null;
+  private persistence:
+    | (OfflineQueuePersistenceConfig & { key: string })
+    | null = null;
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
   private persistInFlight = false;
   private persistPending = false;
 
   constructor(
     maxQueueSizeOrOptions: number | OfflineOperationQueueOptions = 1000,
-    defaultMaxRetries = 3,
+    defaultMaxRetries = 3
   ) {
     super();
 
@@ -135,7 +136,7 @@ export class OfflineOperationQueue extends EventEmitter<OfflineQueueEvents> {
     data: Record<string, unknown>,
     sessionId: string,
     priority: OperationPriority = 'normal',
-    maxRetries?: number,
+    maxRetries?: number
   ): OfflineOperation {
     if (this.queue.size >= this.maxQueueSize) {
       // Remove oldest low-priority operation
@@ -276,7 +277,7 @@ export class OfflineOperationQueue extends EventEmitter<OfflineQueueEvents> {
    */
   getPendingOperations(): OfflineOperation[] {
     return Array.from(this.queue.values()).filter(
-      (op) => op.status === 'pending',
+      (op) => op.status === 'pending'
     );
   }
 
@@ -285,7 +286,7 @@ export class OfflineOperationQueue extends EventEmitter<OfflineQueueEvents> {
    */
   getPendingCount(): number {
     return Array.from(this.queue.values()).filter(
-      (op) => op.status === 'pending',
+      (op) => op.status === 'pending'
     ).length;
   }
 

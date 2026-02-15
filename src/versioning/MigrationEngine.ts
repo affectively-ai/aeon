@@ -73,7 +73,7 @@ export class MigrationEngine {
    */
   async executeMigration(
     migrationId: string,
-    data: unknown,
+    data: unknown
   ): Promise<MigrationResult> {
     const migration = this.migrations.get(migrationId);
     if (!migration) {
@@ -140,7 +140,7 @@ export class MigrationEngine {
    */
   async rollbackMigration(
     migrationId: string,
-    data: unknown,
+    data: unknown
   ): Promise<MigrationResult> {
     const migration = this.migrations.get(migrationId);
     if (!migration) {
@@ -178,7 +178,7 @@ export class MigrationEngine {
 
       // Remove from applied migrations
       this.state.appliedMigrations = this.state.appliedMigrations.filter(
-        (id) => id !== migrationId,
+        (id) => id !== migrationId
       );
 
       this.executedMigrations.push(result);
@@ -200,7 +200,7 @@ export class MigrationEngine {
       });
 
       throw new Error(
-        `Rollback for ${migrationId} failed: ${result.errors[0]}`,
+        `Rollback for ${migrationId} failed: ${result.errors[0]}`
       );
     }
   }
@@ -252,7 +252,7 @@ export class MigrationEngine {
    */
   getPendingMigrations(): Migration[] {
     return this.getAllMigrations().filter(
-      (m) => !this.state.appliedMigrations.includes(m.id),
+      (m) => !this.state.appliedMigrations.includes(m.id)
     );
   }
 
@@ -264,11 +264,11 @@ export class MigrationEngine {
     const failed = this.executedMigrations.filter((m) => !m.success).length;
     const totalDuration = this.executedMigrations.reduce(
       (sum, m) => sum + m.duration,
-      0,
+      0
     );
     const totalAffected = this.executedMigrations.reduce(
       (sum, m) => sum + m.itemsAffected,
-      0,
+      0
     );
 
     return {

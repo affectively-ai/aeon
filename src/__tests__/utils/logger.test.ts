@@ -101,19 +101,19 @@ describe('Logger Module', () => {
 
       expect(customLogger.debug).toHaveBeenCalledWith(
         '[MyModule]',
-        'debug message',
+        'debug message'
       );
       expect(customLogger.info).toHaveBeenCalledWith(
         '[MyModule]',
-        'info message',
+        'info message'
       );
       expect(customLogger.warn).toHaveBeenCalledWith(
         '[MyModule]',
-        'warn message',
+        'warn message'
       );
       expect(customLogger.error).toHaveBeenCalledWith(
         '[MyModule]',
-        'error message',
+        'error message'
       );
     });
   });

@@ -155,7 +155,7 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
    */
   updatePresence(
     agentId: string,
-    presence: Omit<AgentPresence, 'joinedAt' | 'lastSeen'>,
+    presence: Omit<AgentPresence, 'joinedAt' | 'lastSeen'>
   ): void {
     const existing = this.presences.get(agentId);
     const now = new Date().toISOString();
@@ -183,7 +183,7 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
     agentId: string,
     name: string,
     role: AgentPresence['role'] = 'user',
-    metadata?: Record<string, unknown>,
+    metadata?: Record<string, unknown>
   ): void {
     const now = new Date().toISOString();
 
@@ -303,7 +303,7 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
     agentId: string,
     isTyping: boolean,
     field?: string,
-    isComposing = false,
+    isComposing = false
   ): void {
     const presence = this.presences.get(agentId);
 
@@ -318,8 +318,8 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
           isTyping && !previous?.isTyping
             ? now
             : isTyping
-              ? previous?.startedAt
-              : undefined,
+            ? previous?.startedAt
+            : undefined,
         stoppedAt: isTyping ? undefined : now,
       };
 
@@ -414,7 +414,7 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
    */
   updateEmotionState(
     agentId: string,
-    emotionState: Omit<AgentEmotionState, 'updatedAt'>,
+    emotionState: Omit<AgentEmotionState, 'updatedAt'>
   ): void {
     const presence = this.presences.get(agentId);
 
@@ -496,7 +496,7 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
    */
   getOnlineAgents(): AgentPresence[] {
     return Array.from(this.presences.values()).filter(
-      (p) => p.status === 'online',
+      (p) => p.status === 'online'
     );
   }
 
@@ -539,16 +539,16 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
     return {
       totalAgents: this.presences.size,
       onlineAgents: Array.from(this.presences.values()).filter(
-        (p) => p.status === 'online',
+        (p) => p.status === 'online'
       ).length,
       offlineAgents: Array.from(this.presences.values()).filter(
-        (p) => p.status === 'offline',
+        (p) => p.status === 'offline'
       ).length,
       awayAgents: Array.from(this.presences.values()).filter(
-        (p) => p.status === 'away',
+        (p) => p.status === 'away'
       ).length,
       reconnectingAgents: Array.from(this.presences.values()).filter(
-        (p) => p.status === 'reconnecting',
+        (p) => p.status === 'reconnecting'
       ).length,
     };
   }
@@ -592,7 +592,7 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
    */
   getInSection(section: string): AgentPresence[] {
     return Array.from(this.presences.values()).filter(
-      (p) => p.activeSection === section && p.status === 'online',
+      (p) => p.activeSection === section && p.status === 'online'
     );
   }
 
@@ -690,7 +690,7 @@ export class AgentPresenceManager extends EventEmitter<PresenceEvents> {
 const instances = new Map<string, AgentPresenceManager>();
 
 export function getAgentPresenceManager(
-  sessionId: string,
+  sessionId: string
 ): AgentPresenceManager {
   if (!instances.has(sessionId)) {
     instances.set(sessionId, new AgentPresenceManager(sessionId));

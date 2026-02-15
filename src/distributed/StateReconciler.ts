@@ -66,7 +66,7 @@ export class StateReconciler {
    */
   configureCrypto(
     provider: ICryptoProvider,
-    requireSigned: boolean = false,
+    requireSigned: boolean = false
   ): void {
     this.cryptoProvider = provider;
     this.requireSignedVersions = requireSigned;
@@ -90,7 +90,7 @@ export class StateReconciler {
   async recordSignedStateVersion(
     key: string,
     version: string,
-    data: unknown,
+    data: unknown
   ): Promise<StateVersion> {
     if (!this.cryptoProvider || !this.cryptoProvider.isInitialized()) {
       throw new Error('Crypto provider not initialized');
@@ -143,7 +143,7 @@ export class StateReconciler {
    * Verify a state version's signature
    */
   async verifyStateVersion(
-    version: StateVersion,
+    version: StateVersion
   ): Promise<{ valid: boolean; error?: string }> {
     // If no signature, verify based on hash only
     if (!version.signature || !version.signerDID) {
@@ -199,7 +199,7 @@ export class StateReconciler {
    */
   async reconcileWithVerification(
     key: string,
-    strategy: MergeStrategy = 'last-write-wins',
+    strategy: MergeStrategy = 'last-write-wins'
   ): Promise<ReconciliationResult & { verificationErrors: string[] }> {
     const versions = this.stateVersions.get(key) || [];
     const verifiedVersions: StateVersion[] = [];
@@ -212,7 +212,7 @@ export class StateReconciler {
         verifiedVersions.push(version);
       } else {
         verificationErrors.push(
-          `Version ${version.version} from ${version.nodeId}: ${result.error}`,
+          `Version ${version.version} from ${version.nodeId}: ${result.error}`
         );
         logger.warn('[StateReconciler] Version verification failed', {
           version: version.version,
@@ -261,7 +261,7 @@ export class StateReconciler {
     timestamp: string,
     nodeId: string,
     hash: string,
-    data: unknown,
+    data: unknown
   ): void {
     if (!this.stateVersions.has(key)) {
       this.stateVersions.set(key, []);
@@ -302,7 +302,7 @@ export class StateReconciler {
    */
   compareStates(
     state1: Record<string, unknown>,
-    state2: Record<string, unknown>,
+    state2: Record<string, unknown>
   ): StateDiff {
     const diff: StateDiff = {
       added: {},
@@ -341,7 +341,7 @@ export class StateReconciler {
     // Sort by timestamp descending, most recent first
     const sorted = [...versions].sort(
       (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
     const latest = sorted[0];
@@ -377,7 +377,7 @@ export class StateReconciler {
     // In production, this would use actual vector clocks
     const sorted = [...versions].sort(
       (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
     const latest = sorted[0];
@@ -386,7 +386,7 @@ export class StateReconciler {
     // Count concurrent versions (those with similar timestamps)
     for (const v of versions) {
       const timeDiff = Math.abs(
-        new Date(v.timestamp).getTime() - new Date(latest.timestamp).getTime(),
+        new Date(v.timestamp).getTime() - new Date(latest.timestamp).getTime()
       );
       if (timeDiff > 100) {
         // More than 100ms difference
@@ -541,7 +541,7 @@ export class StateReconciler {
   getStatistics() {
     const resolvedConflicts = this.reconciliationHistory.reduce(
       (sum, r) => sum + r.conflictsResolved,
-      0,
+      0
     );
 
     const strategyUsage: Record<string, number> = {};
@@ -553,7 +553,7 @@ export class StateReconciler {
     return {
       totalReconciliations: this.reconciliationHistory.length,
       successfulReconciliations: this.reconciliationHistory.filter(
-        (r) => r.success,
+        (r) => r.success
       ).length,
       totalConflictsResolved: resolvedConflicts,
       averageConflictsPerReconciliation:

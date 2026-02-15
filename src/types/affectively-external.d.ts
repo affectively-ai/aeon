@@ -40,7 +40,7 @@ declare module '@affectively/auth' {
     options?: {
       expirationSeconds?: number;
       proofs?: string[];
-    },
+    }
   ): Promise<string>;
 
   export function verifyUCAN(
@@ -49,7 +49,7 @@ declare module '@affectively/auth' {
     options?: {
       audience?: string;
       requiredCapabilities?: Capability[];
-    },
+    }
   ): Promise<{
     valid: boolean;
     payload?: {
@@ -66,18 +66,18 @@ declare module '@affectively/auth' {
     capabilities: Capability[],
     options?: {
       expirationSeconds?: number;
-    },
+    }
   ): Promise<string>;
 
   export function sign(
     identity: Identity,
-    data: Uint8Array,
+    data: Uint8Array
   ): Promise<Uint8Array>;
 
   export function verify(
     publicKey: JsonWebKey,
     signature: Uint8Array,
-    data: Uint8Array,
+    data: Uint8Array
   ): Promise<boolean>;
 
   export function base64UrlEncode(data: Uint8Array): string;
@@ -97,7 +97,7 @@ declare module '@affectively/zk-encryption' {
   export function eciesEncrypt(
     plaintext: Uint8Array,
     recipientPublicKey: JsonWebKey,
-    options?: { category?: string },
+    options?: { category?: string }
   ): Promise<{
     alg: string;
     ct: string;
@@ -116,13 +116,13 @@ declare module '@affectively/zk-encryption' {
       epk?: JsonWebKey;
       encryptedAt: number;
     },
-    privateKey: JsonWebKey,
+    privateKey: JsonWebKey
   ): Promise<{ plaintext: Uint8Array }>;
 
   export function aesEncrypt(
     plaintext: Uint8Array,
     key: CryptoKey,
-    options?: { category?: string },
+    options?: { category?: string }
   ): Promise<{
     alg: string;
     ct: string;
@@ -139,14 +139,14 @@ declare module '@affectively/zk-encryption' {
       tag: string;
       encryptedAt: number;
     },
-    key: CryptoKey,
+    key: CryptoKey
   ): Promise<{ plaintext: Uint8Array }>;
 
   export function deriveAESKeyFromJWK(
     privateKey: JsonWebKey,
     publicKey: JsonWebKey,
     category: string,
-    options?: { info?: string },
+    options?: { info?: string }
   ): Promise<CryptoKey>;
 
   export function sha256(data: Uint8Array): Promise<Uint8Array>;

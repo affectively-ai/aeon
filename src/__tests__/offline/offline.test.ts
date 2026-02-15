@@ -28,13 +28,13 @@ describe('Offline Module', () => {
         'create',
         { name: 'high' },
         'session-1',
-        'high',
+        'high'
       );
       const lowOp = queue.enqueue(
         'create',
         { name: 'low' },
         'session-1',
-        'low',
+        'low'
       );
 
       expect(highOp.priority).toBe('high');
@@ -76,7 +76,7 @@ describe('Offline Module', () => {
         { name: 'test' },
         'session-1',
         'normal',
-        3,
+        3
       );
       queue.markSyncing([op.id]);
       queue.markFailed(op.id, new Error('Network error'));
@@ -93,7 +93,7 @@ describe('Offline Module', () => {
         { name: 'test' },
         'session-1',
         'normal',
-        2,
+        2
       );
 
       queue.markSyncing([op.id]);
@@ -165,7 +165,7 @@ describe('Offline Module', () => {
         { name: 'test' },
         'session-1',
         'normal',
-        1,
+        1
       );
       queue.markSyncing([op.id]);
       queue.markFailed(op.id, new Error('Error'));
@@ -198,14 +198,14 @@ describe('Offline Module', () => {
         { name: 'test1' },
         'session-1',
         'normal',
-        1,
+        1
       );
       const op2 = queue.enqueue(
         'create',
         { name: 'test2' },
         'session-1',
         'normal',
-        1,
+        1
       );
       queue.enqueue('create', { name: 'test3' }, 'session-1');
 
@@ -373,7 +373,7 @@ describe('Offline Module', () => {
         });
 
         await expect(
-          queueWithPersistence.loadFromPersistence(),
+          queueWithPersistence.loadFromPersistence()
         ).rejects.toThrow('Invalid offline queue persistence payload');
       });
     });

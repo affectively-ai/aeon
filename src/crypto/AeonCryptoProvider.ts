@@ -162,7 +162,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
   async verify(
     did: string,
     signature: Uint8Array,
-    data: Uint8Array,
+    data: Uint8Array
   ): Promise<boolean> {
     const node = this.remoteNodes.get(did);
     if (!node?.publicSigningKey) {
@@ -186,7 +186,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
 
   async encrypt(
     plaintext: Uint8Array,
-    recipientDID: string,
+    recipientDID: string
   ): Promise<{
     alg: string;
     ct: string;
@@ -222,7 +222,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
       tag: string;
       epk?: JsonWebKey;
     },
-    _senderDID?: string,
+    _senderDID?: string
   ): Promise<Uint8Array> {
     if (!this.encryptionKeyPair) {
       throw new Error('Encryption key not initialized');
@@ -237,7 +237,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
         epk: encrypted.epk,
         encryptedAt: Date.now(),
       },
-      this.encryptionKeyPair.privateKey,
+      this.encryptionKeyPair.privateKey
     );
 
     return result.plaintext;
@@ -265,7 +265,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
       this.encryptionKeyPair.privateKey,
       node.publicEncryptionKey,
       'sync',
-      { info: `aeon-session-${peerDID}` },
+      { info: `aeon-session-${peerDID}` }
     );
 
     // Export key to bytes
@@ -286,7 +286,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
 
   async encryptWithSessionKey(
     plaintext: Uint8Array,
-    sessionKey: Uint8Array,
+    sessionKey: Uint8Array
   ): Promise<{
     alg: string;
     ct: string;
@@ -302,7 +302,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
       sessionKeyBuffer,
       { name: 'AES-GCM', length: 256 },
       false,
-      ['encrypt'],
+      ['encrypt']
     );
 
     const encrypted = await aesEncrypt(plaintext, aesKey, { category: 'sync' });
@@ -322,7 +322,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
       iv: string;
       tag: string;
     },
-    sessionKey: Uint8Array,
+    sessionKey: Uint8Array
   ): Promise<Uint8Array> {
     const sessionKeyBuffer = new Uint8Array(sessionKey).buffer;
 
@@ -332,7 +332,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
       sessionKeyBuffer,
       { name: 'AES-GCM', length: 256 },
       false,
-      ['decrypt'],
+      ['decrypt']
     );
 
     const result = await aesDecrypt(
@@ -343,7 +343,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
         tag: encrypted.tag,
         encryptedAt: Date.now(),
       },
-      aesKey,
+      aesKey
     );
 
     return result.plaintext;
@@ -359,7 +359,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
     options?: {
       expirationSeconds?: number;
       proofs?: string[];
-    },
+    }
   ): Promise<string> {
     if (!this.identity) {
       throw new Error('Identity not initialized');
@@ -372,7 +372,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
       {
         expirationSeconds: options?.expirationSeconds,
         proofs: options?.proofs,
-      },
+      }
     );
   }
 
@@ -381,7 +381,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
     options?: {
       expectedAudience?: string;
       requiredCapabilities?: Array<{ can: string; with: string }>;
-    },
+    }
   ): Promise<AeonCapabilityResult> {
     try {
       // Parse token to get issuer
@@ -428,7 +428,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
     capabilities: Array<{ can: string; with: string }>,
     options?: {
       expirationSeconds?: number;
-    },
+    }
   ): Promise<string> {
     if (!this.identity) {
       throw new Error('Identity not initialized');
@@ -439,7 +439,7 @@ export class AeonCryptoProvider implements ICryptoProvider {
       this.identity,
       audience as any,
       capabilities as Capability[],
-      { expirationSeconds: options?.expirationSeconds },
+      { expirationSeconds: options?.expirationSeconds }
     );
   }
 

@@ -200,7 +200,7 @@ describe('Distributed Module', () => {
 
     it('should throw when updating status of non-existent node', () => {
       expect(() =>
-        coordinator.updateNodeStatus('nonexistent', 'offline'),
+        coordinator.updateNodeStatus('nonexistent', 'offline')
       ).toThrow('Node nonexistent not found');
     });
 
@@ -419,7 +419,7 @@ describe('Distributed Module', () => {
           'node-status-changed',
           (data: { nodeId: string; status: string }) => {
             statusUpdates.push(data.status);
-          },
+          }
         );
 
         // Register an online node
@@ -518,7 +518,7 @@ describe('Distributed Module', () => {
         3,
         'read-after-write',
         1000,
-        10000,
+        10000
       );
 
       expect(policy.name).toBe('test-policy');
@@ -572,7 +572,7 @@ describe('Distributed Module', () => {
       const policy = replicationManager.createPolicy(
         'test-policy',
         1,
-        'eventual',
+        'eventual'
       );
 
       replicationManager.registerReplica({
@@ -623,7 +623,7 @@ describe('Distributed Module', () => {
 
     it('should throw when removing non-existent replica', () => {
       expect(() => replicationManager.removeReplica('nonexistent')).toThrow(
-        'Replica nonexistent not found',
+        'Replica nonexistent not found'
       );
     });
 
@@ -666,7 +666,7 @@ describe('Distributed Module', () => {
       const policy = replicationManager.createPolicy(
         'test-policy',
         3,
-        'strong',
+        'strong'
       );
 
       const level = replicationManager.getConsistencyLevel(policy.id);
@@ -682,7 +682,7 @@ describe('Distributed Module', () => {
       const policy = replicationManager.createPolicy(
         'test-policy',
         3,
-        'strong',
+        'strong'
       );
 
       const retrieved = replicationManager.getPolicy(policy.id);
@@ -790,7 +790,7 @@ describe('Distributed Module', () => {
       const policy = replicationManager.createPolicy(
         'test-policy',
         3,
-        'eventual',
+        'eventual'
       );
 
       const canSatisfy = replicationManager.canSatisfyConsistency(policy.id, 1);
@@ -801,7 +801,7 @@ describe('Distributed Module', () => {
       const policy = replicationManager.createPolicy(
         'test-policy',
         3,
-        'read-after-write',
+        'read-after-write'
       );
 
       // No replicas - can't satisfy
@@ -826,7 +826,7 @@ describe('Distributed Module', () => {
       const policy = replicationManager.createPolicy(
         'test-policy',
         2,
-        'strong',
+        'strong'
       );
 
       // Only 1 replica - can't satisfy replication factor of 2
@@ -859,7 +859,7 @@ describe('Distributed Module', () => {
     it('should return false for unknown policy in consistency check', () => {
       const canSatisfy = replicationManager.canSatisfyConsistency(
         'nonexistent',
-        1,
+        1
       );
       expect(canSatisfy).toBe(false);
     });
@@ -905,7 +905,7 @@ describe('Distributed Module', () => {
           2,
           'read-after-write',
           2000,
-          5000,
+          5000
         );
         expect(policy).toBeDefined();
 
@@ -973,7 +973,7 @@ describe('Distributed Module', () => {
         });
 
         await expect(persistentManager.loadFromPersistence()).rejects.toThrow(
-          'Invalid replication persistence payload',
+          'Invalid replication persistence payload'
         );
       });
     });
@@ -1003,7 +1003,7 @@ describe('Distributed Module', () => {
         'node-2',
         'session-1',
         '1.0.0',
-        '1.1.0',
+        '1.1.0'
       );
 
       expect(message.type).toBe('sync-request');
@@ -1020,7 +1020,7 @@ describe('Distributed Module', () => {
         '1.1.0',
         [{ id: 1 }, { id: 2 }],
         false,
-        0,
+        0
       );
 
       expect(message.type).toBe('sync-response');
@@ -1064,7 +1064,7 @@ describe('Distributed Module', () => {
         'node-2',
         'session-1',
         '1.0',
-        '1.1',
+        '1.1'
       );
 
       const stats = protocol.getStatistics();
@@ -1082,7 +1082,7 @@ describe('Distributed Module', () => {
       const message = protocol.createAckMessage(
         'node-1',
         'node-2',
-        'original-msg-123',
+        'original-msg-123'
       );
 
       expect(message.type).toBe('ack');
@@ -1090,7 +1090,7 @@ describe('Distributed Module', () => {
       expect(message.receiver).toBe('node-2');
       expect(
         (message.payload as { acknowledgedMessageId: string })
-          .acknowledgedMessageId,
+          .acknowledgedMessageId
       ).toBe('original-msg-123');
     });
 
@@ -1105,17 +1105,17 @@ describe('Distributed Module', () => {
         'node-1',
         'node-2',
         error,
-        'related-msg-123',
+        'related-msg-123'
       );
 
       expect(message.type).toBe('error');
       expect(message.sender).toBe('node-1');
       expect(message.receiver).toBe('node-2');
       expect((message.payload as { error: typeof error }).error.code).toBe(
-        'SYNC_FAILED',
+        'SYNC_FAILED'
       );
       expect(
-        (message.payload as { relatedMessageId: string }).relatedMessageId,
+        (message.payload as { relatedMessageId: string }).relatedMessageId
       ).toBe('related-msg-123');
     });
 
@@ -1137,7 +1137,7 @@ describe('Distributed Module', () => {
         'node-2',
         'session-1',
         '1.0',
-        '1.1',
+        '1.1'
       );
 
       const all = protocol.getAllMessages();
@@ -1152,7 +1152,7 @@ describe('Distributed Module', () => {
         'node-2',
         'session-1',
         '1.0',
-        '1.1',
+        '1.1'
       );
 
       const handshakes = protocol.getMessagesByType('handshake');
@@ -1180,21 +1180,21 @@ describe('Distributed Module', () => {
         'node-2',
         'session-1',
         '1.0',
-        '1.1',
+        '1.1'
       );
       protocol.createSyncRequestMessage(
         'node-1',
         'node-2',
         'session-2',
         '1.0',
-        '1.1',
+        '1.1'
       );
       protocol.createSyncRequestMessage(
         'node-1',
         'node-3',
         'session-3',
         '1.0',
-        '1.1',
+        '1.1'
       );
 
       const forNode2 = protocol.getPendingMessages('node-2');
@@ -1240,7 +1240,7 @@ describe('Distributed Module', () => {
 
         const handshakeMessage = persistentProtocol.createHandshakeMessage(
           'node-1',
-          ['sync'],
+          ['sync']
         );
         persistentProtocol.processHandshake(handshakeMessage);
         persistentProtocol.createSyncRequestMessage(
@@ -1248,7 +1248,7 @@ describe('Distributed Module', () => {
           'node-2',
           'session-1',
           '1.0.0',
-          '1.1.0',
+          '1.1.0'
         );
         persistentProtocol.createErrorMessage('node-1', 'node-2', {
           code: 'SYNC_FAILED',
@@ -1312,7 +1312,7 @@ describe('Distributed Module', () => {
         });
 
         await expect(persistentProtocol.loadFromPersistence()).rejects.toThrow(
-          'Invalid sync protocol persistence payload',
+          'Invalid sync protocol persistence payload'
         );
       });
     });
@@ -1332,7 +1332,7 @@ describe('Distributed Module', () => {
         new Date().toISOString(),
         'node-1',
         'hash-a',
-        { name: 'Alice' },
+        { name: 'Alice' }
       );
 
       const versions = reconciler.getStateVersions('user:123');
@@ -1346,7 +1346,7 @@ describe('Distributed Module', () => {
         new Date().toISOString(),
         'node-1',
         'hash-a',
-        { name: 'Alice' },
+        { name: 'Alice' }
       );
       reconciler.recordStateVersion(
         'user:123',
@@ -1354,7 +1354,7 @@ describe('Distributed Module', () => {
         new Date().toISOString(),
         'node-2',
         'hash-b',
-        { name: 'Bob' },
+        { name: 'Bob' }
       );
 
       expect(reconciler.detectConflicts('user:123')).toBe(true);
@@ -1460,7 +1460,7 @@ describe('Distributed Module', () => {
         new Date().toISOString(),
         'node-1',
         'hash-a',
-        { name: 'Alice' },
+        { name: 'Alice' }
       );
       reconciler.recordStateVersion(
         'user:123',
@@ -1468,7 +1468,7 @@ describe('Distributed Module', () => {
         new Date().toISOString(),
         'node-2',
         'hash-b',
-        { name: 'Bob' },
+        { name: 'Bob' }
       );
 
       const versions = reconciler.getStateVersions('user:123');
@@ -1537,7 +1537,7 @@ describe('Distributed Module', () => {
 
     it('should throw when reconciling with empty versions for vector clock', () => {
       expect(() => reconciler.reconcileVectorClock([])).toThrow(
-        'No versions to reconcile',
+        'No versions to reconcile'
       );
     });
 
@@ -1548,7 +1548,7 @@ describe('Distributed Module', () => {
         new Date().toISOString(),
         'node-1',
         'hash-a',
-        { name: 'Alice' },
+        { name: 'Alice' }
       );
       reconciler.recordStateVersion(
         'user:456',
@@ -1556,7 +1556,7 @@ describe('Distributed Module', () => {
         new Date().toISOString(),
         'node-1',
         'hash-b',
-        { name: 'Bob' },
+        { name: 'Bob' }
       );
 
       const allVersions = reconciler.getAllStateVersions();
@@ -1599,7 +1599,7 @@ describe('Distributed Module', () => {
         new Date().toISOString(),
         'node-1',
         'hash-a',
-        { name: 'Alice' },
+        { name: 'Alice' }
       );
       reconciler.reconcileLastWriteWins([
         {

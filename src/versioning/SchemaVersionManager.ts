@@ -101,7 +101,7 @@ export class SchemaVersionManager {
   setCurrentVersion(version: SchemaVersion): void {
     if (!this.versions.has(this.versionToString(version))) {
       throw new Error(
-        `Version ${this.versionToString(version)} not registered`,
+        `Version ${this.versionToString(version)} not registered`
       );
     }
 
@@ -158,7 +158,7 @@ export class SchemaVersionManager {
    */
   canMigrate(
     fromVersion: SchemaVersion | string,
-    toVersion: SchemaVersion | string,
+    toVersion: SchemaVersion | string
   ): boolean {
     const fromStr =
       typeof fromVersion === 'string'
@@ -178,7 +178,7 @@ export class SchemaVersionManager {
    */
   getMigrationPath(
     fromVersion: SchemaVersion,
-    toVersion: SchemaVersion,
+    toVersion: SchemaVersion
   ): SchemaVersion[] {
     const path: SchemaVersion[] = [];
     let current = fromVersion;
@@ -224,7 +224,7 @@ export class SchemaVersionManager {
    */
   compareVersions(
     v1: SchemaVersion | string,
-    v2: SchemaVersion | string,
+    v2: SchemaVersion | string
   ): number {
     const ver1 = typeof v1 === 'string' ? this.parseVersion(v1) : v1;
     const ver2 = typeof v2 === 'string' ? this.parseVersion(v2) : v2;
@@ -264,7 +264,7 @@ export class SchemaVersionManager {
     minor: number,
     patch: number,
     description: string,
-    breaking: boolean = false,
+    breaking: boolean = false
   ): SchemaVersion {
     return {
       major,
@@ -289,7 +289,7 @@ export class SchemaVersionManager {
   getVersionMetadata(version: SchemaVersion): VersionMetadata {
     const history = this.versionHistory;
     const currentIndex = history.findIndex(
-      (v) => this.versionToString(v) === this.versionToString(version),
+      (v) => this.versionToString(v) === this.versionToString(version)
     );
 
     return {
@@ -298,7 +298,7 @@ export class SchemaVersionManager {
       changes: [version.description],
       migrationsRequired: this.canMigrate(
         this.currentVersion || version,
-        version,
+        version
       )
         ? [this.versionToString(version)]
         : [],
@@ -311,7 +311,7 @@ export class SchemaVersionManager {
    */
   getAllVersions(): SchemaVersion[] {
     return Array.from(this.versions.values()).sort((a, b) =>
-      this.compareVersions(a, b),
+      this.compareVersions(a, b)
     );
   }
 

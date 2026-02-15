@@ -70,7 +70,9 @@ export class DataTransformer {
     } catch (error) {
       if (rule.required) {
         throw new Error(
-          `Failed to transform required field ${field}: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to transform required field ${field}: ${
+            error instanceof Error ? error.message : String(error)
+          }`
         );
       }
 
@@ -159,7 +161,7 @@ export class DataTransformer {
    */
   validateTransformation(
     original: unknown[],
-    transformed: unknown[],
+    transformed: unknown[]
   ): {
     valid: boolean;
     issues: string[];
@@ -168,7 +170,7 @@ export class DataTransformer {
 
     if (original.length !== transformed.length) {
       issues.push(
-        `Item count mismatch: ${original.length} -> ${transformed.length}`,
+        `Item count mismatch: ${original.length} -> ${transformed.length}`
       );
     }
 
@@ -217,15 +219,15 @@ export class DataTransformer {
   getStatistics() {
     const totalTransformed = this.transformationHistory.reduce(
       (sum, r) => sum + r.itemsTransformed,
-      0,
+      0
     );
     const totalFailed = this.transformationHistory.reduce(
       (sum, r) => sum + r.itemsFailed,
-      0,
+      0
     );
     const totalDuration = this.transformationHistory.reduce(
       (sum, r) => sum + r.duration,
-      0,
+      0
     );
 
     return {

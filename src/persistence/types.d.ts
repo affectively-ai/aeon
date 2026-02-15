@@ -9,17 +9,17 @@
  * Minimal storage adapter interface.
  */
 export interface StorageAdapter {
-    getItem(key: string): Promise<string | null> | string | null;
-    setItem(key: string, value: string): Promise<void> | void;
-    removeItem(key: string): Promise<void> | void;
+  getItem(key: string): Promise<string | null> | string | null;
+  setItem(key: string, value: string): Promise<void> | void;
+  removeItem(key: string): Promise<void> | void;
 }
 /**
  * Versioned envelope for persisted payloads.
  */
 export interface PersistedEnvelope<T> {
-    version: 1;
-    updatedAt: number;
-    data: T;
+  version: 1;
+  updatedAt: number;
+  data: T;
 }
 /**
  * Serialization hook for custom privacy/security implementations.

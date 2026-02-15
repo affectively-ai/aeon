@@ -129,7 +129,7 @@ export class BatchTimingOptimizer {
    */
   private assessNetworkQuality(
     latencyMs: number,
-    bandwidthMbps: number,
+    bandwidthMbps: number
   ): 'excellent' | 'good' | 'fair' | 'poor' {
     if (latencyMs < 20 && bandwidthMbps > 10) return 'excellent';
     if (latencyMs < 50 && bandwidthMbps > 5) return 'good';
@@ -142,7 +142,7 @@ export class BatchTimingOptimizer {
    */
   private detectCongestion(): number {
     const recentMeasurements = this.networkHistory.filter(
-      (m) => Date.now() - m.timestamp < this.congestionDetectionWindow,
+      (m) => Date.now() - m.timestamp < this.congestionDetectionWindow
     );
 
     if (recentMeasurements.length < 3) {
@@ -150,7 +150,7 @@ export class BatchTimingOptimizer {
     }
 
     const poorCount = recentMeasurements.filter(
-      (m) => m.quality === 'poor',
+      (m) => m.quality === 'poor'
     ).length;
 
     return poorCount / recentMeasurements.length;
@@ -188,8 +188,8 @@ export class BatchTimingOptimizer {
       Math.sqrt(
         recentMeasurements.reduce(
           (sum, m) => sum + Math.pow(m.latencyMs - avgLatency, 2),
-          0,
-        ) / recentMeasurements.length,
+          0
+        ) / recentMeasurements.length
       ) / avgLatency;
 
     const isStable = latencyVariance < 0.2;
@@ -198,7 +198,7 @@ export class BatchTimingOptimizer {
 
     const recommendedBatchSize = Math.max(
       10 * 1024,
-      Math.min(500 * 1024, (avgBandwidth * 1024 * 100) / 8),
+      Math.min(500 * 1024, (avgBandwidth * 1024 * 100) / 8)
     );
 
     return {
@@ -220,7 +220,7 @@ export class BatchTimingOptimizer {
   getSchedulingDecision(
     batchSize: number,
     batchPriority: 'critical' | 'high' | 'normal' | 'low' = 'normal',
-    isUserTriggered = false,
+    isUserTriggered = false
   ): SchedulingDecision {
     const now = Date.now();
     const currentWindow = this.findOptimalWindow();
@@ -299,7 +299,7 @@ export class BatchTimingOptimizer {
   applyScheduling(
     batchSize: number,
     sendNow: boolean,
-    actualDelay: number,
+    actualDelay: number
   ): void {
     this.stats.totalBatches++;
 

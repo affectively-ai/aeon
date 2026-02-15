@@ -31,7 +31,7 @@ class MockCryptoProvider implements ICryptoProvider {
 
   constructor(
     did: string = 'did:key:zTestLocal123',
-    initialized: boolean = true,
+    initialized: boolean = true
   ) {
     this.did = did;
     this.initialized = initialized;
@@ -126,7 +126,7 @@ class MockCryptoProvider implements ICryptoProvider {
   async verify(
     did: string,
     signature: Uint8Array,
-    data: Uint8Array,
+    data: Uint8Array
   ): Promise<boolean> {
     return this.verifyResult;
   }
@@ -137,7 +137,7 @@ class MockCryptoProvider implements ICryptoProvider {
 
   async encrypt(
     plaintext: Uint8Array,
-    recipientDID: string,
+    recipientDID: string
   ): Promise<{
     alg: string;
     ct: string;
@@ -174,7 +174,7 @@ class MockCryptoProvider implements ICryptoProvider {
       tag: string;
       epk?: JsonWebKey;
     },
-    senderDID?: string,
+    senderDID?: string
   ): Promise<Uint8Array> {
     if (this.failDecryption) {
       throw new Error('Decryption failed');
@@ -194,7 +194,7 @@ class MockCryptoProvider implements ICryptoProvider {
 
   async encryptWithSessionKey(
     plaintext: Uint8Array,
-    sessionKey: Uint8Array,
+    sessionKey: Uint8Array
   ): Promise<{
     alg: string;
     ct: string;
@@ -218,7 +218,7 @@ class MockCryptoProvider implements ICryptoProvider {
       iv: string;
       tag: string;
     },
-    sessionKey: Uint8Array,
+    sessionKey: Uint8Array
   ): Promise<Uint8Array> {
     const decoded = atob(encrypted.ct);
     const bytes = new Uint8Array(decoded.length);
@@ -234,7 +234,7 @@ class MockCryptoProvider implements ICryptoProvider {
     options?: {
       expirationSeconds?: number;
       proofs?: string[];
-    },
+    }
   ): Promise<string> {
     // Return a mock UCAN token
     const header = btoa(JSON.stringify({ alg: 'ES256', typ: 'JWT' }));
@@ -246,7 +246,7 @@ class MockCryptoProvider implements ICryptoProvider {
         exp:
           Math.floor(Date.now() / 1000) + (options?.expirationSeconds || 3600),
         prf: options?.proofs || [],
-      }),
+      })
     );
     return `${header}.${payload}.mock-signature`;
   }
@@ -256,7 +256,7 @@ class MockCryptoProvider implements ICryptoProvider {
     options?: {
       expectedAudience?: string;
       requiredCapabilities?: Array<{ can: string; with: string }>;
-    },
+    }
   ): Promise<AeonCapabilityResult> {
     return this.ucanVerifyResult;
   }
@@ -267,7 +267,7 @@ class MockCryptoProvider implements ICryptoProvider {
     capabilities: Array<{ can: string; with: string }>,
     options?: {
       expirationSeconds?: number;
-    },
+    }
   ): Promise<string> {
     return this.createUCAN(audience, capabilities, {
       ...options,
@@ -373,7 +373,7 @@ describe('Crypto Integration', () => {
 
         const message = await protocol.createAuthenticatedHandshake(
           ['sync'],
-          'did:key:zRemote456',
+          'did:key:zRemote456'
         );
 
         const payload = message.payload as { ucan?: string };
@@ -388,7 +388,7 @@ describe('Crypto Integration', () => {
 
         const message = await protocol.createAuthenticatedHandshake(
           ['sync'],
-          'did:key:zRemote456',
+          'did:key:zRemote456'
         );
 
         expect(message.auth).toBeDefined();
@@ -401,13 +401,13 @@ describe('Crypto Integration', () => {
         protocol.configureCrypto(uninitializedProvider);
 
         await expect(
-          protocol.createAuthenticatedHandshake(['sync']),
+          protocol.createAuthenticatedHandshake(['sync'])
         ).rejects.toThrow('Crypto provider not initialized');
       });
 
       it('should throw when no crypto provider configured', async () => {
         await expect(
-          protocol.createAuthenticatedHandshake(['sync']),
+          protocol.createAuthenticatedHandshake(['sync'])
         ).rejects.toThrow('Crypto provider not initialized');
       });
 
@@ -437,7 +437,7 @@ describe('Crypto Integration', () => {
           'node-2',
           'session-1',
           '1.0',
-          '1.1',
+          '1.1'
         );
 
         const result = await protocol.verifyAuthenticatedHandshake(message);
@@ -453,7 +453,7 @@ describe('Crypto Integration', () => {
 
         const message = await protocol.createAuthenticatedHandshake(
           ['sync'],
-          'did:key:zRemote456',
+          'did:key:zRemote456'
         );
 
         const result = await protocol.verifyAuthenticatedHandshake(message);
@@ -468,7 +468,7 @@ describe('Crypto Integration', () => {
 
         const message = await protocol.createAuthenticatedHandshake(
           ['sync'],
-          'did:key:zRemote456',
+          'did:key:zRemote456'
         );
 
         // Make verification fail
@@ -488,7 +488,7 @@ describe('Crypto Integration', () => {
 
         const message = await protocol.createAuthenticatedHandshake(
           ['sync'],
-          'did:key:zRemote456',
+          'did:key:zRemote456'
         );
 
         const result = await protocol.verifyAuthenticatedHandshake(message);
@@ -504,7 +504,7 @@ describe('Crypto Integration', () => {
 
         const message = await protocol.createAuthenticatedHandshake(
           ['sync'],
-          'did:key:zRemote456',
+          'did:key:zRemote456'
         );
 
         // Make UCAN verification fail
@@ -548,8 +548,9 @@ describe('Crypto Integration', () => {
         await protocol.verifyAuthenticatedHandshake(remoteHandshake);
 
         // Check that the node was registered
-        const publicKey =
-          await cryptoProvider.getRemotePublicKey('did:key:zRemote789');
+        const publicKey = await cryptoProvider.getRemotePublicKey(
+          'did:key:zRemote789'
+        );
         expect(publicKey).toBeDefined();
         expect(publicKey!.x).toBe('remote-x');
       });
@@ -564,7 +565,7 @@ describe('Crypto Integration', () => {
           'node-2',
           'session-1',
           '1.0',
-          '1.1',
+          '1.1'
         );
 
         const payload = { data: 'test' };
@@ -585,7 +586,7 @@ describe('Crypto Integration', () => {
           'did:key:zRemote',
           'session-1',
           '1.0',
-          '1.1',
+          '1.1'
         );
 
         const payload = { data: 'secret' };
@@ -607,7 +608,7 @@ describe('Crypto Integration', () => {
           'did:key:zRemote',
           'session-1',
           '1.0',
-          '1.1',
+          '1.1'
         );
 
         const payload = { data: 'test' };
@@ -623,11 +624,11 @@ describe('Crypto Integration', () => {
           'node-2',
           'session-1',
           '1.0',
-          '1.1',
+          '1.1'
         );
 
         await expect(
-          protocol.signMessage(message, { data: 'test' }),
+          protocol.signMessage(message, { data: 'test' })
         ).rejects.toThrow('Crypto provider not initialized');
       });
     });
@@ -639,7 +640,7 @@ describe('Crypto Integration', () => {
           'node-2',
           'session-1',
           '1.0',
-          '1.1',
+          '1.1'
         );
 
         const result = await protocol.verifyMessage(message);
@@ -656,7 +657,7 @@ describe('Crypto Integration', () => {
           'did:key:zRemote',
           'session-1',
           '1.0',
-          '1.1',
+          '1.1'
         );
 
         const payload = { data: 'test' };
@@ -676,7 +677,7 @@ describe('Crypto Integration', () => {
           'did:key:zRemote',
           'session-1',
           '1.0',
-          '1.1',
+          '1.1'
         );
 
         const payload = { data: 'test' };
@@ -701,7 +702,7 @@ describe('Crypto Integration', () => {
           'did:key:zRemote',
           'session-1',
           '1.0',
-          '1.1',
+          '1.1'
         );
 
         const payload = { data: 'secret' };
@@ -723,7 +724,7 @@ describe('Crypto Integration', () => {
           'did:key:zRemote',
           'session-1',
           '1.0',
-          '1.1',
+          '1.1'
         );
 
         const payload = { data: 'secret' };
@@ -746,7 +747,7 @@ describe('Crypto Integration', () => {
           'node-2',
           'session-1',
           '1.0',
-          '1.1',
+          '1.1'
         );
         // Message has no auth field
 
@@ -807,19 +808,19 @@ describe('Crypto Integration', () => {
 
     it('should throw on generateIdentity', async () => {
       await expect(nullProvider.generateIdentity()).rejects.toThrow(
-        'Crypto provider not configured',
+        'Crypto provider not configured'
       );
     });
 
     it('should throw on sign', async () => {
       await expect(
-        nullProvider.sign(new Uint8Array([1, 2, 3])),
+        nullProvider.sign(new Uint8Array([1, 2, 3]))
       ).rejects.toThrow('Crypto provider not configured');
     });
 
     it('should throw on signData', async () => {
       await expect(nullProvider.signData({ test: 'data' })).rejects.toThrow(
-        'Crypto provider not configured',
+        'Crypto provider not configured'
       );
     });
 
@@ -827,7 +828,7 @@ describe('Crypto Integration', () => {
       const result = await nullProvider.verify(
         'did:key:z123',
         new Uint8Array([1, 2, 3]),
-        new Uint8Array([4, 5, 6]),
+        new Uint8Array([4, 5, 6])
       );
       expect(result).toBe(true);
     });
@@ -845,7 +846,7 @@ describe('Crypto Integration', () => {
 
     it('should throw on encrypt', async () => {
       await expect(
-        nullProvider.encrypt(new Uint8Array([1, 2, 3]), 'did:key:z123'),
+        nullProvider.encrypt(new Uint8Array([1, 2, 3]), 'did:key:z123')
       ).rejects.toThrow('Crypto provider not configured');
     });
 
@@ -856,13 +857,13 @@ describe('Crypto Integration', () => {
           ct: 'test',
           iv: 'test',
           tag: 'test',
-        }),
+        })
       ).rejects.toThrow('Crypto provider not configured');
     });
 
     it('should throw on getSessionKey', async () => {
       await expect(nullProvider.getSessionKey('did:key:z123')).rejects.toThrow(
-        'Crypto provider not configured',
+        'Crypto provider not configured'
       );
     });
 
@@ -870,8 +871,8 @@ describe('Crypto Integration', () => {
       await expect(
         nullProvider.encryptWithSessionKey(
           new Uint8Array([1, 2, 3]),
-          new Uint8Array(32),
-        ),
+          new Uint8Array(32)
+        )
       ).rejects.toThrow('Crypto provider not configured');
     });
 
@@ -879,14 +880,14 @@ describe('Crypto Integration', () => {
       await expect(
         nullProvider.decryptWithSessionKey(
           { ct: 'test', iv: 'test', tag: 'test' },
-          new Uint8Array(32),
-        ),
+          new Uint8Array(32)
+        )
       ).rejects.toThrow('Crypto provider not configured');
     });
 
     it('should throw on createUCAN', async () => {
       await expect(
-        nullProvider.createUCAN('did:key:z123', [{ can: 'read', with: '*' }]),
+        nullProvider.createUCAN('did:key:z123', [{ can: 'read', with: '*' }])
       ).rejects.toThrow('Crypto provider not configured');
     });
 
@@ -899,13 +900,13 @@ describe('Crypto Integration', () => {
       await expect(
         nullProvider.delegateCapabilities('parent-token', 'did:key:z123', [
           { can: 'read', with: '*' },
-        ]),
+        ])
       ).rejects.toThrow('Crypto provider not configured');
     });
 
     it('should throw on hash', async () => {
       await expect(
-        nullProvider.hash(new Uint8Array([1, 2, 3])),
+        nullProvider.hash(new Uint8Array([1, 2, 3]))
       ).rejects.toThrow('Crypto provider not configured');
     });
 
@@ -997,8 +998,9 @@ describe('Crypto Integration', () => {
           publicEncryptionKey: { kty: 'EC', crv: 'P-256', x: 'ex1', y: 'ey1' },
         });
 
-        const publicKey =
-          await cryptoProvider.getRemotePublicKey('did:key:zNode1');
+        const publicKey = await cryptoProvider.getRemotePublicKey(
+          'did:key:zNode1'
+        );
         expect(publicKey).toBeDefined();
         expect(publicKey!.x).toBe('x1');
       });
@@ -1116,7 +1118,7 @@ describe('Crypto Integration', () => {
       it('should create authenticated sync session', async () => {
         const session = await coordinator.createAuthenticatedSyncSession(
           'did:key:zNode1',
-          ['did:key:zNode2'],
+          ['did:key:zNode2']
         );
 
         expect(session.initiatorDID).toBe('did:key:zNode1');
@@ -1128,7 +1130,7 @@ describe('Crypto Integration', () => {
         const session = await coordinator.createAuthenticatedSyncSession(
           'did:key:zNode1',
           ['did:key:zNode2'],
-          { encryptionMode: 'end-to-end' },
+          { encryptionMode: 'end-to-end' }
         );
 
         expect(session.encryptionMode).toBe('end-to-end');
@@ -1138,7 +1140,7 @@ describe('Crypto Integration', () => {
         const session = await coordinator.createAuthenticatedSyncSession(
           'did:key:zNode1',
           ['did:key:zNode2'],
-          { requiredCapabilities: ['aeon:sync:read'] },
+          { requiredCapabilities: ['aeon:sync:read'] }
         );
 
         expect(session.sessionToken).toBeDefined();
@@ -1149,7 +1151,7 @@ describe('Crypto Integration', () => {
         await expect(
           coordinator.createAuthenticatedSyncSession('did:key:zUnknown', [
             'did:key:zNode2',
-          ]),
+          ])
         ).rejects.toThrow('Initiator node with DID did:key:zUnknown not found');
       });
 
@@ -1165,7 +1167,7 @@ describe('Crypto Integration', () => {
 
         expect(emittedSession).toBeDefined();
         expect((emittedSession as { initiatorDID: string }).initiatorDID).toBe(
-          'did:key:zNode1',
+          'did:key:zNode1'
         );
       });
     });
@@ -1202,13 +1204,13 @@ describe('Crypto Integration', () => {
       it('should verify authorized node', async () => {
         const session = await coordinator.createAuthenticatedSyncSession(
           'did:key:zNode1',
-          ['did:key:zNode2'],
+          ['did:key:zNode2']
         );
 
         const result = await coordinator.verifyNodeCapabilities(
           session.id,
           'did:key:zNode2',
-          'mock.token.here',
+          'mock.token.here'
         );
 
         expect(result.authorized).toBe(true);
@@ -1222,13 +1224,13 @@ describe('Crypto Integration', () => {
 
         const session = await coordinator.createAuthenticatedSyncSession(
           'did:key:zNode1',
-          ['did:key:zNode2'],
+          ['did:key:zNode2']
         );
 
         const result = await coordinator.verifyNodeCapabilities(
           session.id,
           'did:key:zNode2',
-          'mock.token.here',
+          'mock.token.here'
         );
 
         expect(result.authorized).toBe(false);
@@ -1253,7 +1255,7 @@ describe('Crypto Integration', () => {
         const result = await coordinator.verifyNodeCapabilities(
           session.id,
           'did:key:zNode2',
-          'mock.token.here',
+          'mock.token.here'
         );
 
         expect(result.authorized).toBe(true);
@@ -1263,7 +1265,7 @@ describe('Crypto Integration', () => {
         const result = await coordinator.verifyNodeCapabilities(
           'unknown-session',
           'did:key:zNode2',
-          'mock.token.here',
+          'mock.token.here'
         );
 
         expect(result.authorized).toBe(false);
@@ -1275,7 +1277,7 @@ describe('Crypto Integration', () => {
         const session = await coordinator.createAuthenticatedSyncSession(
           'did:key:zNode1',
           ['did:key:zNode2'],
-          { requiredCapabilities: ['aeon:sync:read', 'aeon:sync:write'] },
+          { requiredCapabilities: ['aeon:sync:read', 'aeon:sync:write'] }
         );
 
         expect(session.requiredCapabilities).toBeDefined();
@@ -1285,7 +1287,7 @@ describe('Crypto Integration', () => {
         const result = await coordinator.verifyNodeCapabilities(
           session.id,
           'did:key:zNode2',
-          'mock.token.here',
+          'mock.token.here'
         );
 
         expect(result.authorized).toBe(true);
@@ -1356,7 +1358,7 @@ describe('Crypto Integration', () => {
         const stateVersion = await reconciler.recordSignedStateVersion(
           'user:123',
           '1.0',
-          { name: 'Alice', age: 30 },
+          { name: 'Alice', age: 30 }
         );
 
         expect(stateVersion.version).toBe('1.0');
@@ -1367,7 +1369,7 @@ describe('Crypto Integration', () => {
 
       it('should throw when crypto not initialized', async () => {
         await expect(
-          reconciler.recordSignedStateVersion('key', '1.0', { data: 'test' }),
+          reconciler.recordSignedStateVersion('key', '1.0', { data: 'test' })
         ).rejects.toThrow('Crypto provider not initialized');
       });
 
@@ -1391,7 +1393,7 @@ describe('Crypto Integration', () => {
         const stateVersion = await reconciler.recordSignedStateVersion(
           'user:123',
           '1.0',
-          { name: 'Alice' },
+          { name: 'Alice' }
         );
 
         const result = await reconciler.verifyStateVersion(stateVersion);
@@ -1405,7 +1407,7 @@ describe('Crypto Integration', () => {
         const stateVersion = await reconciler.recordSignedStateVersion(
           'user:123',
           '1.0',
-          { name: 'Alice' },
+          { name: 'Alice' }
         );
 
         cryptoProvider.setVerifyResult(false);
@@ -1511,7 +1513,7 @@ describe('Crypto Integration', () => {
           new Date().toISOString(),
           'node-1',
           'hash',
-          { name: 'Alice' },
+          { name: 'Alice' }
         );
 
         const result = await reconciler.reconcileWithVerification('user:123');
@@ -1535,7 +1537,7 @@ describe('Crypto Integration', () => {
 
         const result = await reconciler.reconcileWithVerification(
           'user:123',
-          'majority-vote',
+          'majority-vote'
         );
 
         expect(result.success).toBe(true);
@@ -1614,7 +1616,7 @@ describe('Crypto Integration', () => {
             lagMillis: 0,
             did: 'did:key:zReplica1',
           },
-          true,
+          true
         );
 
         expect(replica.encrypted).toBe(true);
@@ -1635,8 +1637,9 @@ describe('Crypto Integration', () => {
           publicEncryptionKey: { kty: 'EC', crv: 'P-256', x: 'ex1', y: 'ey1' },
         });
 
-        const publicKey =
-          await cryptoProvider.getRemotePublicKey('did:key:zReplica1');
+        const publicKey = await cryptoProvider.getRemotePublicKey(
+          'did:key:zReplica1'
+        );
         expect(publicKey).toBeDefined();
       });
     });
@@ -1678,7 +1681,7 @@ describe('Crypto Integration', () => {
             lagMillis: 0,
             did: 'did:key:zReplica1',
           },
-          true,
+          true
         );
 
         await replicationManager.registerAuthenticatedReplica(
@@ -1691,7 +1694,7 @@ describe('Crypto Integration', () => {
             lagMillis: 0,
             did: 'did:key:zReplica2',
           },
-          false,
+          false
         );
 
         const encrypted = replicationManager.getEncryptedReplicas();
@@ -1709,7 +1712,7 @@ describe('Crypto Integration', () => {
 
         const encrypted = await replicationManager.encryptForReplica(
           data,
-          'did:key:zTarget',
+          'did:key:zTarget'
         );
 
         expect(encrypted.ct).toBeDefined();
@@ -1718,17 +1721,16 @@ describe('Crypto Integration', () => {
         expect(encrypted.targetDID).toBe('did:key:zTarget');
         expect(encrypted.senderDID).toBe('did:key:zTestLocal123');
 
-        const decrypted =
-          await replicationManager.decryptReplicationData<typeof data>(
-            encrypted,
-          );
+        const decrypted = await replicationManager.decryptReplicationData<
+          typeof data
+        >(encrypted);
 
         expect(decrypted).toEqual(data);
       });
 
       it('should throw when crypto not initialized for encryption', async () => {
         await expect(
-          replicationManager.encryptForReplica({ data: 'test' }, 'did:key:z'),
+          replicationManager.encryptForReplica({ data: 'test' }, 'did:key:z')
         ).rejects.toThrow('Crypto provider not initialized');
       });
 
@@ -1743,7 +1745,7 @@ describe('Crypto Integration', () => {
         };
 
         await expect(
-          replicationManager.decryptReplicationData(mockEncrypted),
+          replicationManager.decryptReplicationData(mockEncrypted)
         ).rejects.toThrow('Crypto provider not initialized');
       });
     });
@@ -1754,7 +1756,7 @@ describe('Crypto Integration', () => {
           'encrypted-policy',
           3,
           'strong',
-          'end-to-end',
+          'end-to-end'
         );
 
         expect(policy.name).toBe('encrypted-policy');
@@ -1774,7 +1776,7 @@ describe('Crypto Integration', () => {
               'aeon:replicate:read',
               'aeon:replicate:write',
             ],
-          },
+          }
         );
 
         expect(policy.requiredCapabilities).toHaveLength(2);
@@ -1790,7 +1792,7 @@ describe('Crypto Integration', () => {
           {
             syncInterval: 5000,
             maxReplicationLag: 30000,
-          },
+          }
         );
 
         expect(policy.syncInterval).toBe(5000);
@@ -1804,7 +1806,7 @@ describe('Crypto Integration', () => {
 
         const result = await replicationManager.verifyReplicaCapabilities(
           'did:key:zReplica',
-          'mock.token.here',
+          'mock.token.here'
         );
 
         expect(result.authorized).toBe(true);
@@ -1819,7 +1821,7 @@ describe('Crypto Integration', () => {
 
         const result = await replicationManager.verifyReplicaCapabilities(
           'did:key:zReplica',
-          'mock.token.here',
+          'mock.token.here'
         );
 
         expect(result.authorized).toBe(false);
@@ -1836,13 +1838,13 @@ describe('Crypto Integration', () => {
           'end-to-end',
           {
             requiredCapabilities: ['aeon:replicate:read'],
-          },
+          }
         );
 
         const result = await replicationManager.verifyReplicaCapabilities(
           'did:key:zReplica',
           'mock.token.here',
-          policy.id,
+          policy.id
         );
 
         expect(result.authorized).toBe(true);
@@ -1851,7 +1853,7 @@ describe('Crypto Integration', () => {
       it('should return authorized without crypto', async () => {
         const result = await replicationManager.verifyReplicaCapabilities(
           'did:key:zReplica',
-          'mock.token.here',
+          'mock.token.here'
         );
 
         expect(result.authorized).toBe(true);
@@ -1876,7 +1878,7 @@ describe('Crypto Integration', () => {
 
         expect(replicationManager.isCryptoEnabled()).toBe(false);
         expect(
-          replicationManager.getReplicaByDID('did:key:zReplica1'),
+          replicationManager.getReplicaByDID('did:key:zReplica1')
         ).toBeUndefined();
         expect(replicationManager.getAllReplicas()).toHaveLength(0);
       });
@@ -1903,7 +1905,7 @@ describe('Crypto Integration', () => {
 
       const aliceHandshake = await protocol.createAuthenticatedHandshake(
         ['sync', 'replicate'],
-        'did:key:zBob',
+        'did:key:zBob'
       );
 
       expect(aliceHandshake.auth?.senderDID).toBe('did:key:zAlice');
@@ -1914,8 +1916,9 @@ describe('Crypto Integration', () => {
         requireCapabilities: true,
       });
 
-      const result =
-        await protocol.verifyAuthenticatedHandshake(aliceHandshake);
+      const result = await protocol.verifyAuthenticatedHandshake(
+        aliceHandshake
+      );
 
       expect(result.valid).toBe(true);
       expect(result.handshake?.did).toBe('did:key:zAlice');
@@ -1933,7 +1936,7 @@ describe('Crypto Integration', () => {
         'did:key:zBob',
         'session-1',
         '1.0',
-        '2.0',
+        '2.0'
       );
 
       const syncData = {
@@ -1944,7 +1947,7 @@ describe('Crypto Integration', () => {
       const encryptedRequest = await protocol.signMessage(
         request,
         syncData,
-        true,
+        true
       );
 
       expect(encryptedRequest.auth?.encrypted).toBe(true);
@@ -1956,8 +1959,9 @@ describe('Crypto Integration', () => {
         requireSignatures: true,
       });
 
-      const decrypted =
-        await protocol.verifyMessage<typeof syncData>(encryptedRequest);
+      const decrypted = await protocol.verifyMessage<typeof syncData>(
+        encryptedRequest
+      );
 
       expect(decrypted.valid).toBe(true);
       expect(decrypted.payload?.items).toHaveLength(1);
@@ -1974,7 +1978,7 @@ describe('Crypto Integration', () => {
         'did:key:zBob',
         'session-1',
         '1.0',
-        '2.0',
+        '2.0'
       );
 
       const signed = await protocol.signMessage(message, { data: 'test' });

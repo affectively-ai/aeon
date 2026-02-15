@@ -128,8 +128,9 @@ export class SyncProtocol {
   // Crypto support
   private cryptoProvider: ICryptoProvider | null = null;
   private cryptoConfig: SyncProtocolCryptoConfig | null = null;
-  private persistence: (SyncProtocolPersistenceConfig & { key: string }) | null =
-    null;
+  private persistence:
+    | (SyncProtocolPersistenceConfig & { key: string })
+    | null = null;
   private persistTimer: ReturnType<typeof setTimeout> | null = null;
   private persistInFlight = false;
   private persistPending = false;
@@ -160,7 +161,7 @@ export class SyncProtocol {
    */
   configureCrypto(
     provider: ICryptoProvider,
-    config?: Partial<SyncProtocolCryptoConfig>,
+    config?: Partial<SyncProtocolCryptoConfig>
   ): void {
     this.cryptoProvider = provider;
     this.cryptoConfig = {
@@ -203,7 +204,7 @@ export class SyncProtocol {
    */
   async createAuthenticatedHandshake(
     capabilities: string[],
-    targetDID?: string,
+    targetDID?: string
   ): Promise<SyncMessage> {
     if (!this.cryptoProvider || !this.cryptoProvider.isInitialized()) {
       throw new Error('Crypto provider not initialized');
@@ -278,7 +279,7 @@ export class SyncProtocol {
    * Verify and process an authenticated handshake
    */
   async verifyAuthenticatedHandshake(
-    message: SyncMessage,
+    message: SyncMessage
   ): Promise<{ valid: boolean; handshake?: Handshake; error?: string }> {
     if (message.type !== 'handshake') {
       return { valid: false, error: 'Message is not a handshake' };
@@ -357,7 +358,7 @@ export class SyncProtocol {
   async signMessage<T>(
     message: SyncMessage,
     payload: T,
-    encrypt = false,
+    encrypt = false
   ): Promise<SyncMessage> {
     if (!this.cryptoProvider || !this.cryptoProvider.isInitialized()) {
       throw new Error('Crypto provider not initialized');
@@ -384,7 +385,7 @@ export class SyncProtocol {
       const payloadBytes = new TextEncoder().encode(JSON.stringify(payload));
       const encrypted = await this.cryptoProvider.encrypt(
         payloadBytes,
-        message.receiver,
+        message.receiver
       );
 
       message.payload = encrypted;
@@ -405,7 +406,7 @@ export class SyncProtocol {
    * Verify signature and optionally decrypt a message
    */
   async verifyMessage<T>(
-    message: SyncMessage,
+    message: SyncMessage
   ): Promise<{ valid: boolean; payload?: T; error?: string }> {
     if (!this.cryptoProvider || !message.auth) {
       // No crypto or no auth - return payload as-is
@@ -427,7 +428,7 @@ export class SyncProtocol {
 
         const decrypted = await this.cryptoProvider.decrypt(
           encrypted,
-          message.auth.senderDID,
+          message.auth.senderDID
         );
 
         payload = JSON.parse(new TextDecoder().decode(decrypted));
@@ -438,7 +439,9 @@ export class SyncProtocol {
       } catch (error) {
         return {
           valid: false,
-          error: `Decryption failed: ${error instanceof Error ? error.message : String(error)}`,
+          error: `Decryption failed: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
         };
       }
     }
@@ -503,7 +506,7 @@ export class SyncProtocol {
     sessionId: string,
     fromVersion: string,
     toVersion: string,
-    filter?: Record<string, unknown>,
+    filter?: Record<string, unknown>
   ): SyncMessage {
     const message: SyncMessage = {
       type: 'sync-request',
@@ -545,7 +548,7 @@ export class SyncProtocol {
     toVersion: string,
     data: unknown[],
     hasMore = false,
-    offset = 0,
+    offset = 0
   ): SyncMessage {
     const message: SyncMessage = {
       type: 'sync-response',
@@ -584,7 +587,7 @@ export class SyncProtocol {
   createAckMessage(
     sender: string,
     receiver: string,
-    messageId: string,
+    messageId: string
   ): SyncMessage {
     const message: SyncMessage = {
       type: 'ack',
@@ -610,7 +613,7 @@ export class SyncProtocol {
     sender: string,
     receiver: string,
     error: ProtocolError,
-    relatedMessageId?: string,
+    relatedMessageId?: string
   ): SyncMessage {
     const message: SyncMessage = {
       type: 'error',
@@ -689,7 +692,9 @@ export class SyncProtocol {
       });
 
       throw new Error(
-        `Failed to serialize message: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to serialize message: ${
+          error instanceof Error ? error.message : String(error)
+        }`
       );
     }
   }
@@ -713,7 +718,9 @@ export class SyncProtocol {
       });
 
       throw new Error(
-        `Failed to deserialize message: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to deserialize message: ${
+          error instanceof Error ? error.message : String(error)
+        }`
       );
     }
   }
@@ -794,7 +801,7 @@ export class SyncProtocol {
 
     const errorCount = this.protocolErrors.length;
     const recoverableErrors = this.protocolErrors.filter(
-      (e) => e.error.recoverable,
+      (e) => e.error.recoverable
     ).length;
 
     return {
@@ -830,7 +837,7 @@ export class SyncProtocol {
         ([nodeId, handshake]) => ({
           nodeId,
           handshake,
-        }),
+        })
       ),
       protocolErrors: this.getErrors(),
     };
@@ -846,7 +853,10 @@ export class SyncProtocol {
       ((value: PersistedEnvelope<SyncProtocolPersistenceData>) =>
         JSON.stringify(value));
 
-    await this.persistence.adapter.setItem(this.persistence.key, serialize(envelope));
+    await this.persistence.adapter.setItem(
+      this.persistence.key,
+      serialize(envelope)
+    );
   }
 
   /**
@@ -888,7 +898,9 @@ export class SyncProtocol {
       const validation = this.validateMessage(message);
       if (!validation.valid) {
         throw new Error(
-          `Invalid persisted message ${message?.messageId ?? 'unknown'}: ${validation.errors.join(', ')}`,
+          `Invalid persisted message ${
+            message?.messageId ?? 'unknown'
+          }: ${validation.errors.join(', ')}`
         );
       }
       nextMessages.push(message);
@@ -919,7 +931,7 @@ export class SyncProtocol {
     this.protocolErrors = nextErrors;
     this.messageCounter = Math.max(
       envelope.data.messageCounter || 0,
-      this.messageQueue.length,
+      this.messageQueue.length
     );
 
     logger.debug('[SyncProtocol] Loaded from persistence', {
@@ -1008,7 +1020,7 @@ export class SyncProtocol {
   }
 
   private isValidProtocolErrorEntry(
-    entry: unknown,
+    entry: unknown
   ): entry is { error: ProtocolError; timestamp: string } {
     if (typeof entry !== 'object' || entry === null) {
       return false;

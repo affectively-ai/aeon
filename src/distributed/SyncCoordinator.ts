@@ -116,7 +116,7 @@ export class SyncCoordinator extends EventEmitter {
       did: string;
       publicSigningKey: JsonWebKey;
       publicEncryptionKey?: JsonWebKey;
-    },
+    }
   ): Promise<SyncNode> {
     const node: SyncNode = {
       ...nodeInfo,
@@ -180,7 +180,7 @@ export class SyncCoordinator extends EventEmitter {
     options?: {
       encryptionMode?: AeonEncryptionMode;
       requiredCapabilities?: string[];
-    },
+    }
   ): Promise<SyncSession> {
     // Find the initiator node by DID
     const initiatorNodeId = this.nodesByDID.get(initiatorDID);
@@ -210,7 +210,7 @@ export class SyncCoordinator extends EventEmitter {
         sessionToken = await this.cryptoProvider.createUCAN(
           participantDIDs[0],
           capabilities,
-          { expirationSeconds: 3600 }, // 1 hour
+          { expirationSeconds: 3600 } // 1 hour
         );
       }
     }
@@ -265,7 +265,7 @@ export class SyncCoordinator extends EventEmitter {
   async verifyNodeCapabilities(
     sessionId: string,
     nodeDID: string,
-    token: string,
+    token: string
   ): Promise<{ authorized: boolean; error?: string }> {
     if (!this.cryptoProvider) {
       return { authorized: true }; // No crypto, always authorized
@@ -346,7 +346,7 @@ export class SyncCoordinator extends EventEmitter {
    */
   createSyncSession(
     initiatorId: string,
-    participantIds: string[],
+    participantIds: string[]
   ): SyncSession {
     const node = this.nodes.get(initiatorId);
     if (!node) {
@@ -424,7 +424,7 @@ export class SyncCoordinator extends EventEmitter {
   recordConflict(
     sessionId: string,
     nodeId: string,
-    conflictData?: unknown,
+    conflictData?: unknown
   ): void {
     const session = this.sessions.get(sessionId);
     if (session) {
@@ -506,7 +506,7 @@ export class SyncCoordinator extends EventEmitter {
    */
   getNodesByCapability(capability: string): SyncNode[] {
     return Array.from(this.nodes.values()).filter((n) =>
-      n.capabilities.includes(capability),
+      n.capabilities.includes(capability)
     );
   }
 
@@ -529,7 +529,7 @@ export class SyncCoordinator extends EventEmitter {
    */
   getActiveSyncSessions(): SyncSession[] {
     return Array.from(this.sessions.values()).filter(
-      (s) => s.status === 'active',
+      (s) => s.status === 'active'
     );
   }
 
@@ -538,7 +538,7 @@ export class SyncCoordinator extends EventEmitter {
    */
   getSessionsForNode(nodeId: string): SyncSession[] {
     return Array.from(this.sessions.values()).filter(
-      (s) => s.initiatorId === nodeId || s.participantIds.includes(nodeId),
+      (s) => s.initiatorId === nodeId || s.participantIds.includes(nodeId)
     );
   }
 
@@ -553,11 +553,11 @@ export class SyncCoordinator extends EventEmitter {
 
     const totalItemsSynced = sessions.reduce(
       (sum, s) => sum + s.itemsSynced,
-      0,
+      0
     );
     const totalConflicts = sessions.reduce(
       (sum, s) => sum + s.conflictsDetected,
-      0,
+      0
     );
 
     return {

@@ -12,8 +12,29 @@
 export { SyncCoordinator } from './SyncCoordinator';
 export type { SyncNode, SyncSession, SyncEvent } from './SyncCoordinator';
 export { ReplicationManager } from './ReplicationManager';
-export type { Replica, ReplicationPolicy, ReplicationEvent, ReplicationPersistenceData, ReplicationPersistenceConfig, ReplicationManagerOptions, } from './ReplicationManager';
+export type {
+  Replica,
+  ReplicationPolicy,
+  ReplicationEvent,
+  ReplicationPersistenceData,
+  ReplicationPersistenceConfig,
+  ReplicationManagerOptions,
+} from './ReplicationManager';
 export { SyncProtocol } from './SyncProtocol';
-export type { SyncMessage, Handshake, SyncRequest, SyncResponse, ProtocolError, SyncProtocolPersistenceData, SyncProtocolPersistenceConfig, SyncProtocolOptions, } from './SyncProtocol';
+export type {
+  SyncMessage,
+  Handshake,
+  SyncRequest,
+  SyncResponse,
+  ProtocolError,
+  SyncProtocolPersistenceData,
+  SyncProtocolPersistenceConfig,
+  SyncProtocolOptions,
+} from './SyncProtocol';
 export { StateReconciler } from './StateReconciler';
-export type { StateVersion, StateDiff, ReconciliationResult, MergeStrategy, } from './StateReconciler';
+export type {
+  StateVersion,
+  StateDiff,
+  ReconciliationResult,
+  MergeStrategy,
+} from './StateReconciler';

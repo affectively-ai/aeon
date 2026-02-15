@@ -39,10 +39,10 @@ describe('Versioning Module', () => {
 
     it('should track multiple schema versions', () => {
       versionManager.registerVersion(
-        versionManager.createVersion(1, 1, 0, 'V1.1', false),
+        versionManager.createVersion(1, 1, 0, 'V1.1', false)
       );
       versionManager.registerVersion(
-        versionManager.createVersion(2, 0, 0, 'V2', true),
+        versionManager.createVersion(2, 0, 0, 'V2', true)
       );
 
       const history = versionManager.getVersionHistory();
@@ -66,7 +66,7 @@ describe('Versioning Module', () => {
 
     it('should register compatibility rules', () => {
       versionManager.registerVersion(
-        versionManager.createVersion(1, 0, 1, 'V1.0.1', false),
+        versionManager.createVersion(1, 0, 1, 'V1.0.1', false)
       );
 
       versionManager.registerCompatibility({
@@ -142,7 +142,7 @@ describe('Versioning Module', () => {
         0,
         0,
         'Far future',
-        true,
+        true
       );
 
       versionManager.registerVersion(toVersion);
@@ -159,7 +159,7 @@ describe('Versioning Module', () => {
         1,
         0,
         'V1.1.0 update',
-        false,
+        false
       );
       versionManager.registerVersion(v1_1_0);
 
@@ -215,13 +215,13 @@ describe('Versioning Module', () => {
 
     it('should get all versions sorted', () => {
       versionManager.registerVersion(
-        versionManager.createVersion(1, 2, 0, 'V1.2', false),
+        versionManager.createVersion(1, 2, 0, 'V1.2', false)
       );
       versionManager.registerVersion(
-        versionManager.createVersion(1, 1, 0, 'V1.1', false),
+        versionManager.createVersion(1, 1, 0, 'V1.1', false)
       );
       versionManager.registerVersion(
-        versionManager.createVersion(2, 0, 0, 'V2', true),
+        versionManager.createVersion(2, 0, 0, 'V2', true)
       );
 
       const allVersions = versionManager.getAllVersions();
@@ -232,7 +232,7 @@ describe('Versioning Module', () => {
       for (let i = 1; i < allVersions.length; i++) {
         const comparison = versionManager.compareVersions(
           allVersions[i - 1],
-          allVersions[i],
+          allVersions[i]
         );
         expect(comparison).toBeLessThanOrEqual(0);
       }
@@ -240,11 +240,11 @@ describe('Versioning Module', () => {
 
     it('should clear all versions', () => {
       versionManager.registerVersion(
-        versionManager.createVersion(2, 0, 0, 'V2', true),
+        versionManager.createVersion(2, 0, 0, 'V2', true)
       );
 
       expect(versionManager.getVersionHistory().length).toBeGreaterThanOrEqual(
-        2,
+        2
       );
 
       versionManager.clear();
@@ -257,7 +257,7 @@ describe('Versioning Module', () => {
       versionManager.clear();
 
       expect(() => versionManager.getCurrentVersion()).toThrow(
-        'No current version set',
+        'No current version set'
       );
     });
 
@@ -267,11 +267,11 @@ describe('Versioning Module', () => {
         0,
         0,
         'Not registered',
-        false,
+        false
       );
 
       expect(() => versionManager.setCurrentVersion(unregistered)).toThrow(
-        'Version 99.0.0 not registered',
+        'Version 99.0.0 not registered'
       );
     });
   });
@@ -315,7 +315,7 @@ describe('Versioning Module', () => {
       const testData = { id: 1, name: 'test' };
       const result = await migrationEngine.executeMigration(
         'up-migration-1',
-        testData,
+        testData
       );
 
       expect(result.success).toBe(true);
@@ -345,7 +345,7 @@ describe('Versioning Module', () => {
       const testData = { id: 1, name: 'test', newField: 'value' };
       const result = await migrationEngine.rollbackMigration(
         'rollback-migration-1',
-        testData,
+        testData
       );
 
       expect(result.success).toBe(true);
@@ -383,7 +383,7 @@ describe('Versioning Module', () => {
       migrationEngine.registerMigration(migration);
 
       await expect(
-        migrationEngine.executeMigration('fail-migration-1', {}),
+        migrationEngine.executeMigration('fail-migration-1', {})
       ).rejects.toThrow();
 
       const failed = migrationEngine.getFailedMigrations();
@@ -443,7 +443,7 @@ describe('Versioning Module', () => {
       const history = migrationEngine.getExecutionHistory();
       expect(history.length).toBeGreaterThanOrEqual(1);
       expect(
-        history.find((h) => h.migrationId === 'history-test-1'),
+        history.find((h) => h.migrationId === 'history-test-1')
       ).toBeDefined();
     });
 
@@ -515,7 +515,7 @@ describe('Versioning Module', () => {
       await migrationEngine.executeMigration('clear-test-1', {});
 
       expect(migrationEngine.getAllMigrations().length).toBeGreaterThanOrEqual(
-        1,
+        1
       );
 
       migrationEngine.clear();
@@ -615,7 +615,7 @@ describe('Versioning Module', () => {
 
       const validation = dataTransformer.validateTransformation(
         original,
-        transformed,
+        transformed
       );
 
       expect(validation.valid).toBe(true);
@@ -628,12 +628,12 @@ describe('Versioning Module', () => {
 
       const validation = dataTransformer.validateTransformation(
         original,
-        transformed,
+        transformed
       );
 
       expect(validation.valid).toBe(false);
       expect(validation.issues.some((i) => i.includes('count mismatch'))).toBe(
-        true,
+        true
       );
     });
 
@@ -747,7 +747,7 @@ describe('Versioning Module', () => {
         10,
         150,
         10,
-        'test-user',
+        'test-user'
       );
 
       const migrations = migrationTracker.getMigrations();
@@ -851,7 +851,7 @@ describe('Versioning Module', () => {
         10,
         100,
         10,
-        'user',
+        'user'
       );
       migrationTracker.trackMigration(
         'm-2',
@@ -861,7 +861,7 @@ describe('Versioning Module', () => {
         10,
         100,
         10,
-        'user',
+        'user'
       );
 
       // Should be able to rollback because snapshots exist
@@ -883,7 +883,7 @@ describe('Versioning Module', () => {
         10,
         100,
         10,
-        'user',
+        'user'
       );
       migrationTracker.trackMigration(
         'm-2',
@@ -893,7 +893,7 @@ describe('Versioning Module', () => {
         10,
         150,
         15,
-        'user',
+        'user'
       );
 
       const path = migrationTracker.getRollbackPath('1.1.0', '1.0.0');
@@ -1140,7 +1140,7 @@ describe('Versioning Module', () => {
 
       const janMigrations = migrationTracker.getMigrationsByTimeRange(
         '2024-01-01T00:00:00Z',
-        '2024-01-31T23:59:59Z',
+        '2024-01-31T23:59:59Z'
       );
 
       expect(janMigrations.length).toBe(1);
@@ -1165,7 +1165,7 @@ describe('Versioning Module', () => {
         4,
         200,
         4,
-        'test-user',
+        'test-user'
       );
 
       await persistentTracker.saveToPersistence();
@@ -1202,7 +1202,7 @@ describe('Versioning Module', () => {
         1,
         100,
         1,
-        'test-user',
+        'test-user'
       );
       await persistentTracker.saveToPersistence();
 
@@ -1226,7 +1226,7 @@ describe('Versioning Module', () => {
       });
 
       await expect(restoredTracker.loadFromPersistence()).rejects.toThrow(
-        'Migration integrity verification failed',
+        'Migration integrity verification failed'
       );
     });
 
@@ -1248,7 +1248,7 @@ describe('Versioning Module', () => {
         1,
         100,
         1,
-        'test-user',
+        'test-user'
       );
       await persistentTracker.saveToPersistence();
       await persistentTracker.clearPersistence();

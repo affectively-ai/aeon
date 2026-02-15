@@ -120,7 +120,7 @@ export class AdaptiveCompressionOptimizer {
   updateNetworkConditions(
     speedKbps: number,
     latencyMs?: number,
-    isOnline?: boolean,
+    isOnline?: boolean
   ): void {
     this.networkProfile.estimatedSpeedKbps = speedKbps;
     if (latencyMs !== undefined) {
@@ -155,11 +155,11 @@ export class AdaptiveCompressionOptimizer {
    */
   updateDeviceResources(
     cpuUtilization: number,
-    memoryAvailableMB: number,
+    memoryAvailableMB: number
   ): void {
     this.deviceProfile.cpuUtilization = Math.max(
       0,
-      Math.min(1, cpuUtilization),
+      Math.min(1, cpuUtilization)
     );
     this.deviceProfile.memoryAvailableMB = memoryAvailableMB;
     this.deviceProfile.isConstrained = memoryAvailableMB < 512;
@@ -177,7 +177,7 @@ export class AdaptiveCompressionOptimizer {
   recordCompressionPerformance(
     level: number,
     compressionMs: number,
-    ratio: number,
+    ratio: number
   ): void {
     this.compressionHistory.push({
       level,
@@ -209,7 +209,7 @@ export class AdaptiveCompressionOptimizer {
 
     const recommendedLevel = Math.max(
       1,
-      Math.min(9, Math.round(combinedFactor * 9)),
+      Math.min(9, Math.round(combinedFactor * 9))
     ) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
     const estimatedCompressionMs =
@@ -242,7 +242,7 @@ export class AdaptiveCompressionOptimizer {
 
     logger.debug(
       '[AdaptiveCompressionOptimizer] Recommendation',
-      recommendation,
+      recommendation
     );
 
     return recommendation;

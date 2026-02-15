@@ -35,7 +35,9 @@ export class DashStorageAdapter implements StorageAdapter {
   private readonly syncClient: DashSyncClient | null;
   private readonly syncDebounceMs: number;
   private readonly maxPendingChanges: number;
-  private readonly onSyncError: ((error: Error, changes: DashStorageChange[]) => void) | null;
+  private readonly onSyncError:
+    | ((error: Error, changes: DashStorageChange[]) => void)
+    | null;
   private readonly pendingChanges = new Map<string, DashStorageChange>();
   private syncTimer: ReturnType<typeof setTimeout> | null = null;
   private syncInFlight = false;
@@ -43,7 +45,7 @@ export class DashStorageAdapter implements StorageAdapter {
 
   constructor(
     backend: DashStorageBackend,
-    options: DashStorageAdapterOptions = {},
+    options: DashStorageAdapterOptions = {}
   ) {
     this.backend = backend;
     this.syncClient = options.syncClient ?? null;
@@ -102,7 +104,7 @@ export class DashStorageAdapter implements StorageAdapter {
     }
 
     const sorted = Array.from(this.pendingChanges.values()).sort(
-      (a, b) => a.timestamp - b.timestamp,
+      (a, b) => a.timestamp - b.timestamp
     );
     const overflow = this.pendingChanges.size - this.maxPendingChanges;
     for (let i = 0; i < overflow; i++) {
@@ -138,7 +140,7 @@ export class DashStorageAdapter implements StorageAdapter {
     }
 
     const changes = Array.from(this.pendingChanges.values()).sort(
-      (a, b) => a.timestamp - b.timestamp,
+      (a, b) => a.timestamp - b.timestamp
     );
     if (changes.length === 0) {
       return;

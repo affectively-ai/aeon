@@ -51,7 +51,7 @@ describe('Compression Module', () => {
       // Use smaller chunk size to ensure multiple chunks
       const chunkSize = Math.min(
         64 * 1024,
-        Math.ceil(batch.compressed.length / 2),
+        Math.ceil(batch.compressed.length / 2)
       );
       const chunks = engine.splitIntoChunks(batch, chunkSize);
 

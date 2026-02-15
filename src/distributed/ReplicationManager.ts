@@ -123,8 +123,7 @@ export class ReplicationManager {
     if (options?.persistence) {
       this.persistence = {
         ...options.persistence,
-        key:
-          options.persistence.key ?? ReplicationManager.DEFAULT_PERSIST_KEY,
+        key: options.persistence.key ?? ReplicationManager.DEFAULT_PERSIST_KEY,
         autoPersist: options.persistence.autoPersist ?? true,
         autoLoad: options.persistence.autoLoad ?? false,
         persistDebounceMs: options.persistence.persistDebounceMs ?? 25,
@@ -168,7 +167,7 @@ export class ReplicationManager {
       publicSigningKey?: JsonWebKey;
       publicEncryptionKey?: JsonWebKey;
     },
-    encrypted = false,
+    encrypted = false
   ): Promise<Replica> {
     const authenticatedReplica: Replica = {
       ...replica,
@@ -233,7 +232,7 @@ export class ReplicationManager {
    */
   async encryptForReplica(
     data: unknown,
-    targetReplicaDID: string,
+    targetReplicaDID: string
   ): Promise<EncryptedReplicationData> {
     if (!this.cryptoProvider || !this.cryptoProvider.isInitialized()) {
       throw new Error('Crypto provider not initialized');
@@ -242,7 +241,7 @@ export class ReplicationManager {
     const dataBytes = new TextEncoder().encode(JSON.stringify(data));
     const encrypted = await this.cryptoProvider.encrypt(
       dataBytes,
-      targetReplicaDID,
+      targetReplicaDID
     );
 
     const localDID = this.cryptoProvider.getLocalDID();
@@ -262,7 +261,7 @@ export class ReplicationManager {
    * Decrypt data received from replication
    */
   async decryptReplicationData<T>(
-    encrypted: EncryptedReplicationData,
+    encrypted: EncryptedReplicationData
   ): Promise<T> {
     if (!this.cryptoProvider || !this.cryptoProvider.isInitialized()) {
       throw new Error('Crypto provider not initialized');
@@ -276,7 +275,7 @@ export class ReplicationManager {
         tag: encrypted.tag,
         epk: encrypted.epk,
       },
-      encrypted.senderDID,
+      encrypted.senderDID
     );
 
     return JSON.parse(new TextDecoder().decode(decrypted)) as T;
@@ -294,7 +293,7 @@ export class ReplicationManager {
       syncInterval?: number;
       maxReplicationLag?: number;
       requiredCapabilities?: string[];
-    },
+    }
   ): ReplicationPolicy {
     const policy: ReplicationPolicy = {
       id: `policy-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -325,7 +324,7 @@ export class ReplicationManager {
   async verifyReplicaCapabilities(
     replicaDID: string,
     token: string,
-    policyId?: string,
+    policyId?: string
   ): Promise<{ authorized: boolean; error?: string }> {
     if (!this.cryptoProvider) {
       return { authorized: true }; // No crypto, always authorized
@@ -346,7 +345,7 @@ export class ReplicationManager {
         {
           replicaDID,
           error: result.error,
-        },
+        }
       );
     }
 
@@ -412,7 +411,7 @@ export class ReplicationManager {
     replicationFactor: number,
     consistencyLevel: 'eventual' | 'read-after-write' | 'strong',
     syncInterval = 1000,
-    maxReplicationLag = 10000,
+    maxReplicationLag = 10000
   ): ReplicationPolicy {
     const policy: ReplicationPolicy = {
       id: `policy-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -443,7 +442,7 @@ export class ReplicationManager {
     replicaId: string,
     status: Replica['status'],
     lagBytes = 0,
-    lagMillis = 0,
+    lagMillis = 0
   ): void {
     const replica = this.replicas.get(replicaId);
     if (!replica) {
@@ -489,7 +488,7 @@ export class ReplicationManager {
    */
   getReplicasForNode(nodeId: string): Replica[] {
     return Array.from(this.replicas.values()).filter(
-      (r) => r.nodeId === nodeId,
+      (r) => r.nodeId === nodeId
     );
   }
 
@@ -498,7 +497,7 @@ export class ReplicationManager {
    */
   getHealthyReplicas(): Replica[] {
     return Array.from(this.replicas.values()).filter(
-      (r) => r.status === 'secondary' || r.status === 'primary',
+      (r) => r.status === 'secondary' || r.status === 'primary'
     );
   }
 
@@ -507,7 +506,7 @@ export class ReplicationManager {
    */
   getSyncingReplicas(): Replica[] {
     return Array.from(this.replicas.values()).filter(
-      (r) => r.status === 'syncing',
+      (r) => r.status === 'syncing'
     );
   }
 
@@ -516,7 +515,7 @@ export class ReplicationManager {
    */
   getFailedReplicas(): Replica[] {
     return Array.from(this.replicas.values()).filter(
-      (r) => r.status === 'failed',
+      (r) => r.status === 'failed'
     );
   }
 
@@ -551,7 +550,7 @@ export class ReplicationManager {
    * Get consistency level
    */
   getConsistencyLevel(
-    policyId: string,
+    policyId: string
   ): 'eventual' | 'read-after-write' | 'strong' {
     const policy = this.policies.get(policyId);
     if (!policy) {
@@ -599,7 +598,7 @@ export class ReplicationManager {
     const total = this.replicas.size;
 
     const replicationLags = Array.from(this.replicas.values()).map(
-      (r) => r.lagMillis,
+      (r) => r.lagMillis
     );
     const avgLag =
       replicationLags.length > 0
@@ -703,7 +702,7 @@ export class ReplicationManager {
           nodeId,
           synced: state.synced,
           failed: state.failed,
-        }),
+        })
       ),
     };
 
@@ -718,7 +717,10 @@ export class ReplicationManager {
       ((value: PersistedEnvelope<ReplicationPersistenceData>) =>
         JSON.stringify(value));
 
-    await this.persistence.adapter.setItem(this.persistence.key, serialize(envelope));
+    await this.persistence.adapter.setItem(
+      this.persistence.key,
+      serialize(envelope)
+    );
   }
 
   /**
