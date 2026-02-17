@@ -1,6 +1,6 @@
 {
   "name": "@affectively/aeon",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Distributed synchronization, schema versioning, and conflict resolution for real-time collaborative applications",
   "keywords": [
     "distributed",
@@ -165,13 +165,17 @@
   },
   "peerDependencies": {
     "@affectively/auth": "^1.0.0",
-    "@affectively/zk-encryption": "^1.0.0"
+    "@affectively/zk-encryption": "^1.0.0",
+    "@affectively/aeon-flux-react": "^1.0.0"
   },
   "peerDependenciesMeta": {
     "@affectively/auth": {
       "optional": true
     },
     "@affectively/zk-encryption": {
+      "optional": true
+    },
+    "@affectively/aeon-flux-react": {
       "optional": true
     }
   },

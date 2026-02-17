@@ -59,6 +59,39 @@ export * from './presence';
 // Crypto module (UCAN + ZK encryption)
 export * from './crypto';
 
-// Re-export React bindings from aeon-pages for convenience
-// These are used extensively across edge-web-app tool pages
-export { Link, useAeonPage } from '../../aeon-pages/packages/react/src/index';
+/**
+ * STUBS for React components and hooks
+ * These are normally provided by @affectively/aeon-flux-react but are
+ * imported from @affectively/aeon in many legacy parts of edge-web-app.
+ */
+export const Link = (() => {
+  throw new Error(
+    'Link: Stub called from @affectively/aeon. Import from @affectively/aeon-flux-react or mock in tests.'
+  );
+}) as any;
+
+export const useAeonPage = (() => {
+  throw new Error(
+    'useAeonPage: Stub called from @affectively/aeon. Import from @affectively/aeon-flux-react or mock in tests.'
+  );
+}) as any;
+
+export const getAdaptiveCompressionOptimizer = (() => {
+  throw new Error('getAdaptiveCompressionOptimizer: Stub');
+}) as any;
+
+export const SchemaVersionManager = class {
+  constructor() {
+    throw new Error('SchemaVersionManager: Stub');
+  }
+} as any;
+
+export const getAgentPresenceManager = (() => {
+  throw new Error('getAgentPresenceManager: Stub');
+}) as any;
+
+export const SyncCoordinator = class {
+  constructor() {
+    throw new Error('SyncCoordinator: Stub');
+  }
+} as any;
