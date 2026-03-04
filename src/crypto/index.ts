@@ -61,6 +61,21 @@ export { AEON_CAPABILITIES, DEFAULT_CRYPTO_CONFIG } from './types';
 export type { ICryptoProvider } from './CryptoProvider';
 export { NullCryptoProvider } from './CryptoProvider';
 
+// Transaction signer abstraction (separate from sync/encryption provider)
+export type {
+  ITransactionSigner,
+  TransactionSignerErrorCode,
+  TransactionSignerExecuteRequest,
+  TransactionSignerExecuteResponse,
+  TransactionSignerHealth,
+  TransactionSignerMetadata,
+  TransactionSignerPayloadMap,
+} from './transactionSigner';
+export {
+  NullTransactionSigner,
+  createTransactionSignerAdapter,
+} from './transactionSigner';
+
 // Default Implementation - Requires @affectively/auth and @affectively/zk-encryption
 // Uncomment when these packages are available
 // export { AeonCryptoProvider } from './AeonCryptoProvider';
