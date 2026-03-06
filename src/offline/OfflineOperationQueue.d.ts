@@ -153,3 +153,4 @@ export declare class OfflineOperationQueue extends EventEmitter<OfflineQueueEven
 }
 export declare function getOfflineOperationQueue(): OfflineOperationQueue;
 export declare function resetOfflineOperationQueue(): void;
+//# sourceMappingURL=OfflineOperationQueue.d.ts.map

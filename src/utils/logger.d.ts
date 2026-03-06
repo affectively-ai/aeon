@@ -34,3 +34,4 @@ export declare function disableLogging(): void;
  */
 export declare function createNamespacedLogger(namespace: string): Logger;
 export declare const logger: Logger;
+//# sourceMappingURL=logger.d.ts.map

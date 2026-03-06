@@ -12,7 +12,7 @@ import type {
 /**
  * Abstract crypto provider interface
  *
- * Implementations use @affectively/ucan and @affectively/zk-encryption
+ * Implementations use @affectively/auth and @affectively/auth
  * or other compatible libraries.
  */
 export interface ICryptoProvider {
@@ -214,3 +214,4 @@ export declare class NullCryptoProvider implements ICryptoProvider {
   randomBytes(length: number): Uint8Array;
   isInitialized(): boolean;
 }
+//# sourceMappingURL=CryptoProvider.d.ts.map

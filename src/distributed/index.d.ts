@@ -38,3 +38,4 @@ export type {
   ReconciliationResult,
   MergeStrategy,
 } from './StateReconciler';
+//# sourceMappingURL=index.d.ts.map

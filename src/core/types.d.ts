@@ -188,6 +188,7 @@ export interface PresenceInfo {
   cursor?: {
     x: number;
     y: number;
+    path?: string;
   };
   focusNode?: string;
   selection?: PresenceSelection;
@@ -212,3 +213,4 @@ export interface IEventEmitter {
   off(event: string, callback: EventCallback): void;
   emit<T = unknown>(event: string, data?: T): void;
 }
+//# sourceMappingURL=types.d.ts.map

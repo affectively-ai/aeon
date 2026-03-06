@@ -2,11 +2,11 @@
  * Aeon Crypto Types
  *
  * Type definitions for cryptographic operations in Aeon.
- * These are compatible with @affectively/ucan and @affectively/zk-encryption.
+ * These are compatible with @affectively/auth and @affectively/auth.
  */
 
 // =============================================================================
-// IDENTITY TYPES (compatible with @affectively/ucan)
+// IDENTITY TYPES (compatible with @affectively/auth)
 // =============================================================================
 
 /**
@@ -89,7 +89,7 @@ export interface VerificationResult {
 }
 
 // =============================================================================
-// ENCRYPTION TYPES (compatible with @affectively/zk-encryption)
+// ENCRYPTION TYPES (compatible with @affectively/auth)
 // =============================================================================
 
 /**

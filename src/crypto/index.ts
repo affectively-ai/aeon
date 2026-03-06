@@ -76,6 +76,6 @@ export {
   createTransactionSignerAdapter,
 } from './transactionSigner';
 
-// Default Implementation - Requires @affectively/auth and @affectively/zk-encryption
+// Default Implementation - Requires @affectively/auth and @affectively/auth
 // Uncomment when these packages are available
 // export { AeonCryptoProvider } from './AeonCryptoProvider';

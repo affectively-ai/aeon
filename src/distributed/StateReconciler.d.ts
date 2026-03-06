@@ -168,3 +168,4 @@ export declare class StateReconciler {
    */
   getCryptoProvider(): ICryptoProvider | null;
 }
+//# sourceMappingURL=StateReconciler.d.ts.map

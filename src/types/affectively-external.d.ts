@@ -84,7 +84,7 @@ declare module '@affectively/auth' {
   export function base64UrlDecode(value: string): Uint8Array;
 }
 
-declare module '@affectively/zk-encryption' {
+declare module '@affectively/auth' {
   export interface ECKeyPair {
     publicKey: JsonWebKey;
     privateKey: JsonWebKey;

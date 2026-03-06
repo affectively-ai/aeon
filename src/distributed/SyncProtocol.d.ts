@@ -310,3 +310,4 @@ export declare class SyncProtocol {
    */
   getCryptoProvider(): ICryptoProvider | null;
 }
+//# sourceMappingURL=SyncProtocol.d.ts.map

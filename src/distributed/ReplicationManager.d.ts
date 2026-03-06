@@ -302,3 +302,4 @@ export declare class ReplicationManager {
    */
   getCryptoProvider(): ICryptoProvider | null;
 }
+//# sourceMappingURL=ReplicationManager.d.ts.map

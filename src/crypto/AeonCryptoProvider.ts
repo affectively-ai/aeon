@@ -1,7 +1,7 @@
 /**
  * Aeon Crypto Provider Implementation
  *
- * Default implementation using @affectively/ucan and @affectively/zk-encryption.
+ * Default implementation using @affectively/auth and @affectively/auth.
  */
 
 import type { ICryptoProvider } from './CryptoProvider';
@@ -38,7 +38,7 @@ import {
   sha256,
   randomBytes,
   type ECKeyPair,
-} from '@affectively/zk-encryption';
+} from '@affectively/auth';
 
 /**
  * Session key cache entry
@@ -52,7 +52,7 @@ interface SessionKeyEntry {
 /**
  * Default Aeon Crypto Provider
  *
- * Uses @affectively/ucan for identity/UCAN and @affectively/zk-encryption for encryption.
+ * Uses @affectively/auth for identity/UCAN and @affectively/auth for encryption.
  */
 export class AeonCryptoProvider implements ICryptoProvider {
   private identity: Identity | null = null;

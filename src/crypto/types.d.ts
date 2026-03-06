@@ -2,7 +2,7 @@
  * Aeon Crypto Types
  *
  * Type definitions for cryptographic operations in Aeon.
- * These are compatible with @affectively/ucan and @affectively/zk-encryption.
+ * These are compatible with @affectively/auth and @affectively/auth.
  */
 /**
  * Decentralized Identifier (DID)
@@ -229,3 +229,4 @@ export interface SignedSyncData<T = unknown> {
   algorithm: string;
   signedAt: number;
 }
+//# sourceMappingURL=types.d.ts.map

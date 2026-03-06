@@ -236,3 +236,4 @@ export declare class SyncCoordinator extends EventEmitter {
    */
   getCryptoProvider(): ICryptoProvider | null;
 }
+//# sourceMappingURL=SyncCoordinator.d.ts.map

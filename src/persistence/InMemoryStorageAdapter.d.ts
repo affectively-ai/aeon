@@ -7,5 +7,7 @@ export declare class InMemoryStorageAdapter implements StorageAdapter {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
   removeItem(key: string): void;
+  flushSync(): Promise<void>;
   clear(): void;
 }
+//# sourceMappingURL=InMemoryStorageAdapter.d.ts.map
