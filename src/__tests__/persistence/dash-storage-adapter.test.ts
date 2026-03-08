@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DashStorageAdapter,
   type DashStorageBackend,
@@ -35,7 +35,7 @@ describe('DashStorageAdapter', () => {
 
   it('should batch and sync latest key changes', async () => {
     const changes: DashStorageChange[][] = [];
-    const syncChangesFn = mock(async (batch: DashStorageChange[]) => {
+    const syncChangesFn = vi.fn(async (batch: DashStorageChange[]) => {
       changes.push(batch);
     });
     const syncClient: DashSyncClient = {
@@ -63,7 +63,7 @@ describe('DashStorageAdapter', () => {
 
   it('should requeue changes when sync fails', async () => {
     let attempts = 0;
-    const syncChangesFn = mock(async () => {
+    const syncChangesFn = vi.fn(async () => {
       attempts++;
       if (attempts === 1) {
         throw new Error('sync failed');

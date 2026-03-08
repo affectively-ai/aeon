@@ -303,7 +303,10 @@ export class CompressionEngine {
     const sorted = [...chunks].sort((a, b) => a.index - b.index);
 
     // Verify all chunks present
-    const total = sorted[0]?.total ?? 0;
+    if (sorted.length === 0) {
+      throw new Error('Cannot reassemble: no chunks provided');
+    }
+    const total = sorted[0].total;
     if (sorted.length !== total) {
       throw new Error(
         `Missing chunks: got ${sorted.length}, expected ${total}`
@@ -334,7 +337,7 @@ export class CompressionEngine {
     for (let i = 0; i < data.length; i++) {
       hash = ((hash << 5) - hash + data[i]) | 0;
     }
-    return hash.toString(16);
+    return (hash >>> 0).toString(16);
   }
 
   /**

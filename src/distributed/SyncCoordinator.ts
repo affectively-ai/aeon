@@ -73,6 +73,8 @@ export interface SyncEvent {
  * Coordinates synchronization across distributed nodes
  */
 export class SyncCoordinator extends EventEmitter {
+  private static readonly MAX_SYNC_EVENTS = 10000;
+
   private nodes: Map<string, SyncNode> = new Map();
   private sessions: Map<string, SyncSession> = new Map();
   private syncEvents: SyncEvent[] = [];
@@ -85,6 +87,13 @@ export class SyncCoordinator extends EventEmitter {
 
   constructor() {
     super();
+  }
+
+  private addSyncEvent(event: SyncEvent): void {
+    this.syncEvents.push(event);
+    if (this.syncEvents.length > SyncCoordinator.MAX_SYNC_EVENTS) {
+      this.syncEvents = this.syncEvents.slice(-SyncCoordinator.MAX_SYNC_EVENTS);
+    }
   }
 
   /**
@@ -143,7 +152,7 @@ export class SyncCoordinator extends EventEmitter {
       data: { did: nodeInfo.did, authenticated: true },
     };
 
-    this.syncEvents.push(event);
+    this.addSyncEvent(event);
     this.emit('node-joined', node);
 
     logger.debug('[SyncCoordinator] Authenticated node registered', {
@@ -246,7 +255,7 @@ export class SyncCoordinator extends EventEmitter {
       },
     };
 
-    this.syncEvents.push(event);
+    this.addSyncEvent(event);
     this.emit('sync-started', session);
 
     logger.debug('[SyncCoordinator] Authenticated sync session created', {
@@ -307,7 +316,7 @@ export class SyncCoordinator extends EventEmitter {
       timestamp: new Date().toISOString(),
     };
 
-    this.syncEvents.push(event);
+    this.addSyncEvent(event);
     this.emit('node-joined', node);
 
     logger.debug('[SyncCoordinator] Node registered', {
@@ -335,7 +344,7 @@ export class SyncCoordinator extends EventEmitter {
       timestamp: new Date().toISOString(),
     };
 
-    this.syncEvents.push(event);
+    this.addSyncEvent(event);
     this.emit('node-left', node);
 
     logger.debug('[SyncCoordinator] Node deregistered', { nodeId });
@@ -373,7 +382,7 @@ export class SyncCoordinator extends EventEmitter {
       timestamp: new Date().toISOString(),
     };
 
-    this.syncEvents.push(event);
+    this.addSyncEvent(event);
     this.emit('sync-started', session);
 
     logger.debug('[SyncCoordinator] Sync session created', {
@@ -407,7 +416,7 @@ export class SyncCoordinator extends EventEmitter {
         data: { status: updates.status, itemsSynced: session.itemsSynced },
       };
 
-      this.syncEvents.push(event);
+      this.addSyncEvent(event);
       this.emit('sync-completed', session);
     }
 
@@ -438,7 +447,7 @@ export class SyncCoordinator extends EventEmitter {
         data: conflictData,
       };
 
-      this.syncEvents.push(event);
+      this.addSyncEvent(event);
       this.emit('conflict-detected', { session, nodeId, conflictData });
 
       logger.debug('[SyncCoordinator] Conflict recorded', {

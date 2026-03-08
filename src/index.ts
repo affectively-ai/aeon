@@ -63,6 +63,10 @@ export * from './crypto';
  * STUBS for React components and hooks
  * These are normally provided by @affectively/aeon-flux-react but are
  * imported from @affectively/aeon in many legacy parts of edge-web-app.
+ *
+ * NOTE: Only stub things NOT exported by submodules above.
+ * SchemaVersionManager, SyncCoordinator, getAdaptiveCompressionOptimizer,
+ * and getAgentPresenceManager are real exports — do NOT shadow them here.
  */
 export const Link = (() => {
   throw new Error(
@@ -75,23 +79,3 @@ export const useAeonPage = (() => {
     'useAeonPage: Stub called from @affectively/aeon. Import from @affectively/aeon-flux-react or mock in tests.'
   );
 }) as any;
-
-export const getAdaptiveCompressionOptimizer = (() => {
-  throw new Error('getAdaptiveCompressionOptimizer: Stub');
-}) as any;
-
-export const SchemaVersionManager = class {
-  constructor() {
-    throw new Error('SchemaVersionManager: Stub');
-  }
-} as any;
-
-export const getAgentPresenceManager = (() => {
-  throw new Error('getAgentPresenceManager: Stub');
-}) as any;
-
-export const SyncCoordinator = class {
-  constructor() {
-    throw new Error('SyncCoordinator: Stub');
-  }
-} as any;

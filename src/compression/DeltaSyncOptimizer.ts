@@ -65,6 +65,7 @@ export interface DeltaStats {
 // ============================================================================
 
 export class DeltaSyncOptimizer {
+  private static readonly MAX_HISTORY_SIZE = 10000;
   private operationHistory: Map<string, Operation> = new Map();
   private stats: DeltaStats = {
     totalOperations: 0,
@@ -117,8 +118,12 @@ export class DeltaSyncOptimizer {
       ).byteLength;
       this.stats.totalDeltaSize += deltaSize;
 
-      // Store in history
+      // Store in history (evict oldest if over limit)
       this.operationHistory.set(operation.id, operation);
+      if (this.operationHistory.size > DeltaSyncOptimizer.MAX_HISTORY_SIZE) {
+        const firstKey = this.operationHistory.keys().next().value;
+        if (firstKey !== undefined) this.operationHistory.delete(firstKey);
+      }
 
       return delta;
     }
@@ -187,8 +192,12 @@ export class DeltaSyncOptimizer {
     this.stats.totalOriginalSize += originalSize;
     this.stats.totalDeltaSize += deltaSize;
 
-    // Update history
+    // Update history (evict oldest if over limit)
     this.operationHistory.set(operation.id, operation);
+    if (this.operationHistory.size > DeltaSyncOptimizer.MAX_HISTORY_SIZE) {
+      const firstKey = this.operationHistory.keys().next().value;
+      if (firstKey !== undefined) this.operationHistory.delete(firstKey);
+    }
 
     return finalDelta;
   }
@@ -295,6 +304,12 @@ export class DeltaSyncOptimizer {
   updateHistory(operations: Operation[]): void {
     for (const op of operations) {
       this.operationHistory.set(op.id, op);
+    }
+    // Evict oldest entries if over limit
+    while (this.operationHistory.size > DeltaSyncOptimizer.MAX_HISTORY_SIZE) {
+      const firstKey = this.operationHistory.keys().next().value;
+      if (firstKey !== undefined) this.operationHistory.delete(firstKey);
+      else break;
     }
 
     logger.debug('[DeltaSyncOptimizer] History updated', {
