@@ -1,0 +1,22 @@
+{
+  "name": "@affectively/aeon-shootoff",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Protocol shootoff: Aeon Flow vs HTTP/1.1 vs HTTP/2 — same nginx reverse proxy, real compression, real sites",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "shootoff": "vitest run --reporter=verbose",
+    "serve:big": "node --loader ts-node/esm src/serve.ts big-content",
+    "serve:micro": "node --loader ts-node/esm src/serve.ts microfrontend"
+  },
+  "dependencies": {
+    "@affectively/aeon": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.0.0"
+  }
+}
