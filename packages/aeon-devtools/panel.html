@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Aeon Flow Inspector</title>
+<style>
+:root {
+  --bg: #1e1e2e;
+  --surface: #282840;
+  --border: #3b3b5c;
+  --text: #cdd6f4;
+  --text-dim: #6c7086;
+  --accent: #3b82f6;
+  --fork: #a6e3a1;
+  --race: #f9e2af;
+  --poison: #f38ba8;
+  --fin: #89b4fa;
+  --data: #cdd6f4;
+  --collapse: #cba6f7;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; background: var(--bg); color: var(--text); }
+
+.toolbar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px; background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.toolbar button {
+  background: transparent; border: 1px solid var(--border); color: var(--text);
+  padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;
+}
+.toolbar button:hover { background: var(--border); }
+.toolbar .status { margin-left: auto; color: var(--text-dim); }
+
+.tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+}
+.tabs button {
+  background: transparent; border: none; color: var(--text-dim);
+  padding: 8px 16px; cursor: pointer; font-size: 12px;
+  border-bottom: 2px solid transparent;
+}
+.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.panel { display: none; height: calc(100vh - 80px); overflow: auto; }
+.panel.active { display: block; }
+
+/* ─── Waterfall Panel ─────────────────────────────────────────── */
+.waterfall-header {
+  display: grid; grid-template-columns: 60px 80px 40px 80px 60px 1fr;
+  padding: 4px 8px; background: var(--surface); border-bottom: 1px solid var(--border);
+  color: var(--text-dim); font-size: 11px; position: sticky; top: 0;
+}
+.waterfall-row {
+  display: grid; grid-template-columns: 60px 80px 40px 80px 60px 1fr;
+  padding: 3px 8px; border-bottom: 1px solid var(--border); align-items: center;
+}
+.waterfall-row:hover { background: var(--surface); }
+.waterfall-row .bar {
+  height: 14px; border-radius: 2px; min-width: 2px;
+}
+.waterfall-row.send { opacity: 0.7; }
+.waterfall-row .dir { font-weight: bold; }
+.waterfall-row .dir.send { color: var(--accent); }
+.waterfall-row .dir.recv { color: var(--fork); }
+
+.flag-data { color: var(--data); }
+.flag-fork { color: var(--fork); font-weight: bold; }
+.flag-race { color: var(--race); font-weight: bold; }
+.flag-collapse { color: var(--collapse); font-weight: bold; }
+.flag-poison { color: var(--poison); font-weight: bold; }
+.flag-fin { color: var(--fin); }
+
+/* ─── Stream Tree Panel ───────────────────────────────────────── */
+.stream-tree { padding: 12px; }
+.stream-node {
+  padding: 6px 12px; margin: 4px 0; border-left: 3px solid var(--border);
+  background: var(--surface); border-radius: 0 4px 4px 0;
+}
+.stream-node.open { border-left-color: var(--accent); }
+.stream-node.closed { border-left-color: var(--fin); }
+.stream-node.poisoned { border-left-color: var(--poison); }
+.stream-children { margin-left: 24px; }
+.stream-id { font-weight: bold; color: var(--accent); }
+.stream-state { font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-left: 8px; }
+.stream-state.open { background: #1a4731; color: var(--fork); }
+.stream-state.closed { background: #1a3a5c; color: var(--fin); }
+.stream-state.poisoned { background: #4a1a2e; color: var(--poison); }
+
+/* ─── Frames Panel ────────────────────────────────────────────── */
+.frame-list { padding: 8px; }
+.frame-item {
+  padding: 8px 12px; margin: 4px 0; background: var(--surface);
+  border-radius: 4px; border-left: 3px solid var(--border);
+}
+.frame-item.fork { border-left-color: var(--fork); }
+.frame-item.poison { border-left-color: var(--poison); }
+.frame-item.fin { border-left-color: var(--fin); }
+.frame-item .frame-header {
+  display: flex; gap: 16px; font-size: 11px; color: var(--text-dim);
+}
+.frame-item .frame-payload {
+  margin-top: 4px; padding: 4px 8px; background: var(--bg);
+  border-radius: 3px; font-size: 11px; max-height: 200px; overflow: auto;
+  white-space: pre-wrap; word-break: break-all;
+}
+
+/* ─── Stats Panel ─────────────────────────────────────────────── */
+.stats { padding: 16px; }
+.stat-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.stat-label { color: var(--text-dim); }
+.stat-value { font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button id="btn-record">● Record</button>
+  <button id="btn-clear">Clear</button>
+  <button id="btn-export">Export JSON</button>
+  <span class="status" id="status">Waiting for Aeon Flow frames...</span>
+</div>
+
+<div class="tabs">
+  <button class="active" data-panel="waterfall">Waterfall</button>
+  <button data-panel="tree">Stream Tree</button>
+  <button data-panel="frames">Frames</button>
+  <button data-panel="stats">Stats</button>
+</div>
+
+<div id="panel-waterfall" class="panel active">
+  <div class="waterfall-header">
+    <span>Time</span>
+    <span>Stream</span>
+    <span>Seq</span>
+    <span>Type</span>
+    <span>Bytes</span>
+    <span>Timeline</span>
+  </div>
+  <div id="waterfall-body"></div>
+</div>
+
+<div id="panel-tree" class="panel">
+  <div class="stream-tree" id="tree-body">
+    <p style="color: var(--text-dim); padding: 16px;">No streams captured yet.</p>
+  </div>
+</div>
+
+<div id="panel-frames" class="panel">
+  <div class="frame-list" id="frames-body">
+    <p style="color: var(--text-dim); padding: 16px;">No frames captured yet.</p>
+  </div>
+</div>
+
+<div id="panel-stats" class="panel">
+  <div class="stats" id="stats-body">
+    <p style="color: var(--text-dim);">No data yet.</p>
+  </div>
+</div>
+
+<script src="src/codec.js"></script>
+<script src="src/panel.js"></script>
+
+</body>
+</html>

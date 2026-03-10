@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Aeon Flow Inspector",
+  "version": "1.0.0",
+  "description": "Chrome DevTools panel for inspecting Aeon Flow Protocol frames — virtual waterfall, stream tree, and frame-by-frame analysis.",
+  "devtools_page": "devtools.html",
+  "permissions": ["debugger"],
+  "icons": {
+    "16": "icons/aeon-16.png",
+    "48": "icons/aeon-48.png",
+    "128": "icons/aeon-128.png"
+  }
+}

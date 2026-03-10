@@ -1,0 +1,752 @@
+/**
+ * Sync Protocol
+ *
+ * Handles synchronization protocol messages and handshaking.
+ * Manages message serialization, protocol versioning, and compatibility.
+ *
+ * Features:
+ * - Message serialization and deserialization
+ * - Protocol version management
+ * - Handshake handling
+ * - Message validation and error handling
+ * - Protocol state machine
+ * - Optional cryptographic authentication and encryption
+ */
+import { logger } from '../utils/logger';
+/**
+ * Sync Protocol
+ * Handles synchronization protocol messages and handshaking
+ */
+export class SyncProtocol {
+    static DEFAULT_PERSIST_KEY = 'aeon:sync-protocol:v1';
+    version = '1.0.0';
+    messageQueue = [];
+    messageMap = new Map();
+    handshakes = new Map();
+    protocolErrors = [];
+    messageCounter = 0;
+    // Crypto support
+    cryptoProvider = null;
+    cryptoConfig = null;
+    persistence = null;
+    persistTimer = null;
+    persistInFlight = false;
+    persistPending = false;
+    constructor(options) {
+        if (options?.persistence) {
+            this.persistence = {
+                ...options.persistence,
+                key: options.persistence.key ?? SyncProtocol.DEFAULT_PERSIST_KEY,
+                autoPersist: options.persistence.autoPersist ?? true,
+                autoLoad: options.persistence.autoLoad ?? false,
+                persistDebounceMs: options.persistence.persistDebounceMs ?? 25,
+            };
+        }
+        if (this.persistence?.autoLoad) {
+            void this.loadFromPersistence().catch((error) => {
+                logger.error('[SyncProtocol] Failed to load persistence', {
+                    key: this.persistence?.key,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            });
+        }
+    }
+    /**
+     * Configure cryptographic provider for authenticated/encrypted messages
+     */
+    configureCrypto(provider, config) {
+        this.cryptoProvider = provider;
+        this.cryptoConfig = {
+            encryptionMode: config?.encryptionMode ?? 'none',
+            requireSignatures: config?.requireSignatures ?? false,
+            requireCapabilities: config?.requireCapabilities ?? false,
+            requiredCapabilities: config?.requiredCapabilities,
+        };
+        logger.debug('[SyncProtocol] Crypto configured', {
+            encryptionMode: this.cryptoConfig.encryptionMode,
+            requireSignatures: this.cryptoConfig.requireSignatures,
+            requireCapabilities: this.cryptoConfig.requireCapabilities,
+        });
+    }
+    /**
+     * Check if crypto is configured
+     */
+    isCryptoEnabled() {
+        return this.cryptoProvider !== null && this.cryptoProvider.isInitialized();
+    }
+    /**
+     * Get crypto configuration
+     */
+    getCryptoConfig() {
+        return this.cryptoConfig ? { ...this.cryptoConfig } : null;
+    }
+    /**
+     * Get protocol version
+     */
+    getVersion() {
+        return this.version;
+    }
+    /**
+     * Create authenticated handshake message with DID and keys
+     */
+    async createAuthenticatedHandshake(capabilities, targetDID) {
+        if (!this.cryptoProvider || !this.cryptoProvider.isInitialized()) {
+            throw new Error('Crypto provider not initialized');
+        }
+        const localDID = this.cryptoProvider.getLocalDID();
+        if (!localDID) {
+            throw new Error('Local DID not available');
+        }
+        const publicInfo = await this.cryptoProvider.exportPublicIdentity();
+        if (!publicInfo) {
+            throw new Error('Cannot export public identity');
+        }
+        // Create UCAN if target DID is specified and capabilities are required
+        let ucan;
+        if (targetDID && this.cryptoConfig?.requireCapabilities) {
+            const caps = this.cryptoConfig.requiredCapabilities || [
+                { can: 'aeon:sync:read', with: '*' },
+                { can: 'aeon:sync:write', with: '*' },
+            ];
+            ucan = await this.cryptoProvider.createUCAN(targetDID, caps);
+        }
+        const handshakePayload = {
+            protocolVersion: this.version,
+            nodeId: localDID,
+            capabilities,
+            state: 'initiating',
+            did: localDID,
+            publicSigningKey: publicInfo.publicSigningKey,
+            publicEncryptionKey: publicInfo.publicEncryptionKey,
+            ucan,
+        };
+        const message = {
+            type: 'handshake',
+            version: this.version,
+            sender: localDID,
+            receiver: targetDID || '',
+            messageId: this.generateMessageId(),
+            timestamp: new Date().toISOString(),
+            payload: handshakePayload,
+        };
+        // Sign the message if signatures are required
+        if (this.cryptoConfig?.requireSignatures) {
+            const signed = await this.cryptoProvider.signData(handshakePayload);
+            message.auth = {
+                senderDID: localDID,
+                receiverDID: targetDID,
+                signature: signed.signature,
+            };
+        }
+        this.messageMap.set(message.messageId, message);
+        this.messageQueue.push(message);
+        this.schedulePersist();
+        logger.debug('[SyncProtocol] Authenticated handshake created', {
+            messageId: message.messageId,
+            did: localDID,
+            capabilities: capabilities.length,
+            hasUCAN: !!ucan,
+        });
+        return message;
+    }
+    /**
+     * Verify and process an authenticated handshake
+     */
+    async verifyAuthenticatedHandshake(message) {
+        if (message.type !== 'handshake') {
+            return { valid: false, error: 'Message is not a handshake' };
+        }
+        const handshake = message.payload;
+        // If crypto is not configured, just process normally
+        if (!this.cryptoProvider || !this.cryptoConfig) {
+            this.handshakes.set(message.sender, handshake);
+            this.schedulePersist();
+            return { valid: true, handshake };
+        }
+        // Register the remote node if we have their keys
+        if (handshake.did && handshake.publicSigningKey) {
+            await this.cryptoProvider.registerRemoteNode({
+                id: handshake.nodeId,
+                did: handshake.did,
+                publicSigningKey: handshake.publicSigningKey,
+                publicEncryptionKey: handshake.publicEncryptionKey,
+            });
+        }
+        // Verify signature if required
+        if (this.cryptoConfig.requireSignatures && message.auth?.signature) {
+            const signed = {
+                payload: handshake,
+                signature: message.auth.signature,
+                signer: message.auth.senderDID || message.sender,
+                algorithm: 'ES256',
+                signedAt: Date.now(),
+            };
+            const isValid = await this.cryptoProvider.verifySignedData(signed);
+            if (!isValid) {
+                logger.warn('[SyncProtocol] Handshake signature verification failed', {
+                    messageId: message.messageId,
+                    sender: message.sender,
+                });
+                return { valid: false, error: 'Invalid signature' };
+            }
+        }
+        // Verify UCAN if required
+        if (this.cryptoConfig.requireCapabilities && handshake.ucan) {
+            const localDID = this.cryptoProvider.getLocalDID();
+            const result = await this.cryptoProvider.verifyUCAN(handshake.ucan, {
+                expectedAudience: localDID || undefined,
+                requiredCapabilities: this.cryptoConfig.requiredCapabilities,
+            });
+            if (!result.authorized) {
+                logger.warn('[SyncProtocol] Handshake UCAN verification failed', {
+                    messageId: message.messageId,
+                    error: result.error,
+                });
+                return { valid: false, error: result.error || 'Unauthorized' };
+            }
+        }
+        this.handshakes.set(message.sender, handshake);
+        this.schedulePersist();
+        logger.debug('[SyncProtocol] Authenticated handshake verified', {
+            messageId: message.messageId,
+            did: handshake.did,
+        });
+        return { valid: true, handshake };
+    }
+    /**
+     * Sign and optionally encrypt a message payload
+     */
+    async signMessage(message, payload, encrypt = false) {
+        if (!this.cryptoProvider || !this.cryptoProvider.isInitialized()) {
+            throw new Error('Crypto provider not initialized');
+        }
+        const localDID = this.cryptoProvider.getLocalDID();
+        // Sign the payload
+        const signed = await this.cryptoProvider.signData(payload);
+        message.auth = {
+            senderDID: localDID || undefined,
+            receiverDID: message.receiver || undefined,
+            signature: signed.signature,
+            encrypted: false,
+        };
+        // Encrypt if requested and we have a recipient
+        if (encrypt &&
+            message.receiver &&
+            this.cryptoConfig?.encryptionMode !== 'none') {
+            const payloadBytes = new TextEncoder().encode(JSON.stringify(payload));
+            const encrypted = await this.cryptoProvider.encrypt(payloadBytes, message.receiver);
+            message.payload = encrypted;
+            message.auth.encrypted = true;
+            logger.debug('[SyncProtocol] Message encrypted', {
+                messageId: message.messageId,
+                recipient: message.receiver,
+            });
+        }
+        else {
+            message.payload = payload;
+        }
+        return message;
+    }
+    /**
+     * Verify signature and optionally decrypt a message
+     */
+    async verifyMessage(message) {
+        if (!this.cryptoProvider || !message.auth) {
+            // No crypto or no auth - return payload as-is
+            return { valid: true, payload: message.payload };
+        }
+        let payload = message.payload;
+        // Decrypt if encrypted
+        if (message.auth.encrypted && message.payload) {
+            try {
+                const encrypted = message.payload;
+                const decrypted = await this.cryptoProvider.decrypt(encrypted, message.auth.senderDID);
+                payload = JSON.parse(new TextDecoder().decode(decrypted));
+                logger.debug('[SyncProtocol] Message decrypted', {
+                    messageId: message.messageId,
+                });
+            }
+            catch (error) {
+                return {
+                    valid: false,
+                    error: `Decryption failed: ${error instanceof Error ? error.message : String(error)}`,
+                };
+            }
+        }
+        // Verify signature if present
+        if (message.auth.signature && message.auth.senderDID) {
+            const signed = {
+                payload,
+                signature: message.auth.signature,
+                signer: message.auth.senderDID,
+                algorithm: 'ES256',
+                signedAt: Date.now(),
+            };
+            const isValid = await this.cryptoProvider.verifySignedData(signed);
+            if (!isValid) {
+                return { valid: false, error: 'Invalid signature' };
+            }
+        }
+        return { valid: true, payload: payload };
+    }
+    /**
+     * Create handshake message
+     */
+    createHandshakeMessage(nodeId, capabilities) {
+        const message = {
+            type: 'handshake',
+            version: this.version,
+            sender: nodeId,
+            receiver: '',
+            messageId: this.generateMessageId(),
+            timestamp: new Date().toISOString(),
+            payload: {
+                protocolVersion: this.version,
+                nodeId,
+                capabilities,
+                state: 'initiating',
+            },
+        };
+        this.messageMap.set(message.messageId, message);
+        this.messageQueue.push(message);
+        this.schedulePersist();
+        logger.debug('[SyncProtocol] Handshake message created', {
+            messageId: message.messageId,
+            nodeId,
+            capabilities: capabilities.length,
+        });
+        return message;
+    }
+    /**
+     * Create sync request message
+     */
+    createSyncRequestMessage(sender, receiver, sessionId, fromVersion, toVersion, filter) {
+        const message = {
+            type: 'sync-request',
+            version: this.version,
+            sender,
+            receiver,
+            messageId: this.generateMessageId(),
+            timestamp: new Date().toISOString(),
+            payload: {
+                sessionId,
+                fromVersion,
+                toVersion,
+                filter,
+            },
+        };
+        this.messageMap.set(message.messageId, message);
+        this.messageQueue.push(message);
+        this.schedulePersist();
+        logger.debug('[SyncProtocol] Sync request created', {
+            messageId: message.messageId,
+            sessionId,
+            fromVersion,
+            toVersion,
+        });
+        return message;
+    }
+    /**
+     * Create sync response message
+     */
+    createSyncResponseMessage(sender, receiver, sessionId, fromVersion, toVersion, data, hasMore = false, offset = 0) {
+        const message = {
+            type: 'sync-response',
+            version: this.version,
+            sender,
+            receiver,
+            messageId: this.generateMessageId(),
+            timestamp: new Date().toISOString(),
+            payload: {
+                sessionId,
+                fromVersion,
+                toVersion,
+                data,
+                hasMore,
+                offset,
+            },
+        };
+        this.messageMap.set(message.messageId, message);
+        this.messageQueue.push(message);
+        this.schedulePersist();
+        logger.debug('[SyncProtocol] Sync response created', {
+            messageId: message.messageId,
+            sessionId,
+            itemCount: data.length,
+            hasMore,
+        });
+        return message;
+    }
+    /**
+     * Create acknowledgement message
+     */
+    createAckMessage(sender, receiver, messageId) {
+        const message = {
+            type: 'ack',
+            version: this.version,
+            sender,
+            receiver,
+            messageId: this.generateMessageId(),
+            timestamp: new Date().toISOString(),
+            payload: { acknowledgedMessageId: messageId },
+        };
+        this.messageMap.set(message.messageId, message);
+        this.messageQueue.push(message);
+        this.schedulePersist();
+        return message;
+    }
+    /**
+     * Create error message
+     */
+    createErrorMessage(sender, receiver, error, relatedMessageId) {
+        const message = {
+            type: 'error',
+            version: this.version,
+            sender,
+            receiver,
+            messageId: this.generateMessageId(),
+            timestamp: new Date().toISOString(),
+            payload: {
+                error,
+                relatedMessageId,
+            },
+        };
+        this.messageMap.set(message.messageId, message);
+        this.messageQueue.push(message);
+        this.protocolErrors.push({
+            error,
+            timestamp: new Date().toISOString(),
+        });
+        this.schedulePersist();
+        logger.error('[SyncProtocol] Error message created', {
+            messageId: message.messageId,
+            errorCode: error.code,
+            recoverable: error.recoverable,
+        });
+        return message;
+    }
+    /**
+     * Validate message
+     */
+    validateMessage(message) {
+        const errors = [];
+        if (!message.type) {
+            errors.push('Message type is required');
+        }
+        if (!message.sender) {
+            errors.push('Sender is required');
+        }
+        if (!message.messageId) {
+            errors.push('Message ID is required');
+        }
+        if (!message.timestamp) {
+            errors.push('Timestamp is required');
+        }
+        const timestampValue = new Date(message.timestamp);
+        if (Number.isNaN(timestampValue.getTime())) {
+            errors.push('Invalid timestamp format');
+        }
+        return {
+            valid: errors.length === 0,
+            errors,
+        };
+    }
+    /**
+     * Serialize message
+     */
+    serializeMessage(message) {
+        try {
+            return JSON.stringify(message);
+        }
+        catch (error) {
+            logger.error('[SyncProtocol] Message serialization failed', {
+                messageId: message.messageId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+            throw new Error(`Failed to serialize message: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+    /**
+     * Deserialize message
+     */
+    deserializeMessage(data) {
+        try {
+            const message = JSON.parse(data);
+            const validation = this.validateMessage(message);
+            if (!validation.valid) {
+                throw new Error(`Invalid message: ${validation.errors.join(', ')}`);
+            }
+            return message;
+        }
+        catch (error) {
+            logger.error('[SyncProtocol] Message deserialization failed', {
+                error: error instanceof Error ? error.message : String(error),
+            });
+            throw new Error(`Failed to deserialize message: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+    /**
+     * Process handshake
+     */
+    processHandshake(message) {
+        if (message.type !== 'handshake') {
+            throw new Error('Message is not a handshake');
+        }
+        const handshake = message.payload;
+        const nodeId = message.sender;
+        this.handshakes.set(nodeId, handshake);
+        this.schedulePersist();
+        logger.debug('[SyncProtocol] Handshake processed', {
+            nodeId,
+            protocolVersion: handshake.protocolVersion,
+            capabilities: handshake.capabilities.length,
+        });
+        return handshake;
+    }
+    /**
+     * Get message
+     */
+    getMessage(messageId) {
+        return this.messageMap.get(messageId);
+    }
+    /**
+     * Get all messages
+     */
+    getAllMessages() {
+        return [...this.messageQueue];
+    }
+    /**
+     * Get messages by type
+     */
+    getMessagesByType(type) {
+        return this.messageQueue.filter((m) => m.type === type);
+    }
+    /**
+     * Get messages from sender
+     */
+    getMessagesFromSender(sender) {
+        return this.messageQueue.filter((m) => m.sender === sender);
+    }
+    /**
+     * Get pending messages
+     */
+    getPendingMessages(receiver) {
+        return this.messageQueue.filter((m) => m.receiver === receiver);
+    }
+    /**
+     * Get handshakes
+     */
+    getHandshakes() {
+        return new Map(this.handshakes);
+    }
+    /**
+     * Get protocol statistics
+     */
+    getStatistics() {
+        const messagesByType = {};
+        for (const message of this.messageQueue) {
+            messagesByType[message.type] = (messagesByType[message.type] || 0) + 1;
+        }
+        const errorCount = this.protocolErrors.length;
+        const recoverableErrors = this.protocolErrors.filter((e) => e.error.recoverable).length;
+        return {
+            totalMessages: this.messageQueue.length,
+            messagesByType,
+            totalHandshakes: this.handshakes.size,
+            totalErrors: errorCount,
+            recoverableErrors,
+            unrecoverableErrors: errorCount - recoverableErrors,
+        };
+    }
+    /**
+     * Get protocol errors
+     */
+    getErrors() {
+        return [...this.protocolErrors];
+    }
+    /**
+     * Persist protocol state for reconnect/replay.
+     */
+    async saveToPersistence() {
+        if (!this.persistence) {
+            return;
+        }
+        const data = {
+            protocolVersion: this.version,
+            messageCounter: this.messageCounter,
+            messageQueue: this.getAllMessages(),
+            handshakes: Array.from(this.handshakes.entries()).map(([nodeId, handshake]) => ({
+                nodeId,
+                handshake,
+            })),
+            protocolErrors: this.getErrors(),
+        };
+        const envelope = {
+            version: 1,
+            updatedAt: Date.now(),
+            data,
+        };
+        const serialize = this.persistence.serializer ??
+            ((value) => JSON.stringify(value));
+        await this.persistence.adapter.setItem(this.persistence.key, serialize(envelope));
+    }
+    /**
+     * Load protocol state from persistence.
+     */
+    async loadFromPersistence() {
+        if (!this.persistence) {
+            return { messages: 0, handshakes: 0, errors: 0 };
+        }
+        const raw = await this.persistence.adapter.getItem(this.persistence.key);
+        if (!raw) {
+            return { messages: 0, handshakes: 0, errors: 0 };
+        }
+        const deserialize = this.persistence.deserializer ??
+            ((value) => JSON.parse(value));
+        const envelope = deserialize(raw);
+        if (envelope.version !== 1 || !envelope.data) {
+            throw new Error('Invalid sync protocol persistence payload');
+        }
+        if (!Array.isArray(envelope.data.messageQueue) ||
+            !Array.isArray(envelope.data.handshakes) ||
+            !Array.isArray(envelope.data.protocolErrors)) {
+            throw new Error('Invalid sync protocol persistence structure');
+        }
+        const nextMessages = [];
+        for (const message of envelope.data.messageQueue) {
+            const validation = this.validateMessage(message);
+            if (!validation.valid) {
+                throw new Error(`Invalid persisted message ${message?.messageId ?? 'unknown'}: ${validation.errors.join(', ')}`);
+            }
+            nextMessages.push(message);
+        }
+        const nextHandshakes = new Map();
+        for (const entry of envelope.data.handshakes) {
+            if (typeof entry.nodeId !== 'string' ||
+                !this.isValidHandshake(entry.handshake)) {
+                throw new Error('Invalid persisted handshake payload');
+            }
+            nextHandshakes.set(entry.nodeId, entry.handshake);
+        }
+        const nextErrors = [];
+        for (const entry of envelope.data.protocolErrors) {
+            if (!this.isValidProtocolErrorEntry(entry)) {
+                throw new Error('Invalid persisted protocol error payload');
+            }
+            nextErrors.push(entry);
+        }
+        this.messageQueue = nextMessages;
+        this.messageMap = new Map(nextMessages.map((m) => [m.messageId, m]));
+        this.handshakes = nextHandshakes;
+        this.protocolErrors = nextErrors;
+        this.messageCounter = Math.max(envelope.data.messageCounter || 0, this.messageQueue.length);
+        logger.debug('[SyncProtocol] Loaded from persistence', {
+            key: this.persistence.key,
+            messages: this.messageQueue.length,
+            handshakes: this.handshakes.size,
+            errors: this.protocolErrors.length,
+        });
+        return {
+            messages: this.messageQueue.length,
+            handshakes: this.handshakes.size,
+            errors: this.protocolErrors.length,
+        };
+    }
+    /**
+     * Clear persisted protocol checkpoint.
+     */
+    async clearPersistence() {
+        if (!this.persistence) {
+            return;
+        }
+        await this.persistence.adapter.removeItem(this.persistence.key);
+    }
+    schedulePersist() {
+        if (!this.persistence || this.persistence.autoPersist === false) {
+            return;
+        }
+        if (this.persistTimer) {
+            clearTimeout(this.persistTimer);
+        }
+        this.persistTimer = setTimeout(() => {
+            void this.persistSafely();
+        }, this.persistence.persistDebounceMs ?? 25);
+    }
+    async persistSafely() {
+        if (!this.persistence) {
+            return;
+        }
+        if (this.persistInFlight) {
+            this.persistPending = true;
+            return;
+        }
+        this.persistInFlight = true;
+        try {
+            await this.saveToPersistence();
+        }
+        catch (error) {
+            logger.error('[SyncProtocol] Persistence write failed', {
+                key: this.persistence.key,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
+        finally {
+            this.persistInFlight = false;
+            const shouldRunAgain = this.persistPending;
+            this.persistPending = false;
+            if (shouldRunAgain) {
+                void this.persistSafely();
+            }
+        }
+    }
+    isValidHandshake(value) {
+        if (typeof value !== 'object' || value === null) {
+            return false;
+        }
+        const handshake = value;
+        const validState = handshake.state === 'initiating' ||
+            handshake.state === 'responding' ||
+            handshake.state === 'completed';
+        return (typeof handshake.protocolVersion === 'string' &&
+            typeof handshake.nodeId === 'string' &&
+            Array.isArray(handshake.capabilities) &&
+            handshake.capabilities.every((cap) => typeof cap === 'string') &&
+            validState);
+    }
+    isValidProtocolErrorEntry(entry) {
+        if (typeof entry !== 'object' || entry === null) {
+            return false;
+        }
+        const candidate = entry;
+        return (typeof candidate.timestamp === 'string' &&
+            typeof candidate.error?.code === 'string' &&
+            typeof candidate.error.message === 'string' &&
+            typeof candidate.error.recoverable === 'boolean');
+    }
+    /**
+     * Generate message ID
+     */
+    generateMessageId() {
+        this.messageCounter++;
+        return `msg-${Date.now()}-${this.messageCounter}`;
+    }
+    /**
+     * Clear all state (for testing)
+     */
+    clear() {
+        this.messageQueue = [];
+        this.messageMap.clear();
+        this.handshakes.clear();
+        this.protocolErrors = [];
+        this.messageCounter = 0;
+        this.cryptoProvider = null;
+        this.cryptoConfig = null;
+        this.schedulePersist();
+    }
+    /**
+     * Get the crypto provider (for advanced usage)
+     */
+    getCryptoProvider() {
+        return this.cryptoProvider;
+    }
+}

@@ -1,6 +1,6 @@
 {
   "name": "@affectively/aeon",
-  "version": "1.3.0",
+  "version": "5.0.1",
   "description": "Distributed synchronization, schema versioning, and conflict resolution for real-time collaborative applications",
   "keywords": [
     "distributed",

@@ -1,0 +1,29 @@
+ngx_addon_name=ngx_flow_aeon_module
+
+# Shared codec from nginx-aeon-flow
+AEON_FLOW_CODEC_DIR="$ngx_addon_dir/../nginx-aeon-flow/src"
+
+if test -n "$ngx_module_link"; then
+    # Dynamic module (nginx 1.9.11+)
+    ngx_module_type=STREAM
+    ngx_module_name=ngx_flow_aeon_module
+    ngx_module_srcs="$ngx_addon_dir/src/ngx_flow_aeon_module.c \
+                     $ngx_addon_dir/src/ngx_flow_aeon_http_bridge.c \
+                     $AEON_FLOW_CODEC_DIR/ngx_aeon_flow_codec.c"
+    ngx_module_incs="$ngx_addon_dir/src $AEON_FLOW_CODEC_DIR"
+    ngx_module_deps="$ngx_addon_dir/src/ngx_flow_aeon.h \
+                     $AEON_FLOW_CODEC_DIR/ngx_aeon_flow.h"
+
+    . auto/module
+else
+    # Static module
+    STREAM_MODULES="$STREAM_MODULES ngx_flow_aeon_module"
+    NGX_ADDON_SRCS="$NGX_ADDON_SRCS \
+                    $ngx_addon_dir/src/ngx_flow_aeon_module.c \
+                    $ngx_addon_dir/src/ngx_flow_aeon_http_bridge.c \
+                    $AEON_FLOW_CODEC_DIR/ngx_aeon_flow_codec.c"
+    NGX_ADDON_DEPS="$NGX_ADDON_DEPS \
+                    $ngx_addon_dir/src/ngx_flow_aeon.h \
+                    $AEON_FLOW_CODEC_DIR/ngx_aeon_flow.h"
+    CFLAGS="$CFLAGS -I$ngx_addon_dir/src -I$AEON_FLOW_CODEC_DIR"
+fi

@@ -18,6 +18,65 @@
 import type { FlowTransport } from '../flow/types';
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// Web Bluetooth API type declarations
+// These are not included in standard lib.dom.d.ts — declared here to avoid
+// adding a devDependency on @types/web-bluetooth.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+declare global {
+  interface BluetoothLEScanFilter {
+    services?: BluetoothServiceUUID[];
+    name?: string;
+    namePrefix?: string;
+  }
+
+  type BluetoothServiceUUID = string | number;
+
+  interface BluetoothDevice extends EventTarget {
+    readonly id: string;
+    readonly name?: string;
+    readonly gatt?: BluetoothRemoteGATTServer;
+  }
+
+  interface BluetoothRemoteGATTServer {
+    readonly connected: boolean;
+    readonly device: BluetoothDevice;
+    connect(): Promise<BluetoothRemoteGATTServer>;
+    disconnect(): void;
+    getPrimaryService(service: BluetoothServiceUUID): Promise<BluetoothRemoteGATTService>;
+  }
+
+  interface BluetoothRemoteGATTService {
+    readonly device: BluetoothDevice;
+    readonly uuid: string;
+    getCharacteristic(characteristic: string): Promise<BluetoothRemoteGATTCharacteristic>;
+  }
+
+  interface BluetoothRemoteGATTCharacteristic extends EventTarget {
+    readonly service: BluetoothRemoteGATTService;
+    readonly uuid: string;
+    readonly value: DataView | null;
+    writeValueWithoutResponse(value: BufferSource): Promise<void>;
+    startNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
+    stopNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
+  }
+
+  interface RequestDeviceOptions {
+    filters?: BluetoothLEScanFilter[];
+    optionalServices?: BluetoothServiceUUID[];
+    acceptAllDevices?: boolean;
+  }
+
+  interface Bluetooth {
+    requestDevice(options: RequestDeviceOptions): Promise<BluetoothDevice>;
+  }
+
+  interface Navigator {
+    bluetooth: Bluetooth;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // Constants
 // ═══════════════════════════════════════════════════════════════════════════════
 
