@@ -18,6 +18,9 @@
   ],
   "author": "Affectively AI",
   "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
   "homepage": "https://github.com/affectively-ai/aeon#readme",
   "repository": {
     "type": "git",
