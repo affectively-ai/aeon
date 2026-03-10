@@ -62,6 +62,12 @@ export * from './crypto';
 // Flow module (fork/race/collapse protocol primitive)
 export * from './flow';
 
+// Transport module (every wire format that matters)
+export * from './transport';
+
+// Federation module (federated inference across mesh)
+export * from './federation';
+
 /**
  * STUBS for React components and hooks
  * These are normally provided by @affectively/aeon-flux-react but are
