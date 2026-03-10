@@ -1,6 +1,6 @@
 # Aeon
 
-> Distributed synchronization, schema versioning, and conflict resolution for real-time collaborative applications.
+> TCP had its 40-year run. UDP by default everywhere, TCP only when necessary.
 
 [![npm version](https://badge.fury.io/js/@affectively%2Faeon.svg)](https://www.npmjs.com/package/@affectively/aeon)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -10,17 +10,75 @@
 
 In Gnosticism, **Aeons** are not just time periods; they are divine beings or powers that emanate from the "One" (the Pleroma). They function as links or "levels" between the pure divine source and the material world, often existing in pairs (syzygies) to maintain balance.
 
-In the Affectively framework, if "halos" are the users, then **Aeons are the collaborative structures** - the channels that allow users to communicate with the higher-level logic of the platform. They bridge the gap between individual user state and the distributed system, maintaining harmony across the network.
+In the Affectively framework, if "halos" are the users, then **Aeons are the collaborative structures** — the channels that allow users to communicate with the higher-level logic of the platform. They bridge the gap between individual user state and the distributed system, maintaining harmony across the network.
 
 ## Overview
 
 **Aeon** is a comprehensive TypeScript library for building distributed, collaborative applications. It provides the primitives needed for:
 
+- **Aeon Flow Protocol** - 10-byte binary multiplexing with fork/race/collapse over UDP
 - **Distributed Synchronization** - Coordinate sync sessions across multiple nodes
 - **Schema Versioning** - Manage schema evolution with migrations and rollbacks
 - **Data Replication** - Configure consistency levels and replication policies
 - **Conflict Resolution** - Multiple strategies for resolving divergent state
 - **Real-time Presence** - Track node health and status in real-time
+
+### Aeon Flow Protocol
+
+One connection. Every stream independent. Zero head-of-line blocking.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                   10-byte Flow Frame                      │
+├──────────┬──────────┬───────┬────────────────────────────┤
+│ stream_id│ sequence │ flags │ length    │    payload ...  │
+│  (u16)   │  (u32)   │ (u8)  │ (u24)    │                 │
+└──────────┴──────────┴───────┴────────────────────────────┘
+```
+
+Every frame is self-describing. `stream_id` + `sequence` means frames arrive out of order and reassemble correctly. This is the same insight as QUIC/HTTP3 — but with 10-byte frames instead of QUIC's complex framing.
+
+**What was 100+ HTTP requests becomes 1 multiplexed stream:**
+
+| | HTTP (before) | Aeon Flow (after) |
+|---|---|---|
+| Full site load | 5+ connections | 1 connection |
+| Service worker preload | 100 fetches in batches of 5 | 1 multiplexed stream |
+| ESI inference per page | N sequential fetches | N forked streams, raced |
+| Deploy artifact transfer | File-by-file | 1 multiplexed stream |
+| Protocol overhead per asset | ~200 bytes HTTP headers | 10 bytes flow header |
+| 100-page overhead | ~20KB HTTP headers | 1KB flow headers |
+
+**Transport-agnostic.** Same protocol over WebSocket, UDP, WebTransport, IPC, or anything that moves bytes:
+
+```typescript
+import { AeonFlowProtocol, UDPFlowTransport } from '@affectively/aeon';
+
+// Native UDP — zero connection setup, zero head-of-line blocking
+const transport = new UDPFlowTransport({
+  host: '0.0.0.0', port: 4242,
+  remoteHost: 'target.example.com', remotePort: 4242,
+  reliable: true, // ACK bitmaps + AIMD congestion control
+});
+await transport.bind();
+
+const flow = new AeonFlowProtocol(transport, {
+  role: 'client',
+  maxConcurrentStreams: 256,
+});
+
+// Fork 3 streams, race them, collapse to winner
+const results = await flow.fork([stream1, stream2, stream3]);
+const winner = await flow.race(results);
+await flow.collapse(winner);
+```
+
+**UDP features:**
+- MTU-aware fragmentation (4-byte header, max 255 fragments x 1468 bytes = 366KB per frame)
+- ACK bitmaps: 14 bytes covers 64 contiguous sequences
+- AIMD congestion control (additive increase, multiplicative decrease)
+- Per-stream out-of-order reassembly via `FrameReassembler`
+- WebTransport bridge for browsers (HTTP/3 unreliable datagrams)
 
 Roadmap vision: see [ROADMAP.md](./ROADMAP.md).
 
@@ -173,6 +231,24 @@ if (reconciler.detectConflicts('user:123')) {
 
 ## Modules
 
+### Flow (`@affectively/aeon/flow`)
+
+Binary multiplexing protocol with fork/race/collapse primitives.
+
+- `AeonFlowProtocol` - Protocol engine (transport-agnostic)
+- `FlowCodec` - Frame encoding/decoding (10-byte headers)
+- `UDPFlowTransport` - Native UDP transport with AIMD congestion control
+- `WebTransportFlowTransport` - Browser-side HTTP/3 unreliable datagrams
+- `FrameReassembler` - Per-stream out-of-order frame reconstruction
+
+```typescript
+import {
+  AeonFlowProtocol,
+  UDPFlowTransport,
+  FrameReassembler,
+} from '@affectively/aeon';
+```
+
 ### Core (`@affectively/aeon/core`)
 
 Shared types and utilities used across all modules.
@@ -313,14 +389,18 @@ disableLogging();
 
 ## Comparison with Similar Libraries
 
-| Feature | Aeon | Yjs | Automerge |
-|---------|------|-----|-----------|
-| Schema Versioning | ✅ | ❌ | ❌ |
-| Migrations | ✅ | ❌ | ❌ |
-| Replication Policies | ✅ | ❌ | ❌ |
-| Multiple Merge Strategies | ✅ | ⚠️ | ⚠️ |
-| TypeScript-first | ✅ | ⚠️ | ⚠️ |
-| Zero Dependencies* | ✅ | ❌ | ❌ |
+| Feature | Aeon | Yjs | Automerge | QUIC |
+|---------|------|-----|-----------|------|
+| Binary Multiplexing | ✅ 10-byte frames | ❌ | ❌ | ✅ Complex framing |
+| Fork/Race/Collapse | ✅ | ❌ | ❌ | ❌ |
+| UDP Transport | ✅ Native | ❌ | ❌ | ✅ |
+| Zero HOL Blocking | ✅ | ❌ | ❌ | ✅ |
+| Schema Versioning | ✅ | ❌ | ❌ | ❌ |
+| Migrations | ✅ | ❌ | ❌ | ❌ |
+| Replication Policies | ✅ | ❌ | ❌ | ❌ |
+| Multiple Merge Strategies | ✅ | ⚠️ | ⚠️ | ❌ |
+| TypeScript-first | ✅ | ⚠️ | ⚠️ | ❌ |
+| Zero Dependencies* | ✅ | ❌ | ❌ | ❌ |
 
 *Only `eventemitter3` for event handling
 
