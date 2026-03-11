@@ -1,34 +1,47 @@
 ------------------------------ MODULE QuantumDeficit ------------------------------
 EXTENDS Naturals
 
-CONSTANTS N, RootN
+CONSTANTS SqrtDomain
 
-VARIABLE phase
+VARIABLES rootN, mode
 
-Init == phase = "steady"
-Next == phase' = phase
-Spec == Init /\ [][Next]_phase
+vars == <<rootN, mode>>
 
+Modes == {"classical", "quantum"}
+
+Init ==
+  /\ rootN \in SqrtDomain
+  /\ rootN > 0
+  /\ mode \in Modes
+
+Change ==
+  /\ rootN' \in SqrtDomain
+  /\ rootN' > 0
+  /\ mode' \in Modes
+
+Stutter == UNCHANGED vars
+
+Next == Change \/ Stutter
+Spec == Init /\ [][Next]_vars
+
+N == rootN * rootN
 ClassicalBeta1 == 0
-QuantumBeta1 == RootN - 1
-
-ClassicalDeficit == QuantumBeta1 - ClassicalBeta1
-
+ProblemBeta1 == rootN - 1
+ImplementationBeta1 == IF mode = "classical" THEN ClassicalBeta1 ELSE ProblemBeta1
+Deficit == ProblemBeta1 - ImplementationBeta1
 SequentialRounds == N
-QuantumRounds == N \div RootN
-Speedup == SequentialRounds \div QuantumRounds
+ParallelRounds == IF mode = "classical" THEN N ELSE rootN
+Speedup == SequentialRounds \div ParallelRounds
 
 InvPerfectSquare ==
-  /\ phase = phase
-  /\ RootN > 0
-  /\ RootN * RootN = N
+  /\ N = rootN * rootN
+  /\ rootN > 0
 
 InvClassicalDeficit ==
-  /\ phase = phase
-  /\ ClassicalDeficit = RootN - 1
+  mode = "classical" => Deficit = rootN - 1
 
 InvSpeedupIdentity ==
-  /\ phase = phase
-  /\ Speedup = ClassicalDeficit + 1
+  /\ mode = "quantum" => Speedup = Deficit + 1
+  /\ mode = "quantum" => Deficit = 0
 
 =============================================================================

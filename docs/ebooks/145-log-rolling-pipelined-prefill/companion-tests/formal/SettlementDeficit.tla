@@ -1,25 +1,24 @@
 ------------------------------ MODULE SettlementDeficit ------------------------------
 EXTENDS Naturals
 
-VARIABLE epoch
+VARIABLE mode
 
-Init == epoch = 0
-Next == epoch' = epoch
-Spec == Init /\ [][Next]_epoch
+vars == <<mode>>
+
+Modes == {"seq", "parallel"}
+
+Init == mode \in Modes
+Next == mode' \in Modes
+Spec == Init /\ [][Next]_vars
 
 IntrinsicBeta1 == 2
-SequentialBeta1 == 0
-ParallelBeta1 == 2
-
-SequentialDeficit == IntrinsicBeta1 - SequentialBeta1
-ParallelDeficit == IntrinsicBeta1 - ParallelBeta1
+ImplBeta1 == IF mode = "seq" THEN 0 ELSE 2
+Deficit == IntrinsicBeta1 - ImplBeta1
 
 InvSequentialDeficitIsTwo ==
-  /\ epoch = epoch
-  /\ SequentialDeficit = 2
+  mode = "seq" => Deficit = 2
 
 InvParallelDeficitIsZero ==
-  /\ epoch = epoch
-  /\ ParallelDeficit = 0
+  mode = "parallel" => Deficit = 0
 
 =============================================================================
