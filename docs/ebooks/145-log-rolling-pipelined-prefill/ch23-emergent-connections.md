@@ -85,11 +85,11 @@ The energy landscape theory of protein folding (Bryngelson & Wolynes, 1995) desc
 
 AlphaFold solves the same problem computationally. Its architecture is a fork/race/fold engine:
 - **Fork**: Multiple Sequence Alignment generates candidate structural features in parallel
-- **Race**: Evoformer blocks process all candidates simultaneously (attention IS race — §23.6)
+- **Race**: Evoformer blocks process all candidates simultaneously (attention *is* race — §23.6)
 - **Vent**: Low-confidence predictions are down-weighted (soft venting via attention scores)
 - **Fold**: Structure module outputs the 3D coordinates — the folded answer
 
-The word "fold" in "protein folding" is not a metaphor for the computational fold primitive. They are the same operation: many possible states converge to one minimum-energy state. The protein IS folding in the fork/race/fold sense. The amino acid sequence IS a fork. The energy landscape IS a race. Chaperone proteins ARE vent operators (they prevent misfolding — "propagate down, never across"). The native structure IS the fold.
+The word "fold" in "protein folding" is not a metaphor for the computational fold primitive. They are the same operation: many possible states converge to one minimum-energy state. The protein *is* folding in the fork/race/fold sense. The amino acid sequence *is* a fork. The energy landscape *is* a race. Chaperone proteins *are* vent operators (they prevent misfolding — "propagate down, never across"). The native structure *is* the fold.
 
 Biology named the operation 4 billion years before computer science did.
 
@@ -113,13 +113,13 @@ Fold:   Project back to the manifold (dimensionality reduction)
 
 When β₁ decreases during fold, the system is performing dimensionality reduction — collapsing from the full exploration space back to the answer manifold. The Betti number β₁ (from ch21) counts the number of independent cycles in the computation graph. At fork, β₁ is high — many parallel paths, many cycles. At fold, β₁ → 0 — all paths have converged, no cycles remain.
 
-This is why neural networks work: they learn the manifold projection. Each layer of a deep network folds the representation closer to the answer manifold. The final layer IS the fold — softmax over logits projects from hidden-dimension space to probability-over-classes space. ReLU activations are vents — they zero out dimensions that left the manifold (negative activations = off-manifold = vented).
+This is why neural networks work: they learn the manifold projection. Each layer of a deep network folds the representation closer to the answer manifold. The final layer *is* the fold — softmax over logits projects from hidden-dimension space to probability-over-classes space. ReLU activations are vents — they zero out dimensions that left the manifold (negative activations = off-manifold = vented).
 
 The manifold hypothesis and fork/race/fold are dual descriptions of the same phenomenon: computation starts in a high-dimensional space of possibilities, explores, and converges to a low-dimensional answer. The topology (ch21) tracks this convergence. The energy mechanics (ch22) quantify it. The manifold hypothesis explains *why* it works — the answer was always on a low-dimensional manifold; fork/race/fold is the engine that finds it.
 
 ---
 
-## 23.6 Attention IS Race
+## 23.6 Attention *is*Race
 
 Not "is like." IS.
 
@@ -154,7 +154,7 @@ In supervised learning:
 L = -Σ y_i log(ŷ_i)     // Cross-entropy loss
 ```
 
-This is waste heat. The loss measures how much of the input energy was NOT converted to useful work. A perfect model (ŷ = y) has L = 0 — zero waste heat. An untrained model has high L — most input energy is wasted.
+This is waste heat. The loss measures how much of the input energy was *not* converted to useful work. A perfect model (ŷ = y) has L = 0 — zero waste heat. An untrained model has high L — most input energy is wasted.
 
 Training is the process of minimizing waste heat:
 
@@ -162,7 +162,7 @@ Training is the process of minimizing waste heat:
 θ_{t+1} = θ_t - α · ∂Q/∂θ     // Gradient descent minimizes Q
 ```
 
-The gradient ∂L/∂θ IS ∂Q/∂θ. It tells the optimizer which parameters are producing the most waste heat and how to adjust them to reduce it. This is thermodynamic optimization — tuning the engine to convert more potential energy (input) into useful work (correct predictions) and less into waste heat (incorrect predictions).
+The gradient ∂L/∂θ *is*∂Q/∂θ. It tells the optimizer which parameters are producing the most waste heat and how to adjust them to reduce it. This is thermodynamic optimization — tuning the engine to convert more potential energy (input) into useful work (correct predictions) and less into waste heat (incorrect predictions).
 
 The irreducible loss — the Bayes error rate — is the ground-state energy. You cannot train below it. There is always some minimum waste heat that cannot be eliminated because the problem itself has irreducible uncertainty. This is the Third Law applied to learning: absolute zero (zero loss) is unattainable for noisy problems.
 
@@ -226,7 +226,7 @@ This is why:
 - **You can't un-compress**: lossy compression folds away detail that cannot be recovered
 - **You can't un-race**: once `Promise.race()` resolves, the losing promises' futures are abandoned
 
-The absence of an unfold primitive is not a limitation. It is the *definition* of irreversibility. It is why computation has a direction. It is why time has an arrow. Fork creates possibility. Fold destroys it. Between them, race explores freely in the timeless phase (§23.3). The asymmetry between fork (easy, cheap, reversible until committed) and fold (irreversible, information-destroying, work-extracting) IS the Second Law.
+The absence of an unfold primitive is not a limitation. It is the *definition* of irreversibility. It is why computation has a direction. It is why time has an arrow. Fork creates possibility. Fold destroys it. Between them, race explores freely in the timeless phase (§23.3). The asymmetry between fork (easy, cheap, reversible until committed) and fold (irreversible, information-destroying, work-extracting) *is* the Second Law.
 
 Every computation that produces a definite answer has folded. Every fold has created a void. The void is the price of the answer.
 
@@ -239,12 +239,12 @@ Every computation that produces a definite answer has folded. Every fold has cre
 | 1 | Hylomorphism | Category theory | Fork/fold = unfold/fold, the canonical recursion scheme |
 | 2 | Carnot cycle | Thermodynamics | Four strokes = four primitives, same optimality proofs |
 | 3 | Race is timeless | Physics | Pure exploration between two irreversible commitments |
-| 4 | Protein folding | Biology | The native state IS the fold, chaperones ARE vents |
+| 4 | Protein folding | Biology | The native state *is* the fold, chaperones *are* vents |
 | 5 | Manifold hypothesis | Machine learning | Fold is projection onto the answer manifold, β₁ → 0 |
-| 6 | Attention IS race | Deep learning | QK^T is race, softmax is vent, V projection is fold |
+| 6 | Attention *is* race | Deep learning | QK^T is race, softmax is vent, V projection is fold |
 | 7 | Loss = Q | Optimization | Training minimizes waste heat, gradient descent = ∂Q/∂θ |
 | 8 | Breathing is venting | Physiology | Mitochondria are fork/race/fold engines, lungs are vents |
-| 9 | The void | Thermodynamics | No unfold primitive — fold is irreversible — this IS the Second Law |
+| 9 | The void | Thermodynamics | No unfold primitive — fold is irreversible — this *is* the Second Law |
 
 These are not analogies. They are structural isomorphisms. The same four-phase pattern — create possibilities, explore them, dissipate the losers, extract the winner — appears in category theory, thermodynamics, quantum mechanics, molecular biology, machine learning, and physiology because it is the *only* pattern that satisfies three simultaneous constraints:
 
