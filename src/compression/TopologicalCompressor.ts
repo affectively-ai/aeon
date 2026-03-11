@@ -1,25 +1,29 @@
 /**
  * Topological Compressor — Fork/Race/Collapse Applied to Compression
  *
- * Traditional compression picks ONE algorithm globally.
- * Topological compression races MULTIPLE algorithms per chunk and lets
- * each chunk independently select its winner. Different data regions
- * get different codecs automatically.
+ * Two-level fork/race/collapse:
  *
- * The algorithm:
- *   1. FORK:     Split input into chunks. For each chunk, fork all codecs.
- *   2. RACE:     Race codecs per chunk. Smallest output wins.
- *   3. POISON:   If a codec's output exceeds raw size, poison it.
- *   4. COLLAPSE: Reassemble chunks into self-describing frames.
+ *   LEVEL 1 (stream): Fork the entire input into global strategies.
+ *     - Path A: Global brotli on the whole stream (cross-chunk dictionary)
+ *     - Path B: Global gzip on the whole stream
+ *     - Path C: Per-chunk topological compression (Level 2)
+ *     Race all paths. Collapse to smallest.
  *
- * Each compressed chunk is a self-describing frame:
- *   [0]       u8    codec_id        (which codec won this chunk)
- *   [1..4]    u32   original_size   (for decompression buffer allocation)
- *   [5..8]    u32   compressed_size (for frame boundary detection)
+ *   LEVEL 2 (chunk): For each chunk, fork all codecs.
+ *     - Race codecs per chunk. Smallest wins.
+ *     - Poison codecs whose output >= raw.
+ *     - Collapse: self-describing frame per chunk.
+ *
+ * Stream-level format (when streamRace is enabled):
+ *   [0]       u8    strategy        (0 = per-chunk, N>0 = global codec ID)
+ *   [1..4]    u32   original_size
+ *   [5..]     [u8]  compressed data
+ *
+ * Per-chunk frame format:
+ *   [0]       u8    codec_id
+ *   [1..4]    u32   original_size
+ *   [5..8]    u32   compressed_size
  *   [9..]     [u8]  compressed_data
- *
- * Total per-chunk header: 9 bytes. Combined with FlowFrame header (10 bytes)
- * = 19 bytes overhead per chunk on the wire.
  *
  * Zero dependencies. Works on CF Workers, Deno, Node, Bun, browsers.
  */
@@ -67,6 +71,8 @@ export interface TopologicalCompressionResult {
   bettiNumber: number;
   /** Compression time in milliseconds */
   timeMs: number;
+  /** Strategy that won the stream-level race (only set when streamRace=true) */
+  strategy?: string;
 }
 
 /** Compressor configuration */
@@ -75,6 +81,8 @@ export interface TopologicalCompressorConfig {
   chunkSize: number;
   /** Codecs to race. Default: all built-in codecs. */
   codecs: CompressionCodec[];
+  /** Enable two-level race: global codecs vs per-chunk topological. Default: false. */
+  streamRace?: boolean;
 }
 
 // ============================================================================
@@ -108,31 +116,53 @@ function decodeChunkHeader(
 }
 
 // ============================================================================
+// Stream-Level Header (5 bytes) — only present when streamRace=true
+// ============================================================================
+
+const STREAM_HEADER_SIZE = 5;
+
+function encodeStreamHeader(
+  strategy: number,
+  originalSize: number,
+): Uint8Array {
+  const header = new Uint8Array(STREAM_HEADER_SIZE);
+  header[0] = strategy;
+  new DataView(header.buffer).setUint32(1, originalSize);
+  return header;
+}
+
+function decodeStreamHeader(
+  data: Uint8Array,
+): { strategy: number; originalSize: number } {
+  const strategy = data[0];
+  const originalSize = new DataView(
+    data.buffer, data.byteOffset + 1, 4,
+  ).getUint32(0);
+  return { strategy, originalSize };
+}
+
+// ============================================================================
 // Topological Compressor
 // ============================================================================
 
 export class TopologicalCompressor {
-  private readonly config: TopologicalCompressorConfig;
+  private readonly config: TopologicalCompressorConfig & { streamRace: boolean };
 
   constructor(config?: Partial<TopologicalCompressorConfig>) {
     this.config = {
       chunkSize: config?.chunkSize ?? 4096,
       codecs: config?.codecs ?? BUILTIN_CODECS,
+      streamRace: config?.streamRace ?? false,
     };
   }
 
   /**
-   * Compress data using fork/race/collapse per chunk.
+   * Compress data using fork/race/collapse.
    *
-   * For each chunk of the input:
-   *   - FORK: All codecs compress the chunk.
-   *   - RACE: Smallest compressed output wins.
-   *   - POISON: Codecs whose output >= the original are discarded.
-   *   - COLLAPSE: Winner's output becomes the chunk's self-describing frame.
+   * When streamRace=false (default): per-chunk race only.
+   * When streamRace=true: two-level race — global codecs vs per-chunk topo.
    */
   compress(data: Uint8Array): TopologicalCompressionResult {
-    const startTime = performance.now();
-
     if (data.length === 0) {
       return {
         data: new Uint8Array(0),
@@ -146,13 +176,38 @@ export class TopologicalCompressor {
       };
     }
 
+    if (!this.config.streamRace) {
+      return this.compressChunked(data);
+    }
+
+    return this.compressTwoLevel(data);
+  }
+
+  /**
+   * Decompress data produced by compress().
+   */
+  decompress(compressed: Uint8Array): Uint8Array {
+    if (compressed.length === 0) return new Uint8Array(0);
+
+    if (!this.config.streamRace) {
+      return this.decompressChunked(compressed);
+    }
+
+    return this.decompressTwoLevel(compressed);
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Level 2: Per-Chunk Topological Compression
+  // ════════════════════════════════════════════════════════════════════════
+
+  private compressChunked(data: Uint8Array): TopologicalCompressionResult {
+    const startTime = performance.now();
     const { chunkSize, codecs } = this.config;
     const numChunks = Math.ceil(data.length / chunkSize);
     const compressedChunks: Uint8Array[] = [];
     const chunkResults: ChunkResult[] = [];
     const codecWins = new Set<number>();
 
-    // β₁ = number of parallel codec paths - 1
     const bettiNumber = Math.max(0, codecs.length - 1);
 
     for (let i = 0; i < numChunks; i++) {
@@ -160,8 +215,7 @@ export class TopologicalCompressor {
       const chunkEnd = Math.min(chunkStart + chunkSize, data.length);
       const chunk = data.subarray(chunkStart, chunkEnd);
 
-      // ── FORK: Race all codecs on this chunk ──
-      let bestCodecId = 0; // Raw (id=0) is always the fallback
+      let bestCodecId = 0;
       let bestCompressed = chunk;
       let poisonCount = 0;
 
@@ -169,19 +223,16 @@ export class TopologicalCompressor {
         const compressed = codec.encode(chunk);
 
         if (compressed.length >= chunk.length && codec.id !== 0) {
-          // ── POISON: Output >= raw. Discard. ──
           poisonCount++;
           continue;
         }
 
         if (compressed.length < bestCompressed.length) {
-          // ── RACE: New winner ──
           bestCodecId = codec.id;
           bestCompressed = compressed;
         }
       }
 
-      // ── COLLAPSE: Build self-describing frame ──
       const header = encodeChunkHeader(
         bestCodecId,
         chunk.length,
@@ -208,7 +259,6 @@ export class TopologicalCompressor {
       });
     }
 
-    // Concatenate all compressed chunks
     const totalCompressedSize = compressedChunks.reduce(
       (sum, c) => sum + c.length,
       0,
@@ -232,17 +282,7 @@ export class TopologicalCompressor {
     };
   }
 
-  /**
-   * Decompress data produced by compress().
-   *
-   * Each chunk is self-describing — the 9-byte header tells us which codec
-   * to use, how large the original was, and where the next chunk starts.
-   * Chunks CAN be decompressed in any order (covering space → base space).
-   */
-  decompress(compressed: Uint8Array): Uint8Array {
-    if (compressed.length === 0) return new Uint8Array(0);
-
-    // First pass: parse all chunk headers
+  private decompressChunked(compressed: Uint8Array): Uint8Array {
     const chunks: Array<{
       codecId: number;
       originalSize: number;
@@ -277,7 +317,6 @@ export class TopologicalCompressor {
       totalOriginalSize += originalSize;
     }
 
-    // Second pass: decompress and concatenate
     const output = new Uint8Array(totalOriginalSize);
     let writePos = 0;
 
@@ -292,6 +331,141 @@ export class TopologicalCompressor {
     }
 
     return output;
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Level 1: Stream-Level Two-Level Race
+  // ════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Two-level fork/race/collapse:
+   *
+   *   FORK (stream level):
+   *     ├─ Path 0: Per-chunk topological (Level 2)
+   *     ├─ Path 1: Global codec A on entire stream
+   *     ├─ Path 2: Global codec B on entire stream
+   *     └─ ...
+   *   RACE: Smallest total output wins
+   *   COLLAPSE: 5-byte strategy header + compressed data
+   *
+   * On homogeneous text, global brotli wins (cross-chunk dictionary).
+   * On mixed content, per-chunk topo wins (adapts per region).
+   * The topology decides — not the programmer.
+   */
+  private compressTwoLevel(data: Uint8Array): TopologicalCompressionResult {
+    const startTime = performance.now();
+    const { codecs } = this.config;
+
+    // ── FORK: Run all strategies in parallel ──
+
+    // Strategy 0: Per-chunk topological (Level 2)
+    const chunkedResult = this.compressChunked(data);
+    const chunkedTotal = STREAM_HEADER_SIZE + chunkedResult.compressedSize;
+
+    // Strategies 1+: Each codec globally on the full stream
+    interface GlobalCandidate {
+      codecId: number;
+      codecName: string;
+      compressed: Uint8Array;
+      totalSize: number; // including 5-byte stream header
+    }
+
+    const globalCandidates: GlobalCandidate[] = [];
+
+    for (const codec of codecs) {
+      if (codec.id === 0) continue; // skip raw — can't beat per-chunk raw
+
+      try {
+        const compressed = codec.encode(data);
+        const totalSize = STREAM_HEADER_SIZE + compressed.length;
+
+        if (compressed.length < data.length) {
+          globalCandidates.push({
+            codecId: codec.id,
+            codecName: codec.name,
+            compressed,
+            totalSize,
+          });
+        }
+      } catch {
+        // Codec unavailable or failed — poisoned
+      }
+    }
+
+    // ── RACE: Find the smallest output ──
+    let bestStrategy = 0; // 0 = per-chunk
+    let bestSize = chunkedTotal;
+    let bestGlobal: GlobalCandidate | null = null;
+
+    for (const candidate of globalCandidates) {
+      if (candidate.totalSize < bestSize) {
+        bestStrategy = candidate.codecId;
+        bestSize = candidate.totalSize;
+        bestGlobal = candidate;
+      }
+    }
+
+    // ── COLLAPSE: Build stream-level output ──
+    const streamHeader = encodeStreamHeader(bestStrategy, data.length);
+
+    // β₁: outer race has (globalCandidates.length + 1) paths,
+    // inner race has codecs.length paths per chunk
+    // Total independent cycles = outer_paths - 1 + inner_β₁
+    const outerPaths = globalCandidates.length + 1; // +1 for per-chunk
+    const innerBeta = Math.max(0, codecs.length - 1);
+    const totalBeta = (outerPaths - 1) + innerBeta;
+
+    if (bestStrategy === 0) {
+      // Per-chunk topological won — prefix with stream header
+      const output = new Uint8Array(STREAM_HEADER_SIZE + chunkedResult.data.length);
+      output.set(streamHeader, 0);
+      output.set(chunkedResult.data, STREAM_HEADER_SIZE);
+
+      return {
+        ...chunkedResult,
+        data: output,
+        compressedSize: output.length,
+        ratio: data.length > 0 ? 1 - output.length / data.length : 0,
+        bettiNumber: totalBeta,
+        strategy: 'chunked',
+        timeMs: performance.now() - startTime,
+      };
+    } else {
+      // Global codec won
+      const output = new Uint8Array(STREAM_HEADER_SIZE + bestGlobal!.compressed.length);
+      output.set(streamHeader, 0);
+      output.set(bestGlobal!.compressed, STREAM_HEADER_SIZE);
+
+      return {
+        data: output,
+        chunks: [],
+        originalSize: data.length,
+        compressedSize: output.length,
+        ratio: data.length > 0 ? 1 - output.length / data.length : 0,
+        codecsUsed: 1,
+        bettiNumber: totalBeta,
+        strategy: `global:${bestGlobal!.codecName}`,
+        timeMs: performance.now() - startTime,
+      };
+    }
+  }
+
+  private decompressTwoLevel(compressed: Uint8Array): Uint8Array {
+    if (compressed.length < STREAM_HEADER_SIZE) {
+      throw new Error('Truncated stream header');
+    }
+
+    const { strategy, originalSize } = decodeStreamHeader(compressed);
+    const payload = compressed.subarray(STREAM_HEADER_SIZE);
+
+    if (strategy === 0) {
+      // Per-chunk topological
+      return this.decompressChunked(payload);
+    } else {
+      // Global codec
+      const codec = getCodecById(strategy);
+      return codec.decode(payload, originalSize);
+    }
   }
 
   /** Get the codecs available for racing. */

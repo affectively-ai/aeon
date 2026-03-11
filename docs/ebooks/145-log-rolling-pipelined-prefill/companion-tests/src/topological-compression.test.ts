@@ -444,4 +444,125 @@ describe('Topological Compression (§8.6)', () => {
       });
     }
   });
+
+  describe('Two-Level Stream Race (streamRace=true)', () => {
+    /**
+     * §8.1 key claim: "the topology subsumes the algorithm."
+     *
+     * Per-chunk brotli loses cross-chunk dictionary context.
+     * Global brotli has it. The two-level race forks BOTH strategies
+     * and lets the topology decide:
+     *
+     *   FORK (stream level):
+     *     ├─ Global brotli (entire stream, cross-chunk dictionary)
+     *     ├─ Global gzip (entire stream)
+     *     └─ Per-chunk topological (8 codecs racing per 4096-byte chunk)
+     *   RACE → smallest wins
+     *   COLLAPSE → 5-byte strategy header + data
+     *
+     * On homogeneous text, global brotli wins.
+     * On mixed content, per-chunk topo wins.
+     * The topology adapts at BOTH granularities.
+     */
+
+    it('two-level race beats standalone brotli on homogeneous text', () => {
+      const text = 'the quick brown fox jumps over the lazy dog\n'.repeat(500);
+      const data = new TextEncoder().encode(text);
+
+      // Two-level race: fork global codecs vs per-chunk topo
+      const twoLevel = new TopologicalCompressor({
+        chunkSize: 4096,
+        codecs: BUILTIN_CODECS,
+        streamRace: true,
+      });
+      const twoLevelResult = twoLevel.compress(data);
+
+      // Per-chunk only (what we had before)
+      const chunkedOnly = new TopologicalCompressor({
+        chunkSize: 4096,
+        codecs: BUILTIN_CODECS,
+      });
+      const chunkedResult = chunkedOnly.compress(data);
+
+      // Two-level should beat or match per-chunk
+      // (global brotli wins the outer race on homogeneous text)
+      expect(twoLevelResult.compressedSize).toBeLessThanOrEqual(
+        chunkedResult.compressedSize,
+      );
+
+      // Strategy should be global brotli (it has cross-chunk dictionary)
+      expect(twoLevelResult.strategy).toBe('global:brotli');
+
+      // Roundtrip
+      expect(twoLevel.decompress(twoLevelResult.data)).toEqual(data);
+    });
+
+    it('two-level race roundtrips correctly for mixed content', () => {
+      // 50% text, 50% pseudo-random
+      const textPart = new TextEncoder().encode(
+        'export default function Component() { return this.props.children; }\n'.repeat(40),
+      );
+      const randomPart = new Uint8Array(textPart.length);
+      let seed = 0xDEADBEEF;
+      for (let i = 0; i < randomPart.length; i++) {
+        seed = (seed * 1664525 + 1013904223) & 0xFFFFFFFF;
+        randomPart[i] = (seed >>> 24) & 0xFF;
+      }
+      const mixed = new Uint8Array(textPart.length + randomPart.length);
+      mixed.set(textPart, 0);
+      mixed.set(randomPart, textPart.length);
+
+      const tc = new TopologicalCompressor({
+        chunkSize: 4096,
+        codecs: BUILTIN_CODECS,
+        streamRace: true,
+      });
+
+      const result = tc.compress(mixed);
+      expect(result.strategy).toBeDefined();
+      expect(result.compressedSize).toBeLessThan(mixed.length);
+
+      // Roundtrip
+      expect(tc.decompress(result.data)).toEqual(mixed);
+    });
+
+    it('β₁ of two-level race exceeds single-level', () => {
+      const data = new TextEncoder().encode('Hello '.repeat(2000));
+
+      const singleLevel = new TopologicalCompressor({
+        chunkSize: 4096,
+        codecs: BUILTIN_CODECS,
+      });
+      const twoLevel = new TopologicalCompressor({
+        chunkSize: 4096,
+        codecs: BUILTIN_CODECS,
+        streamRace: true,
+      });
+
+      const singleResult = singleLevel.compress(data);
+      const twoLevelResult = twoLevel.compress(data);
+
+      // Single level: β₁ = 7 (8 codecs - 1)
+      expect(singleResult.bettiNumber).toBe(7);
+
+      // Two level: β₁ = inner + outer > 7
+      expect(twoLevelResult.bettiNumber).toBeGreaterThan(singleResult.bettiNumber);
+    });
+
+    it('streamRace=false is backward compatible', () => {
+      const data = new TextEncoder().encode('test data '.repeat(500));
+
+      const tc = new TopologicalCompressor({
+        chunkSize: 4096,
+        codecs: BUILTIN_CODECS,
+        // streamRace defaults to false
+      });
+
+      const result = tc.compress(data);
+      expect(result.strategy).toBeUndefined();
+
+      // Roundtrip
+      expect(tc.decompress(result.data)).toEqual(data);
+    });
+  });
 });

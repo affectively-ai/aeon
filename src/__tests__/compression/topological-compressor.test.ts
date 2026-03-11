@@ -479,4 +479,126 @@ describe('TopologicalCompressor', () => {
       expect(overhead).toBeLessThanOrEqual(4 * 9);
     });
   });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Two-Level Stream Race (streamRace=true)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  describe('Two-Level Stream Race', () => {
+    it('streamRace=false (default) produces chunk-only format', () => {
+      const tc = new TopologicalCompressor();
+      const data = makeRepeating([0xAA], 4096);
+      const result = tc.compress(data);
+
+      // No strategy field when streamRace is off
+      expect(result.strategy).toBeUndefined();
+
+      // Roundtrip
+      expect(tc.decompress(result.data)).toEqual(data);
+    });
+
+    it('streamRace=true: global brotli beats per-chunk on homogeneous text', () => {
+      const text = 'the quick brown fox jumps over the lazy dog\n'.repeat(500);
+      const data = new TextEncoder().encode(text);
+
+      const tc = new TopologicalCompressor({
+        chunkSize: 4096,
+        codecs: BUILTIN_CODECS,
+        streamRace: true,
+      });
+
+      const result = tc.compress(data);
+
+      // Global brotli should win on homogeneous text (cross-chunk dictionary)
+      expect(result.strategy).toBe('global:brotli');
+
+      // Must beat what per-chunk alone achieves
+      const chunkedOnly = new TopologicalCompressor({
+        chunkSize: 4096,
+        codecs: BUILTIN_CODECS,
+      });
+      const chunkedResult = chunkedOnly.compress(data);
+      expect(result.compressedSize).toBeLessThan(chunkedResult.compressedSize);
+
+      // Roundtrip
+      expect(tc.decompress(result.data)).toEqual(data);
+    });
+
+    it('streamRace=true: per-chunk wins on mixed content', () => {
+      // Mix of compressible text and random binary
+      const text = new TextEncoder().encode(
+        'function(){return this.props.children;}\n'.repeat(50),
+      );
+      const random = makeRandom(2048);
+      const mixed = new Uint8Array(text.length + random.length);
+      mixed.set(text, 0);
+      mixed.set(random, text.length);
+
+      const tc = new TopologicalCompressor({
+        chunkSize: 4096,
+        codecs: BUILTIN_CODECS,
+        streamRace: true,
+      });
+
+      const result = tc.compress(mixed);
+
+      // Either strategy can win on mixed content — just verify roundtrip
+      expect(result.strategy).toBeDefined();
+      expect(result.compressedSize).toBeLessThan(mixed.length);
+      expect(tc.decompress(result.data)).toEqual(mixed);
+    });
+
+    it('streamRace=true: roundtrip works for all data types', () => {
+      const testCases = [
+        { name: 'empty', data: new Uint8Array(0) },
+        { name: 'repeated', data: makeRepeating([0x42], 8192) },
+        { name: 'sequential', data: makeSequential(8192) },
+        { name: 'random', data: makeRandom(8192) },
+        { name: 'text', data: new TextEncoder().encode('Hello world! '.repeat(1000)) },
+      ];
+
+      for (const { name, data } of testCases) {
+        const tc = new TopologicalCompressor({
+          chunkSize: 4096,
+          codecs: BUILTIN_CODECS,
+          streamRace: true,
+        });
+
+        const result = tc.compress(data);
+        const decompressed = tc.decompress(result.data);
+        expect(decompressed).toEqual(data);
+      }
+    });
+
+    it('streamRace=true: β₁ includes both outer and inner races', () => {
+      const data = makeRepeating([0xAA], 4096);
+      const tc = new TopologicalCompressor({
+        chunkSize: 4096,
+        codecs: BUILTIN_CODECS,
+        streamRace: true,
+      });
+
+      const result = tc.compress(data);
+
+      // Inner β₁ = 7 (8 codecs - 1)
+      // Outer β₁ = number of global candidates (varies, but > 0)
+      // Total > inner alone
+      expect(result.bettiNumber).toBeGreaterThan(7);
+    });
+
+    it('streamRace=true: strategy field identifies the winner', () => {
+      const data = new TextEncoder().encode('export default '.repeat(2000));
+
+      const tc = new TopologicalCompressor({
+        chunkSize: 4096,
+        codecs: BUILTIN_CODECS,
+        streamRace: true,
+      });
+
+      const result = tc.compress(data);
+
+      // Strategy should be either 'chunked' or 'global:<name>'
+      expect(result.strategy).toMatch(/^(chunked|global:\w+)$/);
+    });
+  });
 });

@@ -1,7 +1,8 @@
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
 
-const aeonSrc = resolve(__dirname, '../../../../open-source/aeon/src');
+// Works from both monorepo (docs/ebooks/.../companion-tests/) and aeon submodule
+const aeonSrc = resolve(__dirname, '../../../../src');
 
 export default defineConfig({
   test: {
