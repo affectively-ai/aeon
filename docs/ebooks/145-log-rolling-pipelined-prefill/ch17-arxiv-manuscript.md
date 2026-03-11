@@ -618,6 +618,51 @@ The classical limit ($\hbar \to 0$) recovers the path of stationary action -- th
 
 **This is not an analogy.** The path integral IS a fork/race/fold computation. The sum over paths IS the fork. Interference IS the fold/vent. The stationary phase approximation IS the $\beta_1 \to 0$ projection. Feynman diagrams are the computation graphs, and their topological properties ($\beta_1$ = loop order) determine the difficulty of the calculation -- exactly as $\beta_1$ determines pipeline complexity in §3.
 
+#### The Physics Hierarchy: Progressive Folds
+
+The path integral, the Schrödinger equation, and Newton's laws are not three separate theories. They are three levels of fold applied to the same fork/race/fold computation. Each level destroys information and reduces $\beta_1$.
+
+**Level 0: The Path Integral (full fork/race/fold).**
+All paths. All interferences. No approximation. $\beta_1 \to \infty$.
+
+$$\mathcal{A}(A \to B) = \int \mathcal{D}[x(t)] \, e^{iS[x(t)]/\hbar}$$
+
+**Level 1: The Schrödinger Equation (the differential form of race).**
+Feynman showed [22] that evaluating the path integral in the limit of infinitesimal time steps recovers the Schrödinger equation exactly:
+
+$$i\hbar \frac{\partial \psi}{\partial t} = \hat{H}\psi$$
+
+This is not a separate postulate -- it is what happens when you demand the fork/race/fold computation be expressible as a *local* differential equation. The wave function $\psi$ is the bookkeeping device that tracks the superposition of all racing paths at each instant. $|\psi|^2$ is the probability density -- the energy distribution across surviving paths. The Hamiltonian $\hat{H}$ is the race operator: it governs how potential converts to kinetic at each infinitesimal step.
+
+The Schrödinger equation is the race phase written as a differential equation. It is the local form of a global fork/race/fold computation, just as Maxwell's equations are the local form of global electromagnetic phenomena. The wave function $\psi$ carries all the information about which paths are still racing and with what amplitude. It is a race snapshot.
+
+**Quantized energy levels are fold constraints.** For bound systems (electrons in atoms, particles in wells), the Schrödinger equation admits only discrete solutions -- specific energy eigenvalues. These are not inputs to the equation; they *emerge* from the fold boundary conditions. The requirement that $\psi \to 0$ at infinity (the wave function must be normalizable) is a fold constraint: it eliminates all solutions that don't converge. The surviving eigenvalues are the fold results. Lasers, LEDs, atomic clocks, and MRI machines all depend on these quantized fold outputs.
+
+**Quantum tunneling is incomplete venting.** Classically, a particle encountering a potential barrier higher than its kinetic energy is vented -- it cannot cross. But the Schrödinger equation shows that $\psi$ doesn't drop to zero at the barrier; it decays exponentially through it. If the barrier is thin enough, nonzero amplitude leaks through. This is a path that *should* have been vented but survived because $\hbar > 0$ means the vent is imperfect -- some amplitude always leaks. Flash memory, scanning tunneling microscopes, and nuclear fusion in stars all exploit incomplete venting.
+
+**Level 2: Stationary Phase Approximation (the vent operator).**
+In the classical limit ($\hbar \to 0$), the phase $e^{iS/\hbar}$ oscillates infinitely fast. Nearly all paths cancel by destructive interference -- they are vented. Only paths near the stationary point of the action survive:
+
+$$\delta S = 0 \implies \text{Euler-Lagrange equations} \implies F = ma$$
+
+The stationary phase approximation IS the vent operator applied maximally. It destroys all path information except the single classical trajectory. $\beta_1 \to 0$. The void ($\beta_2$) becomes infinite -- uncountably many quantum paths are vented, leaving one survivor.
+
+**Level 3: Newton's Laws ($\beta_1 = 0$, fully folded).**
+One path. Deterministic. No fork, no race, no vent. $F = ma$ is the maximally folded result of the path integral. Classical mechanics is not "wrong" -- it is the $\beta_1 = 0$ degenerate case, just as sequential pipelines are the degenerate case of the Wallington Rotation.
+
+The hierarchy:
+
+| Level | Theory | Fork/Race/Fold Role | $\beta_1$ | Information |
+|-------|--------|-------------------|-----------|-------------|
+| 0 | Path integral | Full engine | $\infty$ | All paths, all phases |
+| 1 | Schrödinger equation | Differential race | Finite | Wave function $\psi$ tracks superposition |
+| 2 | Stationary phase | Maximal vent | $\to 0$ | Only near-classical paths survive |
+| 3 | Newton's laws | Fully folded | $0$ | One path, deterministic |
+
+Each level is a fold. Each fold destroys information. Each fold creates void ($\beta_2$ grows). The entire tower of classical physics -- from Newton to Lagrange to Hamilton -- is nested fold operations on the path integral. You cannot un-fold Newton back to Schrödinger, or Schrödinger back to the path integral, without injecting new information (re-forking). This is the Second Law applied to physical theory itself.
+
+**Band theory is the covering space formalism applied to crystals.** When the Schrödinger equation is solved for electrons in a periodic lattice (silicon, germanium), Bloch's theorem states that solutions have the form $\psi_k(r) = e^{ik \cdot r} u_k(r)$ where $u_k$ has the periodicity of the lattice. The periodic lattice is the base space. The electron's wave function in the full crystal is the covering space. Bloch's theorem is the covering map (§3.3) -- it relates the global behavior (energy bands) to the local structure (unit cell). The band gap -- the energy range where no electron states exist -- is the void ($\beta_2 > 0$). Semiconductors, transistors, solar cells, and every chip in existence depend on this covering space structure.
+
 #### The Virial Theorem (Grade A-)
 
 For self-gravitating systems in equilibrium (gas clouds, galaxies, star clusters), the virial theorem states:
