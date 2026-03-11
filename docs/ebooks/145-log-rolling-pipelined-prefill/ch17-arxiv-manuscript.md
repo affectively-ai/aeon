@@ -75,7 +75,7 @@ A triangle. The top has one chunk. Each row adds one more. At $t_4$ the pipeline
 
 **You cannot break the ordering.** The triangle enforces it geometrically. Each child depends only on what the child above passed down (stage dependency) and each chunk depends only on the chunk before it at the same child (sequence dependency). Those two axes -- vertical and horizontal -- are the only constraints. The triangle is the **tightest possible packing** that satisfies both.
 
-This is not a visualization choice. The triangle IS the shape of pipelined computation. It is the minimum-area region in time × stage space that achieves full occupancy while respecting dependency constraints. Any other shape either wastes slots (too wide) or violates ordering (too narrow).
+This is not a visualization choice. The triangle _is_ the shape of pipelined computation. It is the minimum-area region in time × stage space that achieves full occupancy while respecting dependency constraints. Any other shape either wastes slots (too wide) or violates ordering (too narrow).
 
 The triangle is also a **covering space** (§3.3). The diagonal -- the moment when all children are busy -- is the base space: one ordered sequence, 1-2-3-4. But each chunk arrived at the diagonal via a different path through the triangle. Chunk 1 took the longest path (entered first, fell through all four stages). Chunk 4 took the shortest (entered last, only at stage 1). Many paths, one output. That is the covering map. That is why order is always preserved.
 
@@ -414,7 +414,7 @@ This is the difference between meteorology and fluid dynamics. Meteorology predi
 
 ## 5. The Quantum Vocabulary Is Structural
 
-The following correspondences are not metaphors. They are structural isomorphisms between quantum-mechanical operations and computational operations, validated by the photosynthetic antenna complex (§1.5) where the quantum mechanics is literal. In §6.11, I show that the Feynman path integral IS a fork/race/fold computation -- the correspondence runs deeper than vocabulary.
+The following correspondences are not metaphors. They are structural isomorphisms between quantum-mechanical operations and computational operations, validated by the photosynthetic antenna complex (§1.5) where the quantum mechanics is literal. In §6.11, I show that the Feynman path integral _is_ a fork/race/fold computation -- the correspondence runs deeper than vocabulary.
 
 | Quantum Operation | Computational Operation | What It Does |
 |-------------------|------------------------|--------------|
@@ -616,7 +616,7 @@ where $S$ is the action along each path. The particle takes *every* possible pat
 
 The classical limit ($\hbar \to 0$) recovers the path of stationary action -- the unique classical trajectory. This is the $\beta_1 = 0$ subspace: one path, no fork, no race, no vent. Classical mechanics is the degenerate case of quantum fork/race/fold, just as sequential pipelines are the degenerate case of the Wallington Rotation.
 
-**This is not an analogy.** The path integral IS a fork/race/fold computation. The sum over paths IS the fork. Interference IS the fold/vent. The stationary phase approximation IS the $\beta_1 \to 0$ projection. Feynman diagrams are the computation graphs, and their topological properties ($\beta_1$ = loop order) determine the difficulty of the calculation -- exactly as $\beta_1$ determines pipeline complexity in §3.
+**This is not an analogy.** The path integral _is_ a fork/race/fold computation. The sum over paths _is_ the fork. Interference _is_ the fold/vent. The stationary phase approximation _is_ the $\beta_1 \to 0$ projection. Feynman diagrams are the computation graphs, and their topological properties ($\beta_1$ = loop order) determine the difficulty of the calculation -- exactly as $\beta_1$ determines pipeline complexity in §3.
 
 #### The Physics Hierarchy: Progressive Folds
 
@@ -645,7 +645,7 @@ In the classical limit ($\hbar \to 0$), the phase $e^{iS/\hbar}$ oscillates infi
 
 $$\delta S = 0 \implies \text{Euler-Lagrange equations} \implies F = ma$$
 
-The stationary phase approximation IS the vent operator applied maximally. It destroys all path information except the single classical trajectory. $\beta_1 \to 0$. The void ($\beta_2$) becomes infinite -- uncountably many quantum paths are vented, leaving one survivor.
+The stationary phase approximation _is_ the vent operator applied maximally. It destroys all path information except the single classical trajectory. $\beta_1 \to 0$. The void ($\beta_2$) becomes infinite -- uncountably many quantum paths are vented, leaving one survivor.
 
 **Level 3: Newton's Laws ($\beta_1 = 0$, fully folded).**
 One path. Deterministic. No fork, no race, no vent. $F = ma$ is the maximally folded result of the path integral. Classical mechanics is not "wrong" -- it is the $\beta_1 = 0$ degenerate case, just as sequential pipelines are the degenerate case of the Wallington Rotation.
@@ -713,17 +713,23 @@ $$\Delta_\beta = \beta_1^* - \beta_1$$
 
 When $\Delta_\beta = 0$, the system's topology matches the problem's topology. It is operating at its natural parallelism. When $\Delta_\beta > 0$, the system is forcing a high-$\beta_1$ problem through a low-$\beta_1$ pipe. The deficit is wasted parallelism -- performance left on the table.
 
+I define the unit of topological deficit as the **Buley** (symbol: **B**). One Buley equals one unit of $\Delta_\beta$ -- one independent parallel path that the problem supports but the implementation does not exploit.
+
+$$1 \text{ B} = 1 \text{ unit of } \Delta_\beta = \beta_1^* - \beta_1$$
+
+A system at 0 B is topologically optimal. A system at 3 B is wasting three independent parallel paths. The Buley is dimensionless, integer-valued, and directly measurable from the computation graph.
+
 **The topological deficit predicts real-world waste.**
 
-| System | $\beta_1^*$ (intrinsic) | $\beta_1$ (actual) | $\Delta_\beta$ | Observable Waste |
-|--------|------------------------|-------------------|----------------|-----------------|
-| Healthcare diagnosis | $\geq 3$ | 0 (referral chain) | $\geq 3$ | 4.8-year average diagnostic delay for rare diseases |
-| Financial settlement | 2 | 0 (T+2 sequential) | 2 | \$70 trillion unnecessarily locked capital |
-| HTTP/2 multiplexing | $N_{\text{streams}}$ | 0 (TCP substrate) | $N_{\text{streams}}$ | Head-of-line blocking on any packet loss |
-| Photosynthetic antenna | $\sim 7$ (pigments) | $\sim 7$ (quantum coherence) | 0 | >95% energy transfer efficiency |
-| Path integral | $\infty$ | $\infty$ | 0 | Exact quantum-mechanical predictions |
-| DNA replication | 1 (lagging strand) | 1 (Okazaki fragments) | 0 | Replication matches leading strand speed |
-| Saltatory conduction | nodes $- 1$ | nodes $- 1$ | 0 | 100x speedup vs. continuous conduction |
+| System | $\beta_1^*$ | $\beta_1$ | Deficit | Observable Waste |
+|--------|------------|----------|---------|-----------------|
+| Healthcare diagnosis | $\geq 3$ | 0 (referral chain) | $\geq$ 3 B | 4.8-year average diagnostic delay for rare diseases |
+| Financial settlement | 2 | 0 (T+2 sequential) | 2 B | \$70 trillion unnecessarily locked capital |
+| HTTP/2 multiplexing | $N_{\text{streams}}$ | 0 (TCP substrate) | $N$ B | Head-of-line blocking on any packet loss |
+| Photosynthetic antenna | $\sim 7$ (pigments) | $\sim 7$ (quantum coherence) | 0 B | >95% energy transfer efficiency |
+| Path integral | $\infty$ | $\infty$ | 0 B | Exact quantum-mechanical predictions |
+| DNA replication | 1 (lagging strand) | 1 (Okazaki fragments) | 0 B | Replication matches leading strand speed |
+| Saltatory conduction | nodes $- 1$ | nodes $- 1$ | 0 B | 100x speedup vs. continuous conduction |
 
 The pattern: **every system where $\Delta_\beta = 0$ operates at or near its theoretical efficiency.** Every system where $\Delta_\beta > 0$ has measurable, quantifiable waste. The deficit is not abstract -- it maps to years of diagnostic delay, trillions of locked capital, and protocol-level blocking.
 
@@ -737,9 +743,47 @@ This yields a practical diagnostic tool:
 
 This is why the biological examples in §1 are not decoration. They are **existence proofs of optimality.** When we observe that *Physarum* constructs transport networks matching the Tokyo rail system, we are observing $\Delta_\beta \approx 0$ achieved without engineering -- the slime mold's topology matches the problem's topology because evolution found the fork/race/fold shape. When we observe that photosynthetic antenna complexes achieve >95% energy transfer efficiency, we are observing $\Delta_\beta = 0$ at quantum scale -- the system's $\beta_1$ matches the problem's $\beta_1^*$ because physics itself operates at fork/race/fold.
 
-The optimality diagnostic also explains **why quantum computing promises speedups**. Classical computation forces $\beta_1 = 0$ -- one computational path at a time. Quantum computation operates at the problem's intrinsic $\beta_1^*$, which for search problems is $\sqrt{N}$ (Grover) and for factoring is $\log N$ (Shor). The quantum speedup IS the topological deficit that classical computing pays: $\Delta_\beta = \beta_1^* - 0 = \beta_1^*$. Quantum computers close the deficit. The speedup is not magic -- it is the system finally matching the problem's natural topology.
+The optimality diagnostic also explains **why quantum computing promises speedups**. Classical computation forces $\beta_1 = 0$ -- one computational path at a time. Quantum computation operates at the problem's intrinsic $\beta_1^*$, which for search problems is $\sqrt{N}$ (Grover) and for factoring is $\log N$ (Shor). The quantum speedup _is_ the topological deficit that classical computing pays: $\Delta_\beta = \beta_1^* - 0 = \beta_1^*$. Quantum computers close the deficit. The speedup is not magic -- it is the system finally matching the problem's natural topology.
 
-**To see fork/race/fold is to see a system that has found its shape. To not see it is to see a system that hasn't.**
+#### Executable Diagnostic Tool
+
+The topological deficit is not just a theoretical quantity. The `@affectively/aeon` package [20] includes a `TopologyAnalyzer` that computes Betti numbers and Buleys from a computation graph, and a `TopologySampler` that instruments a running system to measure deficit over time:
+
+```typescript
+import { TopologyAnalyzer, TopologySampler } from '@affectively/aeon';
+
+// Static analysis: is this system wasting parallelism?
+const graph = TopologyAnalyzer.fromForkRaceFold({
+  forkWidth: 1,          // implementation: sequential
+  intrinsicBeta1: 7,     // problem: 8 independent codecs
+});
+const report = TopologyAnalyzer.analyze(graph);
+// → deficit: 7 Buleys — "Sequential bottleneck: 7 Buleys of waste"
+
+// Fix: match the topology
+const fixed = TopologyAnalyzer.fromForkRaceFold({
+  forkWidth: 8,          // implementation: fork 8 codecs
+  intrinsicBeta1: 7,     // problem: 8 independent codecs
+});
+const fixedReport = TopologyAnalyzer.analyze(fixed);
+// → deficit: 0 Buleys — "Optimal: 0 Buleys"
+
+// Runtime sampling: how does the deficit evolve?
+const sampler = new TopologySampler({ intrinsicBeta1: 7 });
+sampler.fork('chunk-1', ['raw', 'rle', 'delta', 'lz77',
+                         'brotli', 'gzip', 'huffman', 'dict']);
+// → currentDeficit(): 0 Buleys (all 8 codecs racing)
+sampler.race('chunk-1', 'brotli');
+sampler.vent('chunk-1', 'raw');
+// ... vent remaining losers ...
+sampler.fold('chunk-1');
+const samplerReport = sampler.report();
+// → peakBeta1: 7, efficiency: 0.125 (1 race / 8 events)
+```
+
+The `TopologyAnalyzer` computes $\beta_0$, $\beta_1$, $\beta_2$ and detects fork/join pairs from any directed graph. The `TopologySampler` records fork/race/vent/fold events at runtime and produces time-series utilization data. Both are validated by 24 passing tests covering sequential pipelines, fork/join graphs, void detection, deficit measurement, concurrent forks, vent ratios, and the real-world topologies from this section [20].
+
+**To see fork/race/fold is to see a system that has found its shape. To not see it is to see a system that hasn't. The Buley count tells you how far off you are.**
 
 ## 7. Instantiation A: Distributed Staged Computation
 
@@ -1066,9 +1110,9 @@ These operations are not new. DNA replication has used them for 4 billion years.
 
 The conveyor belt -- Ford's line, TCP's stream, the hospital's referral chain -- is the degenerate case. It works when the answer is known, resources are unlimited and a central clock exists. In every other case -- which is every real case -- the natural topology has $\beta_1 > 0$, and forcing it to zero is where latency hides.
 
-The framework's language was not invented from scratch. It was borrowed -- deliberately and entirely -- from physical theories that already describe the phenomena I formalize. Quantum physics provided the lexicon: superposition, tunneling, interference, entanglement, measurement, collapse. These are not metaphors but structural correspondences, validated by photosynthetic systems where the quantum mechanics is literal. The Feynman path integral is not analogous to fork/race/fold -- it IS fork/race/fold: all paths forked, phases raced, amplitudes folded by interference, non-classical paths vented by destructive cancellation (§6.11). The entire tower of classical physics is nested fold operations on the path integral: the Schrödinger equation is the differential form of race, the stationary phase approximation is maximal venting, and Newton's $F = ma$ is the fully folded result at $\beta_1 = 0$ (§6.11). Fluid dynamics provided the scaling intuition: the pipeline Reynolds number predicts phase transitions between sequential and multiplexed scheduling with the same precision that the physical Reynolds number predicts laminar-to-turbulent transitions. Thermodynamics provided the conservation laws: fork injects potential energy, race converts it to kinetic, fold extracts useful work, and venting dissipates waste heat. The First Law ($V = W + Q$) holds exactly -- every byte forked is accounted for. The virial theorem gives the exact partition for self-gravitating systems: $W = Q = V/2$ (§6.11). Shannon entropy is the Carnot limit. Frame headers are ground-state energy. The waste heat from vented paths is the cost of certainty -- you need the losers to prove the winner is optimal.
+The framework's language was not invented from scratch. It was borrowed -- deliberately and entirely -- from physical theories that already describe the phenomena I formalize. Quantum physics provided the lexicon: superposition, tunneling, interference, entanglement, measurement, collapse. These are not metaphors but structural correspondences, validated by photosynthetic systems where the quantum mechanics is literal. The Feynman path integral is not analogous to fork/race/fold -- it _is_ fork/race/fold: all paths forked, phases raced, amplitudes folded by interference, non-classical paths vented by destructive cancellation (§6.11). The entire tower of classical physics is nested fold operations on the path integral: the Schrödinger equation is the differential form of race, the stationary phase approximation is maximal venting, and Newton's $F = ma$ is the fully folded result at $\beta_1 = 0$ (§6.11). Fluid dynamics provided the scaling intuition: the pipeline Reynolds number predicts phase transitions between sequential and multiplexed scheduling with the same precision that the physical Reynolds number predicts laminar-to-turbulent transitions. Thermodynamics provided the conservation laws: fork injects potential energy, race converts it to kinetic, fold extracts useful work, and venting dissipates waste heat. The First Law ($V = W + Q$) holds exactly -- every byte forked is accounted for. The virial theorem gives the exact partition for self-gravitating systems: $W = Q = V/2$ (§6.11). Shannon entropy is the Carnot limit. Frame headers are ground-state energy. The waste heat from vented paths is the cost of certainty -- you need the losers to prove the winner is optimal.
 
-The pattern is not merely widespread -- it is convergent. Attention in transformers IS race: the $QK^T$ dot product is the race, softmax is continuous venting, the $V$ projection is fold (§6.10). Training loss IS waste heat: gradient descent minimizes $\partial Q / \partial \theta$ (§6.10). Protein folding IS fold: the energy landscape funnel is fork/race/fold from Levinthal's $10^{143}$ conformations to the native state [24]. The hylomorphism of category theory -- unfold/fold -- IS fork/fold. The Carnot cycle's four strokes ARE the four primitives. These are not analogies. They are structural isomorphisms that emerge because any system that transforms input to output under conservation (First Law), irreversibility (Second Law) and minimum overhead (Third Law) will converge to fork/race/fold. There is no alternative.
+The pattern is not merely widespread -- it is convergent. Attention in transformers _is_ race: the $QK^T$ dot product is the race, softmax is continuous venting, the $V$ projection is fold (§6.10). Training loss _is_ waste heat: gradient descent minimizes $\partial Q / \partial \theta$ (§6.10). Protein folding _is_ fold: the energy landscape funnel is fork/race/fold from Levinthal's $10^{143}$ conformations to the native state [24]. The hylomorphism of category theory -- unfold/fold -- _is_ fork/fold. The Carnot cycle's four strokes ARE the four primitives. These are not analogies. They are structural isomorphisms that emerge because any system that transforms input to output under conservation (First Law), irreversibility (Second Law) and minimum overhead (Third Law) will converge to fork/race/fold. There is no alternative.
 
 **What this paper claims and what it does not.** The scope of the convergence is striking enough to warrant explicit boundaries. This paper claims that fork/race/fold is the *computational structure* of quantum field theory, not an analogy to it. The Feynman path integral is a fork/race/fold computation -- mathematically, not metaphorically. The Schrödinger equation is the differential form of the race phase. Newton's laws are the fully folded result at $\beta_1 = 0$. The virial theorem gives the exact energy partition. The weak force is a vent operator. Symmetry breaking is a fold. These are structural identities, not poetic borrowings.
 

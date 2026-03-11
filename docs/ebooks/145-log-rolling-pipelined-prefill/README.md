@@ -80,6 +80,9 @@ The work is framed through the lens of Wally Wallington's "Forgotten Technology"
 | UDP transport tests | `open-source/aeon/src/__tests__/flow/udp-flow-transport.test.ts` | UDP fragmentation, ACK bitmaps, congestion |
 | Reassembler tests | `open-source/aeon/src/__tests__/flow/frame-reassembler.test.ts` | 31-test out-of-order reassembly suite |
 | Rhizome router | `apps/edge-workers/src/workers/aeon-rhizome.ts` | `aeon://` publication and edge resolution APIs |
+| `TopologyAnalyzer` | `open-source/aeon/src/topology/TopologyAnalyzer.ts` | Betti numbers, fork/join detection, topological deficit (Buleys) |
+| `TopologySampler` | `open-source/aeon/src/topology/TopologySampler.ts` | Runtime sampling of deficit over time |
+| Topology tests | `open-source/aeon/src/__tests__/topology/topology.test.ts` | 24-test Betti number + deficit + sampler suite |
 
 ## Performance Impact
 
