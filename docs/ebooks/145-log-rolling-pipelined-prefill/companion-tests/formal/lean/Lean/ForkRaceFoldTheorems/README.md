@@ -4,5 +4,5 @@
 
 Modules:
 
-- `Claims.lean`: explicit-assumption theorems with constructive proofs for core algebraic/topological identities.
+- `Claims.lean`: explicit-assumption theorems with constructive proofs for core algebraic/topological identities (including Whip cross-shard crossover properties).
 - `Axioms.lean`: formally stated high-level theorem shells that still require deeper semantic encodings.

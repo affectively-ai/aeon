@@ -3,21 +3,17 @@ EXTENDS Naturals
 
 CONSTANTS SqrtDomain
 
-VARIABLES rootN, mode
+VARIABLE rootN
 
-vars == <<rootN, mode>>
-
-Modes == {"classical", "quantum"}
+vars == <<rootN>>
 
 Init ==
   /\ rootN \in SqrtDomain
   /\ rootN > 0
-  /\ mode \in Modes
 
 Change ==
   /\ rootN' \in SqrtDomain
   /\ rootN' > 0
-  /\ mode' \in Modes
 
 Stutter == UNCHANGED vars
 
@@ -25,12 +21,13 @@ Next == Change \/ Stutter
 Spec == Init /\ [][Next]_vars
 
 N == rootN * rootN
-ClassicalBeta1 == 0
 ProblemBeta1 == rootN - 1
-ImplementationBeta1 == IF mode = "classical" THEN ClassicalBeta1 ELSE ProblemBeta1
-Deficit == ProblemBeta1 - ImplementationBeta1
+ClassicalBeta1 == 0
+QuantumBeta1 == ProblemBeta1
+ClassicalDeficit == ProblemBeta1 - ClassicalBeta1
+QuantumDeficit == ProblemBeta1 - QuantumBeta1
 SequentialRounds == N
-ParallelRounds == IF mode = "classical" THEN N ELSE rootN
+ParallelRounds == rootN
 Speedup == SequentialRounds \div ParallelRounds
 
 InvPerfectSquare ==
@@ -38,10 +35,11 @@ InvPerfectSquare ==
   /\ rootN > 0
 
 InvClassicalDeficit ==
-  mode = "classical" => Deficit = rootN - 1
+  ClassicalDeficit = rootN - 1
 
-InvSpeedupIdentity ==
-  /\ mode = "quantum" => Speedup = Deficit + 1
-  /\ mode = "quantum" => Deficit = 0
+InvQuantumDeficitZero ==
+  QuantumDeficit = 0
+
+InvSpeedupIdentity == Speedup = ClassicalDeficit + 1
 
 =============================================================================

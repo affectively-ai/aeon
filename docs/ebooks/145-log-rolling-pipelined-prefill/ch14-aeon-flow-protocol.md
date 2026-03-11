@@ -29,7 +29,7 @@ FlowFrame {
 }
 ```
 
-Total header: **10 bytes**. Compare HTTP/2's 9-byte frame header plus HPACK-encoded headers averaging 50–200 bytes per request. For inference hidden states (4096 × f32 = 16KB), the Aeon Flow header is **0.06% overhead** vs HTTP's 1–3%.
+Total header: **10 bytes**. Compare HTTP/2's 9-byte frame header plus HPACK-encoded headers averaging 50–200 bytes per request. For inference hidden states (4096 × f32 = 16KB), the Aeon Flow header is **0.06 percent overhead** vs HTTP's 1–3 percent.
 
 The key zerocopy insight: `Float32Array` hidden states from inference can be written directly as the frame payload — no intermediate `Buffer` copy. The codec writes the 10-byte header in front of the existing `ArrayBuffer` view.
 
@@ -180,7 +180,7 @@ Every multiplexed stream gets a first-class address. This is what makes `aeon://
 | Fork/race/collapse | Application-level | Protocol-level |
 | Backpressure | TCP window + flow control | Per-stream high-water mark |
 
-For inference workloads (16KB hidden state payloads): **0.06% protocol overhead** vs 1–3% for HTTP/2.
+For inference workloads (16KB hidden state payloads): **0.06 percent protocol overhead** vs 1–3 percent for HTTP/2.
 
 With UDP transport, additional wins:
 

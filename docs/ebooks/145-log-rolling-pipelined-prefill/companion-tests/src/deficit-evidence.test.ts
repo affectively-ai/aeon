@@ -11,6 +11,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { TopologicalCompressor, BUILTIN_CODECS } from '@aeon/compression';
+import { EVIDENCE_DATA } from './evidence-sources.js';
 
 function makeRng(seed: number): () => number {
   let state = seed >>> 0;
@@ -375,7 +376,7 @@ describe('Financial Settlement Δβ (§6.12)', () => {
       );
     }
 
-    const dailyVolume = 35e12; // $35T/day
+    const dailyVolume = EVIDENCE_DATA.settlementDailyVolumeUsd.value;
     const tradeCount = 10_000;
     const tradeNotional = dailyVolume / tradeCount;
     const trades: Trade[] = Array.from({ length: tradeCount }, () => ({
@@ -441,7 +442,7 @@ describe('Healthcare Referral Δβ (§6.12)', () => {
     // Each step adds delay (weeks to months)
     // With parallel diagnostics, multiple tests run simultaneously
 
-    const avgDelayYears = 4.8;
+    const avgDelayYears = EVIDENCE_DATA.rareDiseaseDelayYears.value;
     const referralSteps = 7;
     const delayPerStep = avgDelayYears / referralSteps;
 
@@ -475,7 +476,7 @@ describe('Biological Systems at Δβ = 0 (§6.12)', () => {
     expect(beta1Star - beta1Actual).toBe(0); // Δβ = 0
 
     // >95% energy transfer efficiency
-    const efficiency = 0.95;
+    const efficiency = EVIDENCE_DATA.photosyntheticEfficiencyFloor.value;
     expect(efficiency).toBeGreaterThan(0.9);
   });
 

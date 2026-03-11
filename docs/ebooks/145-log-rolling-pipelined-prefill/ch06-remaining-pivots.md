@@ -139,6 +139,6 @@ Same autoregressive constraint as generation. Each draft token's embedding feeds
 |------------|--------|---------|------|----------|
 | Weight loading parallelization | Low | 5-10x (cold start) | Memory spikes | **P0** |
 | Speculative prefill reuse | Trivial | Near-Nx | None | **P0** |
-| Zero-copy pipeline forwarding | Low | ~10% throughput | Buffer ownership | **P1** |
+| Zero-copy pipeline forwarding | Low | ~10 percent throughput | Buffer ownership | **P1** |
 | Multi-head attention SIMD | Medium | 2-4x (compute) | WASM complexity | **P2** |
-| Embedding precomputation overlap | High | ~10-20% | Coordination | **P3** |
+| Embedding precomputation overlap | High | ~10-20 percent | Coordination | **P3** |

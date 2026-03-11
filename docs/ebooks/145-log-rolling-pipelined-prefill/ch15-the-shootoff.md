@@ -114,7 +114,7 @@ Aeon Flow     brotli    905 KB      276 B       0.03%     1     60.3%
 
 HTTP/3 closes the gap significantly — variable-length frame headers (2-3 bytes vs HTTP/2's fixed 9) and QPACK's larger static table cut framing nearly in half vs HTTP/2. And QUIC's 1-RTT handshake matches Aeon Flow's round trip count.
 
-But Aeon Flow still uses **3.3x less framing** than HTTP/3. No per-request headers, no QPACK encoding/decoding, no HEADERS frames at all. The stream ID *is* the request. At 276 bytes vs 906 bytes on a 905 KB total, it's 0.03% vs 0.10% — both negligible for big content.
+But Aeon Flow still uses **3.3x less framing** than HTTP/3. No per-request headers, no QPACK encoding/decoding, no HEADERS frames at all. The stream ID *is* the request. At 276 bytes vs 906 bytes on a 905 KB total, it's 0.03 percent vs 0.10 percent — both negligible for big content.
 
 The real story for big content: HTTP/3 and Aeon Flow both win on round trips (1 RTT). HTTP/1.1 needs 3 RTTs, HTTP/2 needs 2. On a 100ms RTT, that's 300ms vs 200ms vs 100ms vs 100ms.
 
@@ -123,31 +123,31 @@ The real story for big content: HTTP/3 and Aeon Flow both win on round trips (1 
 ```
 Protocol      Compress  Wire        Overhead    Ovhd %    RTTs  Savings
 ─────────────────────────────────────────────────────────────────────────
-HTTP/1.1      none      674 KB      56.3 KB     8.36%     16    0.0%
-HTTP/1.1      gzip      194 KB      58.3 KB     30.00%    16    71.2%
-HTTP/1.1      brotli    187 KB      58.1 KB     31.00%    16    72.2%
-HTTP/2        none      625 KB      7.9 KB      1.26%     2     7.2%
-HTTP/2        gzip      144 KB      8.0 KB      5.53%     2     78.6%
-HTTP/2        brotli    137 KB      8.0 KB      5.80%     2     79.6%
-HTTP/3        none      623 KB      5.7 KB      0.92%     1     7.5%
-HTTP/3        gzip      142 KB      5.9 KB      4.15%     1     78.9%
-HTTP/3        brotli    135 KB      5.9 KB      4.36%     1     79.9%
-Aeon Flow     none      619 KB      1.9 KB      0.31%     1     8.1%
-Aeon Flow     gzip      138 KB      1.9 KB      1.40%     1     79.5%
-Aeon Flow     brotli    131 KB      1.9 KB      1.47%     1     80.5%
+HTTP/1.1      none      674 KB      56.3 KB     8.36 percent     16    0.0 percent
+HTTP/1.1      gzip      194 KB      58.3 KB     30.00 percent    16    71.2 percent
+HTTP/1.1      brotli    187 KB      58.1 KB     31.00 percent    16    72.2 percent
+HTTP/2        none      625 KB      7.9 KB      1.26 percent     2     7.2 percent
+HTTP/2        gzip      144 KB      8.0 KB      5.53 percent     2     78.6 percent
+HTTP/2        brotli    137 KB      8.0 KB      5.80 percent     2     79.6 percent
+HTTP/3        none      623 KB      5.7 KB      0.92 percent     1     7.5 percent
+HTTP/3        gzip      142 KB      5.9 KB      4.15 percent     1     78.9 percent
+HTTP/3        brotli    135 KB      5.9 KB      4.36 percent     1     79.9 percent
+Aeon Flow     none      619 KB      1.9 KB      0.31 percent     1     8.1 percent
+Aeon Flow     gzip      138 KB      1.9 KB      1.40 percent     1     79.5 percent
+Aeon Flow     brotli    131 KB      1.9 KB      1.47 percent     1     80.5 percent
 ```
 
 **This is the Wallington Rotation in protocol form.**
 
-HTTP/1.1 with brotli spends **31% of its total wire bytes on headers.** Nearly a third of the bandwidth goes to `Accept-Language: en-US,en;q=0.9` and `User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X...` repeated 95 times. The headers are larger than many of the actual payloads.
+HTTP/1.1 with brotli spends **31 percent of its total wire bytes on headers.** Nearly a third of the bandwidth goes to `Accept-Language: en-US,en;q=0.9` and `User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X...` repeated 95 times. The headers are larger than many of the actual payloads.
 
-HTTP/2's HPACK brings that down to 5.8%, but it's still 8 KB of framing for payloads that total 129 KB.
+HTTP/2's HPACK brings that down to 5.8 percent, but it's still 8 KB of framing for payloads that total 129 KB.
 
-HTTP/3's QPACK + variable-length frames bring it to 4.36% — a 25% improvement over HTTP/2. The bigger static table (99 entries vs 61) compresses common headers more aggressively, and the variable-length frame headers (2-3 bytes) are 3-4x smaller than HTTP/2's fixed 9-byte headers. QUIC also matches Aeon Flow on round trips: 1 RTT.
+HTTP/3's QPACK + variable-length frames bring it to 4.36 percent — a 25 percent improvement over HTTP/2. The bigger static table (99 entries vs 61) compresses common headers more aggressively, and the variable-length frame headers (2-3 bytes) are 3-4x smaller than HTTP/2's fixed 9-byte headers. QUIC also matches Aeon Flow on round trips: 1 RTT.
 
 But HTTP/3 still carries per-request semantics. Every one of those 95 resources needs a HEADERS frame with QPACK-encoded method, path, scheme, authority. Even compressed, that's 5.9 KB of framing.
 
-Aeon Flow: **1.47%.** 1.9 KB of framing. One FORK frame opens all 95 streams. Each resource is a single DATA frame (10 bytes) + FIN (10 bytes). That's 20 bytes per resource + a shared 200-byte FORK frame. **3x less framing than HTTP/3.**
+Aeon Flow: **1.47 percent.** 1.9 KB of framing. One FORK frame opens all 95 streams. Each resource is a single DATA frame (10 bytes) + FIN (10 bytes). That's 20 bytes per resource + a shared 200-byte FORK frame. **3x less framing than HTTP/3.**
 
 And the round trips: HTTP/1.1 with 95 resources across 6 connections needs **16 round trips.** On a 100ms RTT, that's 1.6 seconds of pure latency before the first byte of the last resource. HTTP/3 and Aeon Flow: 1 RTT. 100ms. Done.
 
@@ -182,18 +182,18 @@ The benchmark uses:
 
 ## What the Numbers Mean
 
-For **big content sites**: pick any protocol with brotli. The compression does 99% of the work. HTTP/3 and Aeon Flow both win on round trips (1 RTT). The framing overhead difference between HTTP/3 (906 B) and Aeon Flow (276 B) is 630 bytes on a 905 KB payload — irrelevant.
+For **big content sites**: pick any protocol with brotli. The compression does 99 percent of the work. HTTP/3 and Aeon Flow both win on round trips (1 RTT). The framing overhead difference between HTTP/3 (906 B) and Aeon Flow (276 B) is 630 bytes on a 905 KB payload — irrelevant.
 
 For **microfrontend architecture**: the protocol matters enormously.
 
 | Protocol | Overhead | Overhead % | RTTs |
 |----------|----------|-----------|------|
-| HTTP/1.1 + brotli | 58.1 KB | 31.00% | 16 |
-| HTTP/2 + brotli | 8.0 KB | 5.80% | 2 |
-| HTTP/3 + brotli | 5.9 KB | 4.36% | 1 |
-| Aeon Flow + brotli | 1.9 KB | 1.47% | 1 |
+| HTTP/1.1 + brotli | 58.1 KB | 31.00 percent | 16 |
+| HTTP/2 + brotli | 8.0 KB | 5.80 percent | 2 |
+| HTTP/3 + brotli | 5.9 KB | 4.36 percent | 1 |
+| Aeon Flow + brotli | 1.9 KB | 1.47 percent | 1 |
 
-HTTP/3 is 25% better than HTTP/2 on framing and matches Aeon Flow on round trips. It's a genuine improvement. But Aeon Flow still carries **3x less framing** than HTTP/3 — because it doesn't carry per-request headers at all. The stream ID *is* the request.
+HTTP/3 is 25 percent better than HTTP/2 on framing and matches Aeon Flow on round trips. It's a genuine improvement. But Aeon Flow still carries **3x less framing** than HTTP/3 — because it doesn't carry per-request headers at all. The stream ID *is* the request.
 
 The modern web is moving toward more, smaller resources (code splitting, tree shaking, component-level CSS, icon sprites → individual SVGs). Every step toward granularity penalizes HTTP more and rewards Aeon Flow more. HTTP/3 narrows the gap but can't close it — the per-request header tax is architectural, not implementational.
 
@@ -209,13 +209,13 @@ Aeon Flow over UDP achieves the same per-stream independence with a 10-byte fixe
 
 ### The Real-World Impact
 
-On a clean network (0% loss), all protocols perform similarly — the framing overhead difference is the full story.
+On a clean network (0 percent loss), all protocols perform similarly — the framing overhead difference is the full story.
 
-On a lossy network (1-5% packet loss, common on mobile/WiFi):
+On a lossy network (1-5 percent packet loss, common on mobile/WiFi):
 
 | Scenario | HTTP/2 (TCP) | HTTP/3 (QUIC) | Aeon Flow (UDP) |
 |----------|-------------|---------------|-----------------|
-| 95 resources, 1% loss | All streams stall on each loss event | Per-stream recovery, complex state machine | Per-stream recovery, 10-byte frames |
+| 95 resources, 1 percent loss | All streams stall on each loss event | Per-stream recovery, complex state machine | Per-stream recovery, 10-byte frames |
 | Retransmit overhead | TCP retransmits at connection level | QUIC retransmits per-stream + ACK frames | ACK bitmap: 14 bytes covers 64 sequences |
 | Recovery latency | 1 RTT per loss event (affects all streams) | 1 RTT per loss event (affects one stream) | 1 RTT per loss event (affects one stream) |
 | Protocol complexity | Mature, well-understood | ~30,000 lines of spec (RFC 9000-9002) | ~800 lines of TypeScript |

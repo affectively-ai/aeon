@@ -91,7 +91,7 @@ Nature → Code: Invest in "insulation" (reliable transport layers) to enable la
 - Shuttle streaming (oscillatory bidirectional flow) = **self-describing frames** (flow carries positional information in both directions)
 
 **Quantitative match**:
-- Total network length within 5% of the engineered rail network
+- Total network length within 5 percent of the engineered rail network
 - Fault tolerance comparable to the engineered system under random link removal
 - Cost-performance tradeoff matched the Pareto frontier
 - Network $\beta_1$ (independent cycles) matched within one cycle
@@ -110,7 +110,7 @@ Nature → Code: Fork/race/collapse does not require centralized control, does n
 - Charge separation = **collapse** (excitation collapses to one location)
 - Non-photochemical quenching (NPQ) = **poison propagation** (excess energy dissipated as heat)
 
-**Quantitative**: Transfer efficiency >95%. Time: ~100 picoseconds across entire antenna. The fork/race/collapse framework predicts efficiency should scale with LOG of pigment count — and it does. Efficiency stays high from 30 pigments to 300.
+**Quantitative**: Transfer efficiency >95 percent. Time: ~100 picoseconds across entire antenna. The fork/race/collapse framework predicts efficiency should scale with LOG of pigment count — and it does. Efficiency stays high from 30 pigments to 300.
 
 **The quantum connection is literal**: Fleming et al. (2007) showed that excitation energy exists in **quantum superposition** across multiple pigments simultaneously. The algorithmic superposition concept reflects actual quantum mechanics here — the "race" is more efficient than any classical random walk because the energy explores all paths simultaneously.
 
@@ -127,7 +127,7 @@ Nature → Code: Fork/race/collapse does not require centralized control, does n
 - **Collapse**: Encountering antigen selects the best binders (clonal selection)
 - **Poison propagation**: Self-reactive B cells undergo clonal deletion — the lineage is eliminated, but sibling B cells with different recombinations are unaffected
 
-The immune system generates ~10^11 unique B cells. ~95% are poisoned during development. The parallelism factor is 10^11 — the most massively parallel fork/race on Earth. Result arrives in 1-2 weeks instead of the lifetime that sequential testing would require.
+The immune system generates ~10^11 unique B cells. ~95 percent are poisoned during development. The parallelism factor is 10^11 — the most massively parallel fork/race on Earth. Result arrives in 1-2 weeks instead of the lifetime that sequential testing would require.
 
 ### Neural Spike Trains: Self-Describing Frames
 

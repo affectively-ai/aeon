@@ -11,13 +11,13 @@ Every optimization was benchmarked in isolation and composed. These are real num
 | **Chunked Pipeline** | Prefill speedup (20T×4N) | **10.7x** (456ms → 43ms) |
 | **Per-Token Pipeline** | Prefill speedup (20T×4N) | 3.4x (456ms → 135ms) |
 | **Zero-Copy Forwarding** | Buffer operation speedup | **23x** faster, 156MB saved per 10K ops |
-| **Int8 Quantization** | Network payload compression | **4x** smaller, 0.3% quality loss |
+| **Int8 Quantization** | Network payload compression | **4x** smaller, 0.3 percent quality loss |
 | **Int8 Quantization** | Throughput | 127,386 ops/sec |
 | **Parallel Weight Loading** | Model init speedup | **5.1x** (116ms → 23ms) |
 | **Loop Detection** | Per-token overhead | 68µs (negligible) |
-| **Loop Detection** | False positive rate | 0% |
+| **Loop Detection** | False positive rate | 0 percent |
 | **Skip-Ahead Wormholes** | Prediction cost (warm) | 0.4µs/prediction |
-| **Skip-Ahead Wormholes** | Skip rate (warm) | **100%** on learned mappings |
+| **Skip-Ahead Wormholes** | Skip rate (warm) | **100 percent** on learned mappings |
 | **Full Stack Composed** | End-to-end speedup | **10x** (484ms → 48ms) |
 
 ### Network Round-Trip Reduction
@@ -26,11 +26,11 @@ This is where the real savings live. Cloud Run inter-service latency is 5-15ms p
 
 | Scenario | Sequential (P×N) | Per-Token Pipeline (P+N-1) | Chunked Pipeline (ceil(P/B)+N-1) | RTT Reduction |
 |---|---|---|---|---|
-| 14 tokens × 2 nodes | 28 hops | 15 hops | 9 hops | **68%** |
-| 100 tokens × 4 nodes | 400 hops | 103 hops | 7 hops | **98.2%** |
-| 500 tokens × 8 nodes | 4000 hops | 507 hops | 15 hops | **99.6%** |
-| 1000 tokens × 4 nodes | 4000 hops | 1003 hops | 43 hops | **98.9%** |
-| 100 tokens × 10 nodes (70B) | 1000 hops | 109 hops | 19 hops | **98.1%** |
+| 14 tokens × 2 nodes | 28 hops | 15 hops | 9 hops | **68 percent** |
+| 100 tokens × 4 nodes | 400 hops | 103 hops | 7 hops | **98.2 percent** |
+| 500 tokens × 8 nodes | 4000 hops | 507 hops | 15 hops | **99.6 percent** |
+| 1000 tokens × 4 nodes | 4000 hops | 1003 hops | 43 hops | **98.9 percent** |
+| 100 tokens × 10 nodes (70B) | 1000 hops | 109 hops | 19 hops | **98.1 percent** |
 
 At Cloud Run's typical 10ms inter-service RTT, 100 tokens across 4 nodes goes from **4000ms of pure network time** to **70ms**. That's 3.93 seconds of latency deleted — not optimized, not amortized, *deleted*.
 
@@ -47,7 +47,7 @@ Cloud Run's networking tax is brutal compared to edge runtimes:
 
 The chunked pipeline doesn't just reduce hops — it **changes the scaling regime**. Sequential prefill latency scales as O(P×N×RTT). Chunked pipeline scales as O((P/B+N)×RTT). On Cloud Run, where RTT dominates compute, this is the difference between "unusably slow" and "acceptable."
 
-The Wallington Rotation — causal masking tiled with log-rolling — eliminates 98%+ of network round-trips for any realistic prompt length. Each deleted hop is one fewer Cloud Run inter-service TCP handshake, one fewer HTTP/2 frame, one fewer gRPC serialization cycle, one fewer load balancer decision.
+The Wallington Rotation — causal masking tiled with log-rolling — eliminates 98 percent+ of network round-trips for any realistic prompt length. Each deleted hop is one fewer Cloud Run inter-service TCP handshake, one fewer HTTP/2 frame, one fewer gRPC serialization cycle, one fewer load balancer decision.
 
 ### Individual Optimization Deep Dives
 
@@ -83,7 +83,7 @@ The chunked pipeline is 3.2x faster than per-token pipeline, which is itself 3.4
 
   Raw fp32 payload:        16,384 bytes/hop
   Quantized int8 payload:   4,108 bytes/hop  (4x compression)
-  Quality loss:             0.318% relative error
+  Quality loss:             0.318 percent relative error
   Throughput:             127,386 quantize ops/sec
 ```
 
@@ -110,10 +110,10 @@ Cold phase (learning):
 
 Warm phase (prediction):
   5,000 predictions in 2ms (0.4µs each)
-  Skip rate: 100% on learned mappings
+  Skip rate: 100 percent on learned mappings
 ```
 
-After 50 observations of a consistent input→output mapping, the wormhole achieves 100% skip rate at 0.4µs per prediction. A skipped node saves one full network RTT (5-15ms on Cloud Run). The prediction cost is 10,000x cheaper than the savings.
+After 50 observations of a consistent input→output mapping, the wormhole achieves 100 percent skip rate at 0.4µs per prediction. A skipped node saves one full network RTT (5-15ms on Cloud Run). The prediction cost is 10,000x cheaper than the savings.
 
 #### Parallel Weight Loading
 
@@ -174,7 +174,7 @@ For rigorous comparison, deploy two coordinator versions behind a load balancer:
 1. **Control:** Sequential prefill (revert `pipelinedPrefill` call to inline loop)
 2. **Treatment:** Full optimization stack (pipeline + zero-copy + loop detection + skip-ahead)
 
-Route 50% of traffic to each. Compare:
+Route 50 percent of traffic to each. Compare:
 - P50/P95/P99 prefill latency
 - P50/P95/P99 total inference latency
 - Memory usage (heapUsed)

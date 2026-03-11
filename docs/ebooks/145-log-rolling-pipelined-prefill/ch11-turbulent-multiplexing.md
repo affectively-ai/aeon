@@ -4,9 +4,9 @@
 
 The Wallington Rotation compresses prefill so aggressively that it creates a new problem: idle nodes.
 
-In a traditional per-token pipeline with 100 tokens and 4 nodes, there are 103 steps. The pipeline spends 3 steps ramping up and 3 steps draining — 6 steps of "turbulence" out of 103 total. The remaining 97 steps are **laminar flow**: all 4 nodes busy simultaneously, fully utilized. Turbulence is 5.8% of runtime. Negligible.
+In a traditional per-token pipeline with 100 tokens and 4 nodes, there are 103 steps. The pipeline spends 3 steps ramping up and 3 steps draining — 6 steps of "turbulence" out of 103 total. The remaining 97 steps are **laminar flow**: all 4 nodes busy simultaneously, fully utilized. Turbulence is 5.8 percent of runtime. Negligible.
 
-The Wallington Rotation changes the math. Same 100 tokens, 4 nodes, chunks of 25: only 7 steps total. Ramp-up is 3 steps. Drain is 3 steps. Laminar window: **1 step**. Turbulence is 86% of runtime.
+The Wallington Rotation changes the math. Same 100 tokens, 4 nodes, chunks of 25: only 7 steps total. Ramp-up is 3 steps. Drain is 3 steps. Laminar window: **1 step**. Turbulence is 86 percent of runtime.
 
 ```
 Time:  0  1  2  3  4  5  6
@@ -17,8 +17,8 @@ N3:    ·  ·  ·  C0 C1 C2 C3
 
 Total node-slots:  28  (7 ticks × 4 nodes)
 Occupied slots:    16  (4 chunks × 4 nodes)
-Idle slots:        12  (43% waste)
-Laminar ticks:      1  (14% of runtime)
+Idle slots:        12  (43 percent waste)
+Laminar ticks:      1  (14 percent of runtime)
 ```
 
 For small models like TinyLlama (22 layers across 4 nodes), short prompts make this worse. 10 tokens, 4 nodes, chunks of 2:
@@ -30,7 +30,7 @@ N1:    ·  C0 C1 C2 C3 C4 ·  ·
 N2:    ·  ·  C0 C1 C2 C3 C4 ·
 N3:    ·  ·  ·  C0 C1 C2 C3 C4
 
-Laminar ticks: 2 out of 8 = 25%
+Laminar ticks: 2 out of 8 = 25 percent
 ```
 
 The pipeline never reaches steady state. It's all turbulence — startup and shutdown with barely any sustained flow in between.
@@ -71,7 +71,7 @@ N0:    A0 A1 A2 A3 A4 ·  ·  ·  | B0 B1 B2 B3 B4 ·  ·  ·
 N1:    ·  A0 A1 A2 A3 A4 ·  ·  |  · B0 B1 B2 B3 B4 ·  ·
 N2:    ·  ·  A0 A1 A2 A3 A4 ·  |  ·  · B0 B1 B2 B3 B4 ·
 N3:    ·  ·  ·  A0 A1 A2 A3 A4 |  ·  ·  · B0 B1 B2 B3 B4
-Total: 16 ticks, 64 slots, 24 idle (37.5% waste)
+Total: 16 ticks, 64 slots, 24 idle (37.5 percent waste)
 
 With multiplexing (interleaved):
 Time:  0  1  2  3  4  5  6  7  8  9 10 11
@@ -79,10 +79,10 @@ N0:    A0 A1 A2 A3 A4 B0 B1 B2 B3 B4 ·  ·
 N1:    ·  A0 A1 A2 A3 A4 B0 B1 B2 B3 B4 ·
 N2:    ·  ·  A0 A1 A2 A3 A4 B0 B1 B2 B3 B4
 N3:    ·  ·  ·  A0 A1 A2 A3 A4 B0 B1 B2 B3  B4
-Total: 12 ticks, 48 slots, 8 idle (16.7% waste)
+Total: 12 ticks, 48 slots, 8 idle (16.7 percent waste)
 ```
 
-Request A finishes at the same time (tick 8). But Request B finishes at tick 12 instead of tick 16 — a **25% latency reduction for free**. And total node utilization jumps from 62.5% to 83.3%.
+Request A finishes at the same time (tick 8). But Request B finishes at tick 12 instead of tick 16 — a **25 percent latency reduction for free**. And total node utilization jumps from 62.5 percent to 83.3 percent.
 
 ## The Multiplexed Scheduler
 
@@ -171,7 +171,7 @@ This ratio predicts the flow regime:
 
 | Re_pipeline | Regime | Character | Example |
 |-------------|--------|-----------|---------|
-| Re → 0 | Deep laminar | Ramp-up/down negligible. Nearly 100% utilization. | 1000 tokens, 4 nodes, per-token: C=1000, Re=0.004 |
+| Re → 0 | Deep laminar | Ramp-up/down negligible. Nearly 100 percent utilization. | 1000 tokens, 4 nodes, per-token: C=1000, Re=0.004 |
 | Re < 0.5 | Laminar-dominant | Steady state dominates. Minor edge turbulence. | 100 tokens, 4 nodes, chunks of 5: C=20, Re=0.2 |
 | Re ≈ 1.0 | Critical transition | Ramp-up meets ramp-down. Minimal laminar window. | 100 tokens, 4 nodes, chunks of 25: C=4, Re=1.0 |
 | Re > 1.0 | Fully turbulent | Some nodes never receive a chunk. Pure waste. | 10 tokens, 8 nodes: C=2, Re=4.0 |
@@ -212,7 +212,7 @@ The Reynolds number becomes a real-time dial for the fluidic scheduler: as reque
 
 TinyLlama (22 layers, 4 nodes) is the worst case for idle waste and the best case for multiplexing gains. With short prompts (10-20 tokens), the pipeline is pure turbulence. But TinyLlama is also *fast* — each layer processes in milliseconds. The turbulent slots are short but numerous.
 
-Multiplexing turns TinyLlama from "fast but wasteful" into "fast AND efficient." The same 4 Cloud Run instances that serve one request with 43% idle time can serve 2-3 concurrent requests with <20% idle time, at nearly the same per-request latency.
+Multiplexing turns TinyLlama from "fast but wasteful" into "fast AND efficient." The same 4 Cloud Run instances that serve one request with 43 percent idle time can serve 2-3 concurrent requests with <20 percent idle time, at nearly the same per-request latency.
 
 This is especially relevant for Cloud Run's billing model: you pay for instance-seconds. Idle nodes during turbulence are billed but not producing work. Multiplexing converts billed idle time into billed productive time.
 

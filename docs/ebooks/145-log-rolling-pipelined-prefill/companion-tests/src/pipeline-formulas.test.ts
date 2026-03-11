@@ -3,8 +3,9 @@
  *
  * Proves:
  *   1. Worthington Whip (§7.3): per-shard savings = (S-1)/2S
- *   2. Speculative Tree (§7.4): expected accepted = (1 - α^K)/(1 - α)
- *   3. Turbulent Multiplexing (§7.2): 43% idle slots during ramp-up/ramp-down
+ *   2. Worthington Whip correction crossover: finite optimal shard count under correction cost
+ *   3. Speculative Tree (§7.4): expected accepted = (1 - α^K)/(1 - α)
+ *   4. Turbulent Multiplexing (§7.2): 43% idle slots during ramp-up/ramp-down
  */
 
 import { describe, expect, it } from 'vitest';
@@ -15,6 +16,54 @@ function makeRng(seed: number): () => number {
     state = (state * 1664525 + 1013904223) >>> 0;
     return state / 0x100000000;
   };
+}
+
+function whipTotalTime(
+  items: number,
+  stages: number,
+  shardCount: number,
+  correctionCostPerShard: number,
+): number {
+  const itemsPerShard = Math.ceil(items / shardCount);
+  const shardTime = itemsPerShard + stages - 1;
+  const correction = correctionCostPerShard * shardCount;
+  return shardTime + correction;
+}
+
+function findWhipOptimalShardCount(
+  items: number,
+  stages: number,
+  correctionCostPerShard: number,
+  maxShardCount: number,
+): { shardCount: number; totalTime: number } {
+  let bestShardCount = 1;
+  let bestTime = whipTotalTime(items, stages, 1, correctionCostPerShard);
+
+  for (let shardCount = 2; shardCount <= maxShardCount; shardCount++) {
+    const candidate = whipTotalTime(items, stages, shardCount, correctionCostPerShard);
+    if (candidate < bestTime) {
+      bestTime = candidate;
+      bestShardCount = shardCount;
+    }
+  }
+
+  return { shardCount: bestShardCount, totalTime: bestTime };
+}
+
+function findWhipStrictCrossoverShard(
+  items: number,
+  stages: number,
+  correctionCostPerShard: number,
+  maxShardCount: number,
+): number {
+  for (let shardCount = 1; shardCount < maxShardCount; shardCount++) {
+    const current = whipTotalTime(items, stages, shardCount, correctionCostPerShard);
+    const next = whipTotalTime(items, stages, shardCount + 1, correctionCostPerShard);
+    if (next > current) {
+      return shardCount;
+    }
+  }
+  return maxShardCount - 1;
 }
 
 // ============================================================================
@@ -122,41 +171,84 @@ describe('Worthington Whip: Superposition Sharding (§7.3)', () => {
     expect(shardedIdleFraction).toBeGreaterThan(unshardedIdleFraction);
   });
 
-  it('cross-shard correction cost increases with S', () => {
-    // The paper notes: cross-shard correction scales with shard count
-    // This limits the benefit of sharding
+  it('cross-shard correction has a finite optimum and a strict crossover point', () => {
+    const items = 100;
+    const stages = 4;
+    const correctionCostPerShard = 2;
+    const maxShardCount = 32;
 
-    function totalTime(P: number, N: number, S: number, correctionCost: number): number {
-      const itemsPerShard = Math.ceil(P / S);
-      const shardTime = itemsPerShard + N - 1;
-      const correction = correctionCost * S; // correction scales with shard count
-      return shardTime + correction;
+    const optimum = findWhipOptimalShardCount(
+      items,
+      stages,
+      correctionCostPerShard,
+      maxShardCount,
+    );
+    const crossover = findWhipStrictCrossoverShard(
+      items,
+      stages,
+      correctionCostPerShard,
+      maxShardCount,
+    );
+
+    // Characterization target:
+    //   T(S) = ceil(P/S) + (N - 1) + C*S
+    // There is a finite S* beyond which added shards hurt.
+    expect(optimum.shardCount).toBeGreaterThan(1);
+    expect(crossover).toBeGreaterThanOrEqual(optimum.shardCount);
+
+    const atCrossover = whipTotalTime(items, stages, crossover, correctionCostPerShard);
+    const afterCrossover = whipTotalTime(items, stages, crossover + 1, correctionCostPerShard);
+    expect(afterCrossover).toBeGreaterThan(atCrossover);
+  });
+
+  it('crossover shard count tracks sqrt(P/C) in the corrected-cost model', () => {
+    const stages = 4;
+    const maxShardCount = 256;
+    const scenarios = [
+      { items: 64, correctionCostPerShard: 2 },
+      { items: 96, correctionCostPerShard: 3 },
+      { items: 128, correctionCostPerShard: 4 },
+      { items: 256, correctionCostPerShard: 4 },
+      { items: 512, correctionCostPerShard: 2 },
+    ];
+
+    for (const scenario of scenarios) {
+      const crossover = findWhipStrictCrossoverShard(
+        scenario.items,
+        stages,
+        scenario.correctionCostPerShard,
+        maxShardCount,
+      );
+      const relaxedApprox = Math.sqrt(scenario.items / scenario.correctionCostPerShard);
+
+      // Integer ceilings create plateaus, so keep a moderate tolerance.
+      expect(Math.abs(crossover - relaxedApprox)).toBeLessThanOrEqual(5);
     }
+  });
 
-    const P = 100;
-    const N = 4;
-    const correctionCost = 2; // 2 time units per shard for cross-shard correction
+  it('over-sharding eventually loses to correction overhead', () => {
+    const items = 256;
+    const stages = 4;
+    const correctionCostPerShard = 3;
+    const maxShardCount = 128;
 
-    // Find optimal shard count
-    let bestS = 1;
-    let bestTime = totalTime(P, N, 1, correctionCost);
+    const optimum = findWhipOptimalShardCount(
+      items,
+      stages,
+      correctionCostPerShard,
+      maxShardCount,
+    );
 
-    for (let S = 2; S <= 20; S++) {
-      const t = totalTime(P, N, S, correctionCost);
-      if (t < bestTime) {
-        bestTime = t;
-        bestS = S;
-      }
-    }
+    // Far beyond optimum, correction dominates and total time rises.
+    const aggressiveShardCount = Math.min(maxShardCount, optimum.shardCount * 4);
+    const aggressiveTime = whipTotalTime(
+      items,
+      stages,
+      aggressiveShardCount,
+      correctionCostPerShard,
+    );
 
-    // Optimal S is finite — you can't shard infinitely
-    expect(bestS).toBeGreaterThan(1);
-    expect(bestS).toBeLessThan(20);
-
-    // Over-sharding is worse than under-sharding
-    const timeAtS1 = totalTime(P, N, 1, correctionCost);
-    const timeAtS20 = totalTime(P, N, 20, correctionCost);
-    expect(timeAtS20).toBeGreaterThan(bestTime);
+    expect(aggressiveTime).toBeGreaterThan(optimum.totalTime);
   });
 });
 

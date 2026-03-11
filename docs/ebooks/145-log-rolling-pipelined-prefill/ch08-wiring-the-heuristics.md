@@ -57,7 +57,7 @@ if (skipPrediction.shouldSkip && skipPrediction.predictedState) {
 }
 ```
 
-A mapping becomes trusted after 20+ observations with 85%+ accuracy. The confidence score combines input similarity, observation count, historical accuracy, and free-energy corridor strength.
+A mapping becomes trusted after 20+ observations with 85 percent+ accuracy. The confidence score combines input similarity, observation count, historical accuracy, and free-energy corridor strength.
 
 #### Verification Loop
 

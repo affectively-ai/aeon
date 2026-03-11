@@ -140,7 +140,7 @@ eta = W / V = W / (W + Q_total)
 
 is the thermodynamic efficiency of the fork/race/fold cycle.
 
-**A perfectly efficient system would vent nothing.** Every forked path would produce useful work. But this is impossible for the same reason a Carnot engine can't reach 100% efficiency — you need the losers to *prove* the winner is optimal. The waste heat is the cost of certainty.
+**A perfectly efficient system would vent nothing.** Every forked path would produce useful work. But this is impossible for the same reason a Carnot engine can't reach 100 percent efficiency — you need the losers to *prove* the winner is optimal. The waste heat is the cost of certainty.
 
 ---
 
@@ -224,7 +224,7 @@ Frames are discrete. You can't transmit half a frame. You can't process a third 
 
 **Quantization matters.** Just as photon quantization explains blackbody radiation, frame quantization explains protocol overhead. HTTP/1.1 has large quanta (~200 bytes per header). HTTP/2 has medium quanta (~20 bytes HPACK). Aeon Flow has small quanta (10 bytes). Smaller quanta = less wasted energy per frame = better efficiency on small payloads.
 
-The shootoff results from Chapter 15 are calorimetry: measuring how much energy each protocol wastes on framing overhead. HTTP/1.1 wastes 31% on headers. HTTP/2 wastes 5.8%. Aeon Flow wastes 1.47%. These are thermodynamic efficiency numbers.
+The shootoff results from Chapter 15 are calorimetry: measuring how much energy each protocol wastes on framing overhead. HTTP/1.1 wastes 31 percent on headers. HTTP/2 wastes 5.8 percent. Aeon Flow wastes 1.47 percent. These are thermodynamic efficiency numbers.
 
 ---
 
@@ -294,7 +294,7 @@ The Triangle — the signature shape of pipelined computation — is an energy e
 
 **Turbulent multiplexing (Chapter 11) fills the triangles.** The idle slots in the ramp-up and ramp-down phases represent wasted potential energy — capacity that could store work but doesn't. Multiplexing injects additional items to fill these slots. The energy diagram becomes a rectangle instead of a triangle. More total energy processed. Higher efficiency.
 
-**The Worthington Whip (Chapter 12) changes the shape.** By sharding a single request across parallel pipelines, the whip converts one tall triangle into multiple short, wide rectangles. Same total energy, different geometry. The rectangles pack more efficiently. The utilization approaches 100%.
+**The Worthington Whip (Chapter 12) changes the shape.** By sharding a single request across parallel pipelines, the whip converts one tall triangle into multiple short, wide rectangles. Same total energy, different geometry. The rectangles pack more efficiently. The utilization approaches 100 percent.
 
 ---
 
