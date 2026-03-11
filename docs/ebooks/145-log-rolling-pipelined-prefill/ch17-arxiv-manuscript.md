@@ -24,7 +24,7 @@ o -> o       o -> o
       o -> o
 ```
 
-Fork/race/fold is a directed acyclic graph (DAG) with merge points, that is, a higher-dimensional structure than a simple path. Nodes branch, paths run in parallel and merge vertices collapse multiple paths into one. The "pipeline problem" -- in every domain I've examined -- is people trying to solve topologically complex problems with topologically trivial structures. They're forcing genus-N workflows through genus-0 pipes. Meaning is lost in incongruent translations from one topological space to another. The solution is to work in the cover space (multiplexed, out-of-order) then project back to the base space (sequential, reassembled).
+Fork/race/fold is a directed acyclic graph (DAG) with merge points, that is, a higher-dimensional structure than a simple path. Nodes branch, paths run in parallel and merge vertices fold multiple paths into one. The "pipeline problem" -- in every domain I've examined -- is people trying to solve topologically complex problems with topologically trivial structures. They're forcing genus-N workflows through genus-0 pipes. Meaning is lost in incongruent translations from one topological space to another. The solution is to work in the cover space (multiplexed, out-of-order) then project back to the base space (sequential, reassembled).
 
 I instantiate the algorithm in three domains.
 
@@ -109,7 +109,7 @@ This paper began as a practical problem: a sequential bottleneck in a distribute
 
 The conveyor belt was the 20th century's greatest insight: make everything sequential. Fork/race/fold is the correction: the universe was never sequential to begin with.
 
-Two bodies of existing theory provided the language for this correction. I drew heavily from **quantum physics**, mapping its lexicon entirely onto computational operations: superposition is fork, measurement is observation, collapse is collapse, tunneling is early exit, interference is consensus, entanglement is shared state (§5). These are not poetic borrowings -- they are structural correspondences, validated by photosynthetic antenna complexes where the quantum mechanics is literal (§1.5). The second source is **fluid dynamics**, whose Reynolds number I transplant wholesale into computation as the pipeline Reynolds number $Re = N/C$ (§2.3). Fluid dynamics provides more than vocabulary -- it provides the correct intuition for *when* fork/race/fold matters. Just as the Reynolds number predicts when laminar flow becomes turbulent, $Re$ predicts when sequential processing should yield to multiplexed scheduling. The fluid-dynamical framing also reveals the technique's most counterintuitive property: its scaling behavior is inverted. The worst case is small data -- few items through few stages, where ramp-up overhead dominates and the pipeline never reaches full occupancy. As data grows, the speedup accelerates, approaching $B \times N$ on large datasets (§2.2). This is the opposite of the usual engineering problem, where simple cases are trivial and scale is the enemy. Here, scale is the friend. The optimization challenge is not "how do I handle massive workloads?" but "how do I avoid paying too much overhead on small ones?" -- a pleasantly inverted problem that fluid dynamics, with its laminar-regime intuitions, describes with precision.
+Two bodies of existing theory provided the language for this correction. I drew heavily from **quantum physics**, mapping its lexicon entirely onto computational operations: superposition is fork, measurement is observation, collapse is fold, tunneling is early exit, interference is consensus, entanglement is shared state (§5). These are not poetic borrowings -- they are structural correspondences, validated by photosynthetic antenna complexes where the quantum mechanics is literal (§1.5). The second source is **fluid dynamics**, whose Reynolds number I transplant wholesale into computation as the pipeline Reynolds number $Re = N/C$ (§2.3). Fluid dynamics provides more than vocabulary -- it provides the correct intuition for *when* fork/race/fold matters. Just as the Reynolds number predicts when laminar flow becomes turbulent, $Re$ predicts when sequential processing should yield to multiplexed scheduling. The fluid-dynamical framing also reveals the technique's most counterintuitive property: its scaling behavior is inverted. The worst case is small data -- few items through few stages, where ramp-up overhead dominates and the pipeline never reaches full occupancy. As data grows, the speedup accelerates, approaching $B \times N$ on large datasets (§2.2). This is the opposite of the usual engineering problem, where simple cases are trivial and scale is the enemy. Here, scale is the friend. The optimization challenge is not "how do I handle massive workloads?" but "how do I avoid paying too much overhead on small ones?" -- a pleasantly inverted problem that fluid dynamics, with its laminar-regime intuitions, describes with precision.
 
 ## 1. Nature Got There First
 
@@ -124,7 +124,7 @@ In 1848, a railroad construction foreman named Phineas Gage survived a 43-inch i
 
 *Physarum polycephalum* is the Phineas Gage of distributed intelligence.
 
-In 2010, Tero et al. placed oat flakes on a wet surface in positions corresponding to the 36 stations of the greater Tokyo rail network [1]. They introduced a single *Physarum* slime mold at the position corresponding to Tokyo station. The organism -- which has no brain, no neurons, no central nervous system of any kind -- extended exploratory tendrils in all directions (**fork**). Multiple tendrils reached each food source via different routes (**race**). The organism then pruned inefficient connections, reinforcing high-flow tubes and abandoning low-flow ones (**collapse** with **venting** of abandoned paths).
+In 2010, Tero et al. placed oat flakes on a wet surface in positions corresponding to the 36 stations of the greater Tokyo rail network [1]. They introduced a single *Physarum* slime mold at the position corresponding to Tokyo station. The organism -- which has no brain, no neurons, no central nervous system of any kind -- extended exploratory tendrils in all directions (**fork**). Multiple tendrils reached each food source via different routes (**race**). The organism then pruned inefficient connections, reinforcing high-flow tubes and abandoning low-flow ones (**fold** with **venting** of abandoned paths).
 
 Within 26 hours, the slime mold had independently constructed a transport network that closely matched the actual Tokyo rail system -- a network that professional engineers had spent decades and billions of dollars optimizing.
 
@@ -185,7 +185,7 @@ Fleming et al. (2007) showed that excitation energy exists in **quantum superpos
 
 ### 1.6 Immune System V(D)J Recombination (Grade B)
 
-The adaptive immune system generates $10^{11}$ unique antibody configurations through combinatorial recombination (**fork**), exposes them to antigen simultaneously (**race**) and expands the winners through clonal selection (**collapse**). Non-binding clones are eliminated (**vent**). Self-reactive B cells undergo clonal deletion -- the lineage is eliminated, but sibling B cells with different recombinations are unaffected. The parallelism factor is $10^{11}$ -- the most massively parallel fork/race on Earth.
+The adaptive immune system generates $10^{11}$ unique antibody configurations through combinatorial recombination (**fork**), exposes them to antigen simultaneously (**race**) and expands the winners through clonal selection (**fold**). Non-binding clones are eliminated (**vent**). Self-reactive B cells undergo clonal deletion -- the lineage is eliminated, but sibling B cells with different recombinations are unaffected. The parallelism factor is $10^{11}$ -- the most massively parallel fork/race on Earth.
 
 ### 1.7 The Convergence
 
@@ -266,7 +266,7 @@ Fork/race/fold preserves correctness when:
 
 ### 2.6 Five Fold Strategies
 
-Not all collapses are equal. The choice of merger $f$ determines the computational semantics:
+Not all folds are equal. The choice of merger $f$ determines the computational semantics:
 
 | Strategy | Semantics | Complexity | When |
 |----------|-----------|------------|------|
@@ -414,13 +414,13 @@ This is the difference between meteorology and fluid dynamics. Meteorology predi
 
 ## 5. The Quantum Vocabulary Is Structural
 
-The following correspondences are not metaphors. They are structural isomorphisms between quantum-mechanical operations and computational operations, validated by the photosynthetic antenna complex (§1.5) where the quantum mechanics is literal.
+The following correspondences are not metaphors. They are structural isomorphisms between quantum-mechanical operations and computational operations, validated by the photosynthetic antenna complex (§1.5) where the quantum mechanics is literal. In §6.11, I show that the Feynman path integral IS a fork/race/fold computation -- the correspondence runs deeper than vocabulary.
 
 | Quantum Operation | Computational Operation | What It Does |
 |-------------------|------------------------|--------------|
 | **Superposition** | Fork | $N$ paths exist simultaneously, outcome undetermined |
 | **Measurement** | Observe | Non-destructive state inspection without triggering fold |
-| **Collapse** | Race / Fold | Resolve to a definite state |
+| **Collapse** (QM term) | Race / Fold | Resolve to a definite state |
 | **Tunneling** | Early exit | Bypass remaining computation when a path is conclusive |
 | **Interference** | Consensus | Constructive: agreeing signals amplify. Destructive: disagreeing signals cancel |
 | **Entanglement** | Shared state | Correlated streams that see each other's mutations |
@@ -829,7 +829,7 @@ At 100ms RTT, HTTP/1.1 needs 16 round trips (1.6 seconds of pure latency). Aeon 
 
 ### 9.1 The Claim and Its Limits
 
-The same fork/race/fold primitive applies to compression. **Topological compression** forks all available codecs per chunk, races them and collapses to the winner. Each chunk independently selects its best codec. The output is a sequence of self-describing frames (9-byte header: codec ID, original size, compressed size). $\beta_1 = \text{codecs} - 1$.
+The same fork/race/fold primitive applies to compression. **Topological compression** forks all available codecs per chunk, races them and folds to the winner. Each chunk independently selects its best codec. The output is a sequence of self-describing frames (9-byte header: codec ID, original size, compressed size). $\beta_1 = \text{codecs} - 1$.
 
 I implement this with eight codecs:
 
@@ -1026,9 +1026,13 @@ These operations are not new. DNA replication has used them for 4 billion years.
 
 The conveyor belt -- Ford's line, TCP's stream, the hospital's referral chain -- is the degenerate case. It works when the answer is known, resources are unlimited and a central clock exists. In every other case -- which is every real case -- the natural topology has $\beta_1 > 0$, and forcing it to zero is where latency hides.
 
-The framework's language was not invented from scratch. It was borrowed -- deliberately and entirely -- from three physical theories that already describe the phenomena I formalize. Quantum physics provided the lexicon: superposition, tunneling, interference, entanglement, measurement, collapse. These are not metaphors but structural correspondences, validated by photosynthetic systems where the quantum mechanics is literal -- and by the Feynman path integral, which IS a fork/race/fold computation (§6.11). Fluid dynamics provided the scaling intuition: the pipeline Reynolds number predicts phase transitions between sequential and multiplexed scheduling with the same precision that the physical Reynolds number predicts laminar-to-turbulent transitions. Thermodynamics provided the conservation laws: fork injects potential energy, race converts it to kinetic, fold extracts useful work, and venting dissipates waste heat. The First Law ($V = W + Q$) holds exactly -- every byte forked is accounted for. The virial theorem gives the exact partition for self-gravitating systems: $W = Q = V/2$ (§6.11). Shannon entropy is the Carnot limit. Frame headers are ground-state energy. The waste heat from vented paths is the cost of certainty -- you need the losers to prove the winner is optimal. And fluid dynamics revealed the technique's most counterintuitive property: its worst case is small data, not large. The speedup accelerates with scale, approaching $B \times N$ on large datasets. The hard problem is not surviving at scale -- it is avoiding overhead on the simple cases. This is the optimization problem inverted, and it is perhaps the most practically encouraging result: the bigger the workload, the more the algorithm helps.
+The framework's language was not invented from scratch. It was borrowed -- deliberately and entirely -- from physical theories that already describe the phenomena I formalize. Quantum physics provided the lexicon: superposition, tunneling, interference, entanglement, measurement, collapse. These are not metaphors but structural correspondences, validated by photosynthetic systems where the quantum mechanics is literal. The Feynman path integral is not analogous to fork/race/fold -- it IS fork/race/fold: all paths forked, phases raced, amplitudes folded by interference, non-classical paths vented by destructive cancellation (§6.11). The entire tower of classical physics is nested fold operations on the path integral: the Schrödinger equation is the differential form of race, the stationary phase approximation is maximal venting, and Newton's $F = ma$ is the fully folded result at $\beta_1 = 0$ (§6.11). Fluid dynamics provided the scaling intuition: the pipeline Reynolds number predicts phase transitions between sequential and multiplexed scheduling with the same precision that the physical Reynolds number predicts laminar-to-turbulent transitions. Thermodynamics provided the conservation laws: fork injects potential energy, race converts it to kinetic, fold extracts useful work, and venting dissipates waste heat. The First Law ($V = W + Q$) holds exactly -- every byte forked is accounted for. The virial theorem gives the exact partition for self-gravitating systems: $W = Q = V/2$ (§6.11). Shannon entropy is the Carnot limit. Frame headers are ground-state energy. The waste heat from vented paths is the cost of certainty -- you need the losers to prove the winner is optimal.
 
-The children in the line never needed topology. They just needed to stop waiting. Every system that waits when it could fork, that sequences when it could race, that accumulates when it could fold -- every such system is leaving performance on the table. Performance that evolution discovered, that slime molds exploit without neurons, that 10 bytes of frame header can unlock.
+The pattern is not merely widespread -- it is convergent. Attention in transformers IS race: the $QK^T$ dot product is the race, softmax is continuous venting, the $V$ projection is fold (§6.10). Training loss IS waste heat: gradient descent minimizes $\partial Q / \partial \theta$ (§6.10). Protein folding IS fold: the energy landscape funnel is fork/race/fold from Levinthal's $10^{143}$ conformations to the native state [24]. The hylomorphism of category theory -- unfold/fold -- IS fork/fold. The Carnot cycle's four strokes ARE the four primitives. These are not analogies. They are structural isomorphisms that emerge because any system that transforms input to output under conservation (First Law), irreversibility (Second Law) and minimum overhead (Third Law) will converge to fork/race/fold. There is no alternative.
+
+And fluid dynamics revealed the technique's most counterintuitive property: its worst case is small data, not large. The speedup accelerates with scale, approaching $B \times N$ on large datasets. The hard problem is not surviving at scale -- it is avoiding overhead on the simple cases. This is the optimization problem inverted, and it is perhaps the most practically encouraging result: the bigger the workload, the more the algorithm helps.
+
+The children in the line never needed topology. They just needed to stop waiting. Every system that waits when it could fork, that sequences when it could race, that accumulates when it could fold -- every such system is leaving performance on the table. Performance that evolution discovered, that slime molds exploit without neurons, that the Feynman path integral computes at every quantum interaction, that 10 bytes of frame header can unlock.
 
 Fork/race/fold is all you need.
 
