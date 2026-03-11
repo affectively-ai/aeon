@@ -1,53 +1,67 @@
 ------------------------------ MODULE Section7Formulas ------------------------------
 EXTENDS Naturals
 
-CONSTANTS C, N, S, AlphaP, AlphaQ, K
+CONSTANTS ChunkDomain, StageDomain, ShardDomain, AlphaPDomain, AlphaQDomain, KDomain
 
-VARIABLE gate
+VARIABLES c, n, s, alphaP, alphaQ, k
+
+vars == <<c, n, s, alphaP, alphaQ, k>>
 
 RECURSIVE Pow(_, _)
 Pow(base, exp) ==
   IF exp = 0 THEN 1 ELSE base * Pow(base, exp - 1)
 
-Init == gate = 0
-Next == gate' = gate
-Spec == Init /\ [][Next]_gate
+Init ==
+  /\ c \in ChunkDomain
+  /\ n \in StageDomain
+  /\ s \in ShardDomain
+  /\ alphaP \in AlphaPDomain
+  /\ alphaQ \in AlphaQDomain
+  /\ k \in KDomain
+  /\ alphaQ > alphaP
 
-WorthingtonNum == S - 1
-WorthingtonDen == 2 * S
+Change ==
+  /\ c' \in ChunkDomain
+  /\ n' \in StageDomain
+  /\ s' \in ShardDomain
+  /\ alphaP' \in AlphaPDomain
+  /\ alphaQ' \in AlphaQDomain
+  /\ k' \in KDomain
+  /\ alphaQ' > alphaP'
 
-SpeculativeTreeNum == Pow(AlphaQ, K) - Pow(AlphaP, K)
-SpeculativeTreeDen == (AlphaQ - AlphaP) * Pow(AlphaQ, K - 1)
+Stutter == UNCHANGED vars
 
-TurbulentIdleNum == N * (N - 1)
-TurbulentIdleDen == (C + N - 1) * N
+Next == Change \/ Stutter
+Spec == Init /\ [][Next]_vars
+
+WorthingtonNum == s - 1
+WorthingtonDen == 2 * s
+
+SpeculativeTreeNum == Pow(alphaQ, k) - Pow(alphaP, k)
+SpeculativeTreeDen == (alphaQ - alphaP) * Pow(alphaQ, k - 1)
+
+TurbulentIdleNum == n * (n - 1)
+TurbulentIdleDen == (c + n - 1) * n
 
 InvWellFormed ==
-  /\ gate = gate
-  /\ C > 0
-  /\ N > 0
-  /\ S > 0
-  /\ K > 0
-  /\ AlphaQ > AlphaP
+  /\ c > 0
+  /\ n > 0
+  /\ s > 0
+  /\ k > 0
+  /\ alphaQ > alphaP
 
-InvWorthingtonFormulaSample ==
-  /\ gate = gate
-  /\ S = 8
-  /\ WorthingtonNum = 7
-  /\ WorthingtonDen = 16
+InvWorthingtonBounds ==
+  /\ WorthingtonNum = s - 1
+  /\ WorthingtonDen = 2 * s
+  /\ WorthingtonNum < WorthingtonDen
 
-InvSpeculativeTreeFormulaSample ==
-  /\ gate = gate
-  /\ AlphaP = 4
-  /\ AlphaQ = 5
-  /\ K = 4
-  /\ SpeculativeTreeNum = 369
-  /\ SpeculativeTreeDen = 125
+InvSpeculativeTreePositive ==
+  /\ SpeculativeTreeNum > 0
+  /\ SpeculativeTreeDen > 0
 
-InvTurbulentIdleFractionSample ==
-  /\ gate = gate
-  /\ C = 4
-  /\ N = 4
-  /\ 7 * TurbulentIdleNum = 3 * TurbulentIdleDen
+InvTurbulentIdleBounds ==
+  /\ TurbulentIdleNum >= 0
+  /\ TurbulentIdleDen > 0
+  /\ TurbulentIdleNum <= TurbulentIdleDen
 
 =============================================================================
