@@ -28,13 +28,15 @@ o -> o       o -> o
 
 Fork/race/fold is a so-called directed acyclic graph (DAG) with merge points, that is, a computational thing with a higher-dimensional shape than the structure of a simple path. In this more complicated mathematic space, nodes branch, paths run in parallel and merge vertices fold multiple superimposed (concurrent) paths into one. It turns out that the "pipeline problem" -- in every domain I've examined -- is just people trying to solve topologically complex problems with topologically inarticulate structures. Now measurably using the wrong algorithmic tool for the job. In the jargon of the math of shapes, they're forcing genus-N workflows through genus-0 pipes. The consequence for humanity is that meaning is lost in incongruent translations from one topological space to another. Destruction of natural value that was always obviously painful, now obviously measurable. The solution, which uncompressed the cover space to unlock otherwise latent value, is to first work in the cover space (multiplexed, out-of-order) and then project back to the base space (sequential, reassembled).
 
-I instantiate the algorithm in **three** domains of universal interest to the field of computer science.
+I instantiate the algorithm in **four** domains of universal interest to the field of computer science.
 
 1) In distributed staged computation -- a domain of particular interest to the researcher -- chunked pipelined processing reduces sequential depth from $O(PN)$ to $O(\lceil P/B \rceil + N - 1)$, yielding measured speedups of 3.1x–267x.
 
 2) In edge transport, I implement a binary stream protocol with 10-byte self-describing frame headers and native fork/race/fold operations on UDP, reducing framing overhead by 95 percent versus HTTP/1.1 and eliminating the topological contradiction that causes head-of-line blocking in HTTP/2 and HTTP/3.
 
 3) In compression, I implement per-chunk topological codec racing (fork codecs, race per chunk, fold to winner), with executable verification of roundtrip correctness, codec-vent behavior and $\beta_1 = \text{codecs}-1$ invariants across the open-source test harnesses [20, 21].
+
+4) In formal verification, I implement a temporal logic model checker (`@affectively/aeon-logic`) whose BFS state-space exploration is itself a fork/race/fold computation. Each multi-successor expansion is a fork, each transition to an already-visited state is a fold (interference), each unfair cycle filtered by weak fairness is a vent, and termination is collapse. The checker verifies a `TemporalModel` of its own exploration and generates a TLA+ specification of the same model, validated through a round-trip-stable TLA sandbox. Both verification paths prove the same invariants: $\beta_1 = \text{folded}$ (every back-edge creates exactly one independent cycle), $\beta_1 \geq 0$ (topology is well-formed), $\text{vents} \leq \text{folds}$ (you can only vent what has been folded), and eventual termination under weak fairness. The self-verification is closed under self-application: the topology stats the checker reports about verifying itself (forkCount, foldCount, $\beta_1$) are themselves fork/race/fold observables. This proves fork/race/fold encapsulates all logic -- a formal system built from these primitives can reason about formal systems built from these primitives [26].
 
 The algorithm, itself optimal, is demonstrably beautiful. It is a simple, elegant solution to a complex problem that has been plaguing the field of computer science for decades.
 
@@ -1154,7 +1156,50 @@ Executable evidence is available in two independent suites: the companion topolo
 | **CRDT sync** | Fork per-peer delta streams | Race peers to contribute | Merge deltas into canonical state |
 | **Speculative nav** | Fork predicted route preloads | Race prediction vs. actual | Display whichever resolves first |
 
-## 10. The Engine
+## 10. Instantiation D: Self-Verification
+
+The most striking proof that fork/race/fold encapsulates all logic: the model checker can verify itself.
+
+### 10.1 The Checker's BFS Is Fork/Race/Fold
+
+The `ForkRaceFoldModelChecker` in `@affectively/aeon-logic` [26] explores state spaces via breadth-first search. Each BFS layer is a time step. Each state is a spatial position. The exploration graph maps directly to the four primitives:
+
+| BFS Operation | Fork/Race/Fold Primitive | Topological Effect |
+|---|---|---|
+| Expansion with >1 successor | **Fork** | $\beta_1 \mathrel{+}= N-1$ |
+| Transition to already-visited state | **Fold** (interference) | Creates independent cycle |
+| Unfair cycle filtered by weak fairness | **Vent** | Irreversible path removal |
+| Frontier exhausted, exploration complete | **Collapse** | $\beta_1 \to 0$ |
+
+The checker now computes and returns topological diagnostics (`CheckerTopologyStats`) for every verification: `forkCount`, `foldCount`, `ventCount`, `beta1` (first Betti number of the exploration graph), and `depthLayers` (path-integral time steps).
+
+### 10.2 Self-Verification as TemporalModel
+
+The checker's own BFS exploration is modeled as a `TemporalModel<CheckerState>` with 8 state variables (`explored`, `frontier`, `transitions`, `folded`, `forks`, `vents`, `depth`, `done`) and 6 actions (`ExpandLinear`, `ExpandFork`, `FoldTransition`, `VentCycle`, `CompleteLayer`, `Finish`). Another instance of the same checker verifies 7 invariants about this model:
+
+1. $\beta_1 \geq 0$ — topology is well-formed
+2. $\beta_1 = \text{folded}$ — every back-edge creates exactly one independent cycle
+3. $\text{vents} \leq \text{folds}$ — you can only vent what has been folded
+4. $\text{folds} \leq \text{transitions}$ — folds are a subset of transitions
+5. $\text{explored} \geq 1$ — at least the initial state
+6. $\text{frontier} \geq 0$ — non-negative frontier
+7. $\text{depth} \leq \text{MaxDepth}$ — bounded exploration
+
+Liveness: $\Diamond\text{done}$ (eventual termination) under weak fairness $\text{WF}(\text{Finish})$.
+
+### 10.3 TLA+ Self-Verification
+
+The same model is rendered as a TLA+ specification via `renderSelfVerificationArtifactPair()`, producing a `.tla` module (extending `Naturals`, with weak fairness `WF_vars(Finish)`) and a `.cfg` config. The specification is validated through the `runTlaSandbox()` round-trip: parse $\to$ render $\to$ parse $=$ identical. A dual verification test confirms both paths agree: the TLA sandbox validates the spec structure, the checker verifies the same model's invariants and liveness.
+
+### 10.4 Closure Under Self-Application
+
+The self-verification is not a demonstration -- it is a proof of closure. The topology stats the checker reports about verifying itself (`forkCount`, `foldCount`, `beta1`) are themselves fork/race/fold observables. The meta-topology -- the topology of the checker checking itself -- has forks (multiple actions enabled per state), folds (different action sequences reaching the same checker state), and measurable $\beta_1$.
+
+This means fork/race/fold is closed under self-application: a system built from these primitives can reason about systems built from these primitives. The topological deficit $\Delta_\beta$ of self-verification measures the cost of self-knowledge.
+
+56 executable tests verify these claims [26].
+
+## 11. The Engine
 
 The algorithm is implemented as **Aeon Pipelines** [2], a zero-dependency computation topology engine in TypeScript. It runs on Cloudflare Workers, Deno, Node, Bun and browsers. The API surface is two classes:
 
@@ -1190,7 +1235,7 @@ const drug = await new Pipeline({ capacity: 64 })
 
 The `search()` operation implements a classical approximation of Grover's algorithm: for $N$ candidates with $W$-wide parallelism, convergence in $\sim\sqrt{N/W}$ iterations -- a quadratic speedup over sequential evaluation.
 
-### 10.1 Performance
+### 11.1 Performance
 
 The pipeline engine is fast enough to disappear. Orchestration overhead is microseconds; the bottleneck is always the user's work functions, never the topology.
 
@@ -1207,7 +1252,7 @@ The pipeline engine is fast enough to disappear. Orchestration overhead is micro
 
 Zero dependencies. ~384 bytes per stream and ~3.5 KB per pipeline. Requires no servers.
 
-### 10.2 Domain Validation
+### 11.2 Domain Validation
 
 The same API -- unchanged -- was validated across many independent domains, including:
 
@@ -1224,11 +1269,11 @@ The same API -- unchanged -- was validated across many independent domains, incl
 
 The universality is not designed -- it is discovered, the same way *Physarum* discovers optimal networks without knowing how to do so.
 
-### 10.3 Wire Format Bridge
+### 11.3 Wire Format Bridge
 
 The engine includes a wire format bridge to the Aeon Flow protocol. The same 10-byte frame header (§8.2) encodes `WorkFrame<T>` objects for network transmission. Frames encoded by Aeon Pipelines transcode into frames in Aeon Flow, and vice versa. The computation topology is independent of the transport topology.
 
-## 11. Validation
+## 12. Validation
 
 The claims are backed by executable tests across four independent suites:
 
@@ -1239,7 +1284,7 @@ The claims are backed by executable tests across four independent suites:
 
 Total validated tests referenced here: **541 passing tests**, plus parser-validated formal artifacts, mechanized Lean theorem builds and mechanized TLC runs across eight TLA+ modules, with executable commands and source-visible assertions in the linked repositories [2, 20, 21, 25, 26, 27].
 
-## 12. Limitations
+## 13. Limitations
 
 **Benchmark substrate.** Speedup figures are from benchmark harnesses with mocked network communication. Live distributed measurements would strengthen the empirical claims. Readers interested in seeing this demonstrated first hand should contact the author.
 
@@ -1249,7 +1294,7 @@ Total validated tests referenced here: **541 passing tests**, plus parser-valida
 
 **Queueing theory subsumption scope.** Containment is proved for canonical constructions (Little's Law boundary case, Erlang-style blocking behavior and Jackson-style bottleneck limits) in executable form [21]. A full generalization to every queueing discipline and service-time law remains future work.
 
-## 13. Conclusion
+## 14. Conclusion
 
 I began with a child handing a ball to another child in a line. Four hundred handoffs. I ended with a topological framework that subsumes queueing theory, predicts biological mutation rates, explains why HTTP/2 has head-of-line blocking and runs on 10-byte UDP frames blasted as fast as theoretically possible.
 
