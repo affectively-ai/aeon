@@ -361,7 +361,7 @@ describe('Financial Settlement Δβ (§6.12)', () => {
     expect(deficitB).toBe(0); // optimal!
   });
 
-  it('discrete-event settlement simulation shows Δβ-driven capital lockup', () => {
+  it('discrete-event settlement simulation shows core baseline and broad-scope lockup sensitivity', () => {
     interface Trade {
       notional: number;
     }
@@ -376,19 +376,28 @@ describe('Financial Settlement Δβ (§6.12)', () => {
       );
     }
 
-    const dailyVolume = EVIDENCE_DATA.settlementDailyVolumeUsd.value;
+    function buildTrades(dailyVolume: number, tradeCount: number): Trade[] {
+      const tradeNotional = dailyVolume / tradeCount;
+      return Array.from({ length: tradeCount }, () => ({ notional: tradeNotional }));
+    }
+
+    const coreDailyVolume = EVIDENCE_DATA.settlementDailyVolumeUsd.value;
+    const broadScopeDailyVolume = EVIDENCE_DATA.settlementDailyVolumeBroadScopeUsd.value;
     const tradeCount = 10_000;
-    const tradeNotional = dailyVolume / tradeCount;
-    const trades: Trade[] = Array.from({ length: tradeCount }, () => ({
-      notional: tradeNotional,
-    }));
+    const coreTrades = buildTrades(coreDailyVolume, tradeCount);
+    const broadScopeTrades = buildTrades(broadScopeDailyVolume, tradeCount);
 
-    const lockedTPlus2 = simulateLockedCapital(trades, 2);
-    const lockedTPlus0 = simulateLockedCapital(trades, 1 / 24); // one-hour lag
+    const lockedCoreTPlus2 = simulateLockedCapital(coreTrades, 2);
+    const lockedCoreNearRealtime = simulateLockedCapital(coreTrades, 1 / 24); // one-hour lag
+    const lockedBroadScopeTPlus2 = simulateLockedCapital(broadScopeTrades, 2);
 
-    expect(lockedTPlus2).toBeCloseTo(70e12, 0); // $70T-day
-    expect(lockedTPlus0).toBeCloseTo(dailyVolume / 24, 0);
-    expect(lockedTPlus2 / lockedTPlus0).toBeGreaterThan(40);
+    expect(lockedCoreTPlus2).toBeCloseTo(4.438e12, 0); // ~4.4T-day at DTCC-core baseline
+    expect(lockedCoreNearRealtime).toBeCloseTo(coreDailyVolume / 24, 0);
+    expect(lockedCoreTPlus2 / lockedCoreNearRealtime).toBeGreaterThan(40);
+
+    // Broad-scope market-volume scenario used for upper-bound sensitivity.
+    expect(lockedBroadScopeTPlus2).toBeCloseTo(70e12, 0); // ~$70T-day
+    expect(lockedBroadScopeTPlus2).toBeGreaterThan(lockedCoreTPlus2);
 
     // Topological deficit interpretation:
     // sequential T+2: Δβ = 2, parallelized near-real-time: Δβ ≈ 0.
@@ -436,8 +445,8 @@ describe('Healthcare Referral Δβ (§6.12)', () => {
     expect(deficitB).toBe(0);
   });
 
-  it('4.8-year diagnostic delay proportional to deficit', () => {
-    // Average rare disease diagnostic delay: 4.8 years
+  it('4.7-year diagnostic delay proportional to deficit', () => {
+    // Average rare disease diagnostic delay: 4.7 years
     // Average number of sequential referral steps: ~7-8
     // Each step adds delay (weeks to months)
     // With parallel diagnostics, multiple tests run simultaneously

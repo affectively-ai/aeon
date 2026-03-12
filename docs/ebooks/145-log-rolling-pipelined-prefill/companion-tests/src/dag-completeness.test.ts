@@ -1,9 +1,10 @@
 /**
  * DAG Completeness — executable coverage for THM-COMPLETENESS-DAG
  *
- * Validates the finite-DAG decomposition claim operationally:
- * every node in a finite DAG falls into exactly one local class:
- * fork (out-degree > 1), join (in-degree > 1), or chain (otherwise).
+ * Validates the finite-DAG decomposition claim constructively:
+ * 1) every node in a finite DAG falls into exactly one local class
+ * 2) every edge is covered exactly once by a junction-chain segment
+ * 3) decomposition preserves full source->sink path semantics
  */
 
 import { describe, expect, it } from 'vitest';
@@ -19,6 +20,26 @@ interface Decomposition {
   readonly forks: Set<number>;
   readonly joins: Set<number>;
   readonly chains: Set<number>;
+}
+
+interface DagTopology {
+  readonly inDegree: readonly number[];
+  readonly outDegree: readonly number[];
+  readonly outgoing: ReadonlyArray<ReadonlyArray<number>>;
+  readonly sources: ReadonlySet<number>;
+  readonly sinks: ReadonlySet<number>;
+}
+
+interface Segment {
+  readonly from: number;
+  readonly to: number;
+  readonly via: ReadonlyArray<number>;
+  readonly edges: ReadonlyArray<readonly [from: number, to: number]>;
+}
+
+interface JunctionChainDecomposition {
+  readonly junctions: ReadonlySet<number>;
+  readonly segments: ReadonlyArray<Segment>;
 }
 
 function lcg(seed: number): () => number {
@@ -40,6 +61,27 @@ function randomDag(nodeCount: number, density: number, seed: number): Dag {
   return { nodeCount, edges };
 }
 
+function buildTopology(dag: Dag): DagTopology {
+  const inDegree = new Array<number>(dag.nodeCount).fill(0);
+  const outDegree = new Array<number>(dag.nodeCount).fill(0);
+  const outgoing: Array<number[]> = Array.from({ length: dag.nodeCount }, () => []);
+
+  for (const [from, to] of dag.edges) {
+    outDegree[from] += 1;
+    inDegree[to] += 1;
+    outgoing[from].push(to);
+  }
+
+  const sources = new Set<number>();
+  const sinks = new Set<number>();
+  for (let node = 0; node < dag.nodeCount; node++) {
+    if (inDegree[node] === 0) sources.add(node);
+    if (outDegree[node] === 0) sinks.add(node);
+  }
+
+  return { inDegree, outDegree, outgoing, sources, sinks };
+}
+
 function classifyNode(inDegree: number, outDegree: number): NodeClass {
   if (outDegree > 1) return 'fork';
   if (inDegree > 1) return 'join';
@@ -47,26 +89,148 @@ function classifyNode(inDegree: number, outDegree: number): NodeClass {
 }
 
 function decomposeDag(dag: Dag): Decomposition {
-  const inDegree = new Array<number>(dag.nodeCount).fill(0);
-  const outDegree = new Array<number>(dag.nodeCount).fill(0);
-
-  for (const [from, to] of dag.edges) {
-    outDegree[from] += 1;
-    inDegree[to] += 1;
-  }
+  const topology = buildTopology(dag);
 
   const forks = new Set<number>();
   const joins = new Set<number>();
   const chains = new Set<number>();
 
   for (let node = 0; node < dag.nodeCount; node++) {
-    const nodeClass = classifyNode(inDegree[node], outDegree[node]);
+    const nodeClass = classifyNode(topology.inDegree[node], topology.outDegree[node]);
     if (nodeClass === 'fork') forks.add(node);
     else if (nodeClass === 'join') joins.add(node);
     else chains.add(node);
   }
 
   return { forks, joins, chains };
+}
+
+function isJunctionNode(
+  node: number,
+  decomposition: Decomposition,
+  topology: DagTopology,
+): boolean {
+  return (
+    decomposition.forks.has(node) ||
+    decomposition.joins.has(node) ||
+    topology.sources.has(node) ||
+    topology.sinks.has(node)
+  );
+}
+
+function toJunctionChainDecomposition(dag: Dag): JunctionChainDecomposition {
+  const topology = buildTopology(dag);
+  const decomposition = decomposeDag(dag);
+  const junctions = new Set<number>();
+  for (let node = 0; node < dag.nodeCount; node++) {
+    if (isJunctionNode(node, decomposition, topology)) {
+      junctions.add(node);
+    }
+  }
+
+  const segments: Segment[] = [];
+  for (const junction of junctions) {
+    for (const next of topology.outgoing[junction]) {
+      const via: number[] = [];
+      const segmentEdges: Array<readonly [number, number]> = [[junction, next]];
+      let cursor = next;
+
+      while (!isJunctionNode(cursor, decomposition, topology)) {
+        via.push(cursor);
+        const cursorOutgoing = topology.outgoing[cursor];
+        if (cursorOutgoing.length !== 1) {
+          throw new Error(
+            `Expected chain node ${cursor} to have exactly one outgoing edge`,
+          );
+        }
+        const successor = cursorOutgoing[0];
+        if (successor === undefined) {
+          throw new Error(`Missing successor for node ${cursor}`);
+        }
+        segmentEdges.push([cursor, successor]);
+        cursor = successor;
+      }
+
+      segments.push({
+        from: junction,
+        to: cursor,
+        via,
+        edges: segmentEdges,
+      });
+    }
+  }
+
+  return { junctions, segments };
+}
+
+function enumerateSourceSinkPaths(dag: Dag): number[][] {
+  const topology = buildTopology(dag);
+  const paths: number[][] = [];
+  const orderedSources = [...topology.sources].sort((a, b) => a - b);
+
+  const walk = (node: number, currentPath: readonly number[]): void => {
+    const nextPath = [...currentPath, node];
+    if (topology.sinks.has(node)) {
+      paths.push(nextPath);
+      return;
+    }
+    for (const next of topology.outgoing[node]) {
+      walk(next, nextPath);
+    }
+  };
+
+  for (const source of orderedSources) {
+    walk(source, []);
+  }
+
+  return paths;
+}
+
+function enumerateExpandedPathsFromSegments(dag: Dag): number[][] {
+  const topology = buildTopology(dag);
+  const junctionChain = toJunctionChainDecomposition(dag);
+  const segmentsByFrom = new Map<number, Segment[]>();
+  for (const segment of junctionChain.segments) {
+    const existing = segmentsByFrom.get(segment.from);
+    if (existing === undefined) {
+      segmentsByFrom.set(segment.from, [segment]);
+    } else {
+      existing.push(segment);
+    }
+  }
+
+  const paths: number[][] = [];
+  const orderedSources = [...topology.sources].sort((a, b) => a - b);
+
+  const walk = (node: number, currentPath: readonly number[]): void => {
+    if (topology.sinks.has(node)) {
+      paths.push([...currentPath]);
+      return;
+    }
+
+    const outgoingSegments = segmentsByFrom.get(node);
+    if (outgoingSegments === undefined || outgoingSegments.length === 0) {
+      throw new Error(`Node ${node} is not a sink but has no decomposition segments`);
+    }
+
+    for (const segment of outgoingSegments) {
+      walk(segment.to, [...currentPath, ...segment.via, segment.to]);
+    }
+  };
+
+  for (const source of orderedSources) {
+    walk(source, [source]);
+  }
+
+  return paths;
+}
+
+function canonicalizePaths(paths: readonly (readonly number[])[]): string[] {
+  return [...new Set(paths.map((path) => path.join('->')))].sort();
+}
+
+function edgeKey(from: number, to: number): string {
+  return `${from}->${to}`;
 }
 
 describe('THM-COMPLETENESS-DAG (executable finite-DAG decomposition)', () => {
@@ -149,5 +313,36 @@ describe('THM-COMPLETENESS-DAG (executable finite-DAG decomposition)', () => {
     expect(a.joins).toEqual(b.joins);
     expect(a.chains).toEqual(b.chains);
   });
-});
 
+  it('covers each original edge exactly once in the junction-chain decomposition', () => {
+    for (let seed = 301; seed < 333; seed++) {
+      const dag = randomDag(11, 0.33, seed);
+      const decomposition = toJunctionChainDecomposition(dag);
+
+      const originalEdgeKeys = dag.edges
+        .map(([from, to]) => edgeKey(from, to))
+        .sort();
+      const coveredEdgeKeys = decomposition.segments
+        .flatMap((segment) =>
+          segment.edges.map(([from, to]) => edgeKey(from, to)),
+        )
+        .sort();
+
+      expect(coveredEdgeKeys.length).toBe(dag.edges.length);
+      expect(new Set(coveredEdgeKeys).size).toBe(coveredEdgeKeys.length);
+      expect(coveredEdgeKeys).toEqual(originalEdgeKeys);
+    }
+  });
+
+  it('preserves full source-to-sink path semantics under decomposition', () => {
+    for (let seed = 401; seed < 425; seed++) {
+      const dag = randomDag(10, 0.35, seed);
+      const originalPaths = canonicalizePaths(enumerateSourceSinkPaths(dag));
+      const decomposedPaths = canonicalizePaths(
+        enumerateExpandedPathsFromSegments(dag),
+      );
+
+      expect(decomposedPaths).toEqual(originalPaths);
+    }
+  });
+});

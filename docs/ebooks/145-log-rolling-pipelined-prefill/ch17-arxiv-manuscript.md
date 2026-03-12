@@ -6,17 +6,17 @@ https://buley.fyi/
 
 ## Abstract
 
-I identify **fork/race/fold** as a universal computational primitive: `fork` work into parallel streams, `race` streams to select earliest valid progress, `fold` results through deterministic reconciliation.
+I model **fork/race/fold** as a reusable computational primitive: `fork` work into parallel streams, `race` streams to select earliest valid progress, `fold` results through deterministic reconciliation.
 
-I show this primitive is not invented but discovered omnipresently: *Physarum polycephalum* -- a brainless slime mold of venerated intelligence -- independently recreated the Tokyo rail network using fork/race/fold over nutrient gradients [1], myelinated neurons pipeline action potentials through it (100x speedup matching my formula exactly), photosynthetic antenna complexes fork/race excitation energy at quantum scale with >95 percent exciton transfer efficiency and DNA replication has implemented it for 4 billion years (Okazaki fragments are self-describing frames with out-of-order reassembly).
+I show closely related structure across natural and engineered systems: *Physarum polycephalum* recreated a rail-like network over nutrient gradients [1], myelinated neurons pipeline action potentials (with measured large speedups), photosynthetic antenna complexes exhibit >95 percent exciton-transfer efficiency in cited systems, and DNA replication uses out-of-order fragment synthesis with deterministic reassembly (Okazaki fragments).
 
 What is new is recognizing these as the *same* algorithm. I present the **Wallington Rotation**, a scheduling algorithm that rotates partially ordered work into concurrent stage-local tracks with controlled reconciliation and prove (constructively plus executable verification) that four primitives -- fork, race, fold, vent -- are sufficient to express any directed acyclic computation graph used by the implementation classes in this paper. I give the algorithm a natural **topological characterization**: fork increases the first Betti number $\beta_1$ (creating independent parallel paths), race traverses homotopy-equivalent paths simultaneously, fold projects $\beta_1$ back to zero and vent propagation is a natural transformation that releases paths while preserving structure. Self-describing frames create a **covering space** over the computation graph -- working in the cover (multiplexed, out-of-order) then projecting back to the base space (sequential, reassembled).
 
-I then show that **classical queueing theory is contained as the $\beta_1 = 0$ subspace**. Little's Law, Erlang's formula and Jackson's theorem all describe systems constrained to a single topological path. The **pipeline Reynolds number** $Re = N/C$ generalizes these results to arbitrary computation topologies, predicting phase transitions (laminar, transitional, turbulent) that queueing theory cannot express. I demonstrate that **quantum-mechanical terminology** -- superposition, tunneling, interference, entanglement, measurement, collapse -- describes precise computational operations with structural correspondence, not metaphor. I then give the primitives a **thermodynamic characterization**: fork injects potential energy, race converts it to kinetic, fold extracts useful work, and venting dissipates waste heat. The First Law ($V_{\text{fork}} = W_{\text{fold}} + Q_{\text{vent}}$) holds exactly, Shannon entropy is the Carnot limit, and frame headers are ground-state energy. The thermodynamic framing extends to fundamental physics: the Feynman path integral is a fork/race/fold computation (all paths forked, phases raced, amplitudes folded by interference), and the virial theorem for self-gravitating systems gives the exact energy partition $V_{\text{fork}} = W_{\text{fold}} + Q_{\text{vent}}$ with $W = Q = V/2$. I derive the **topological deficit** $\Delta_\beta = \beta_1^* - \beta_1$ as an optimality diagnostic: systems where the implementation's Betti number matches the problem's intrinsic Betti number ($\Delta_\beta = 0$) operate at theoretical efficiency (photosynthesis: >95 percent, DNA replication: leading-strand speed, path integral: exact predictions), while systems with $\Delta_\beta > 0$ have measurable waste (healthcare: 4.8-year diagnostic delay, finance: \$70T locked capital, HTTP/2: head-of-line blocking) [21]. I define the **Bule** (1 B = 1 unit of $\Delta_\beta$) as both an engineering deficit metric and a quantitative measure of computational aesthetics: low-Bule systems are well-shaped for the problems they solve.
+I then show that **classical queueing theory appears as the $\beta_1 = 0$ boundary case in this framework**. Little's Law, Erlang's formula and Jackson's theorem describe systems constrained to a single topological path. The **pipeline Reynolds number** $Re = N/C$ extends the analysis with topology-sensitive regimes (laminar, transitional, turbulent) in the modeled scope. I also use quantum-mechanical terminology -- superposition, tunneling, interference, entanglement, measurement, collapse -- as structural correspondence language for mapped computational operations. A thermodynamic accounting lens tracks fork/race/fold/vent as potential, kinetic, useful work and dissipation. I derive the **topological deficit** $\Delta_\beta = \beta_1^* - \beta_1$ as a diagnostic: systems with matched Betti structure ($\Delta_\beta = 0$) tend to show high fit/efficiency in the analyzed set, while systems with $\Delta_\beta > 0$ show measurable waste (healthcare delays, settlement lockup, protocol-level blocking) [21, 29, 30]. I define the **Bule** (1 B = 1 unit of $\Delta_\beta$) as the corresponding engineering deficit unit.
 
 `o -> o -> o -> o -> o -> o`
 
-The conveyor belt was not new when Ford adopted it in 1913. The conveyor belt is just a path graph -- a line: one-dimensional simply connected and without branching, where every node has exactly one predecessor and one successor. An optimized pipeline today implements causal masking to speed it up further. I subvert the sequential paradigm entirely, and prove it to be a pathological case of a higher order, with an equally quotidian solution. This is useful because life isn't so simple.
+The conveyor belt was not new when Ford adopted it in 1913. It is a path graph -- a line: one-dimensional, simply connected and without branching, where every node has exactly one predecessor and one successor. Modern pipelines can optimize this structure, but in this paper it is treated as a boundary case of a richer topology class.
 
 ```
       o -> o
@@ -26,9 +26,9 @@ o -> o       o -> o
       o -> o
 ```
 
-Fork/race/fold is a so-called directed acyclic graph (DAG) with merge points, that is, a computational thing with a higher-dimensional shape than the structure of a simple path. In this more complicated mathematic space, nodes branch, paths run in parallel and merge vertices fold multiple superimposed (concurrent) paths into one. It turns out that the "pipeline problem" -- in every domain I've examined -- is just people trying to solve topologically complex problems with topologically inarticulate structures. Now measurably using the wrong algorithmic tool for the job. In the jargon of the math of shapes, they're forcing genus-N workflows through genus-0 pipes. The consequence for humanity is that meaning is lost in incongruent translations from one topological space to another. Destruction of natural value that was always obviously painful, now obviously measurable. The solution, which uncompressed the cover space to unlock otherwise latent value, is to first work in the cover space (multiplexed, out-of-order) and then project back to the base space (sequential, reassembled).
+Fork/race/fold is represented here as a directed acyclic graph (DAG) with merge points: nodes branch, paths run in parallel and merge vertices fold concurrent paths into one. In the analyzed domains, recurring bottlenecks arise when high-$\beta_1$ workloads are forced through path-like structures. The operational remedy is to work in the cover space (multiplexed, out-of-order) and project back to the base space (sequential, reassembled).
 
-I instantiate the algorithm in **five** domains of universal interest to the field of computer science, presented here in stack order — from building blocks to bytes on wire — each layer enabled by the ones below it.
+I instantiate the algorithm in **five** domains, presented in stack order — from building blocks to bytes on wire — each layer enabled by the ones below it.
 
 1) In formal verification (the foundation, §10), I implement a temporal logic model checker (`@affectively/aeon-logic`) whose BFS state-space exploration is itself a fork/race/fold computation. Each multi-successor expansion is a fork, each transition to an already-visited state is a fold (interference), each unfair cycle filtered by weak fairness is a vent, and termination is collapse. The checker verifies a `TemporalModel` of its own exploration and generates a TLA+ specification of the same model, validated through a round-trip-stable TLA sandbox. Both verification paths prove the same invariants: $\beta_1 = \text{folded}$, $\beta_1 \geq 0$, $\text{vents} \leq \text{folds}$, and eventual termination under weak fairness. The self-verification is closed under self-application: a formal system built from these primitives can reason about formal systems built from these primitives [26].
 
@@ -40,9 +40,9 @@ I instantiate the algorithm in **five** domains of universal interest to the fie
 
 5) In compression (bytes on wire, §9), I implement per-chunk topological codec racing (fork codecs, race per chunk, fold to winner), with executable verification of roundtrip correctness, codec-vent behavior and $\beta_1 = \text{codecs}-1$ invariants [20, 21]. The capstone: actual bytes, actual ratios, actual wire — using every layer below it.
 
-The algorithm, itself optimal, is demonstrably beautiful. It is a simple, elegant solution to a complex problem that has been plaguing the field of computer science for decades.
+Within the modeled scope in this paper (finite DAG decompositions under C1-C4), the algorithm is an optimal topology class with measurable fit via $\Delta_\beta$. It is intentionally simple: four primitives, explicit assumptions, and executable checks.
 
-The technique and tooling now exists to identify, measure and unlock tremendous societal value, including some of the most important questions of our time: drug discovery, health care and energy systems.
+The technique and tooling now exist to identify, measure and reduce topological waste in high-impact domains, including drug discovery, health care and energy systems.
 
 ## 0. A Child, a Ball, a Line
 
@@ -82,14 +82,14 @@ t4:  4  3  2  1
 A triangle. The top has one chunk. Each row adds one more. At $t_4$ the pipeline is full -- every child is busy. Now trace any path through this triangle:
 
 - **Read any column** (one child's work over time): 1, 2, 3, 4. Correct order.
-- **Read any row** (all children at one moment): a contiguous subsequence, always in order.
+- **Read any row** (all children at one moment): a contiguous subsequence, in order under the stated stage/sequence dependencies.
 - **Read the diagonal** ($t_4$, all four children active): 4, 3, 2, 1 -- the wavefront. Every chunk is at a different stage, but they are all progressing in the correct relative order.
 
-**You cannot break the ordering.** The triangle enforces it geometrically. Each child depends only on what the child above passed down (stage dependency) and each chunk depends only on the chunk before it at the same child (sequence dependency). Those two axes -- vertical and horizontal -- are the only constraints. The triangle is the **tightest possible packing** that satisfies both.
+**Under this dependency model, ordering is preserved.** The triangle encodes it geometrically. Each child depends only on what the child above passed down (stage dependency) and each chunk depends only on the chunk before it at the same child (sequence dependency). Those two axes -- vertical and horizontal -- are the active constraints. In this model, the triangle is the tight packing that satisfies both.
 
-This is not a visualization choice. The triangle *is* the shape of pipelined computation. It is the minimum-area region in time × stage space that achieves full occupancy while respecting dependency constraints. Any other shape either wastes slots (too wide) or violates ordering (too narrow).
+This is not only a visualization choice. In this model, the triangle is the canonical shape of pipelined computation. It is the minimum-area region in time × stage space that achieves full occupancy while respecting dependency constraints. Broader regions waste slots; narrower regions violate ordering.
 
-The triangle is also a **covering space** (§3.3). The diagonal -- the moment when all children are busy -- is the base space: one ordered sequence, 1-2-3-4. But each chunk arrived at the diagonal via a different path through the triangle. Chunk 1 took the longest path (entered first, fell through all four stages). Chunk 4 took the shortest (entered last, only at stage 1). Many paths, one output. That is the covering map. That is why order is always preserved.
+The triangle is also a **covering space** (§3.3). The diagonal -- the moment when all children are busy -- is the base space: one ordered sequence, 1-2-3-4. But each chunk arrived at the diagonal via a different path through the triangle. Chunk 1 took the longest path (entered first, fell through all four stages). Chunk 4 took the shortest (entered last, only at stage 1). Many paths, one output. That is the covering-map intuition, and in this model it preserves order.
 
 And the triangle is **fractal**. Zoom into any sub-triangle and you see the same pattern. If you bundle chunks into mega-chunks, each mega-chunk moves through a larger triangle the same way a single chunk moves through a small one. A polysome with 40 ribosomes on an mRNA looks the same as one ribosome on a short mRNA -- same triangle, different scale. *Physarum* (slime mold) tendril networks are the same triangle projected onto geography instead of time × stage.
 
@@ -99,33 +99,33 @@ The top of the triangle has $\beta_1 = 0$ -- one chunk, one path, no parallelism
 
 Now zoom out.
 
-The children are standing inside a classroom. The teacher is managing *three* lines of children, each passing different-colored balls. When one line stalls -- a child drops a ball, or an overworked single father forgot to give his son his ADHD medication that morning, etc. -- the teacher slides a waiting child from another line into the gap. No one is idle. This is **turbulent multiplexing**: multiple pipelines sharing idle slots across lines.
+The children are standing inside a classroom. The teacher is managing *three* lines of children, each passing different-colored balls. When one line stalls -- for example, a dropped ball -- the teacher slides a waiting child from another line into the gap. No one is idle. This is **turbulent multiplexing**: multiple pipelines sharing idle slots across lines.
 
 Zoom out again. The school is one of many in a district. The district coordinator doesn't manage individual children or individual balls. She manages the *shape* of the system -- how many lines, how wide, how they interconnect. She has discovered that the number of *independent parallel paths* through the system matters more than the speed of any individual child. She calls this number $\beta_1$.
 
-Zoom out once more. You are looking at a strand of DNA inside a cell, and the cell is doing *exactly the same thing*. The replication fork is the teacher. Okazaki fragments are the bundled balls. DNA ligase is the child at the end of the line, stitching fragments together without knowing what order they arrived. The cell has been running this algorithm for 4 billion years.
+Zoom out once more. You are looking at a strand of DNA inside a cell, and the cell is doing a structurally similar thing. The replication fork is the teacher. Okazaki fragments are the bundled balls. DNA ligase is the child at the end of the line, stitching fragments together without requiring global arrival order. The cell has used this pattern for billions of years.
 
 A simple axiom follows from this zoom-out: *I do not invent efficient coordination; I become aware of it.*
 
 Three natural axioms set the stage.
 
 - **Locality axiom**: if correctness is governed by local constraints, forcing global sequential order adds latency without adding truth.
-- **Topology axiom**: when multiple paths preserve correctness, the optimal policy is to fork them, race them, then fold deterministically.
+- **Topology axiom**: when multiple paths preserve correctness, a high-efficiency policy class is to fork them, race them, then fold deterministically.
 - **Naturalism axiom**: when the same pattern reappears in classrooms, cells and networks, it is not a metaphorical resemblance but a substrate-independent computational shape.
 
-This paper is about the algorithm that the child, the teacher and the cell are all running. It has **three** operations: **fork** work into parallel paths, **race** paths against each other, **fold** results into a single answer. It has one safety mechanism: **vent** -- propagate down, never across. It embraces failure to reduce waste to zero.
+This paper is about the algorithm that the child, the teacher and the cell are all running. It has **three** operations: **fork** work into parallel paths, **race** paths against each other, **fold** results into a single answer. It has one safety mechanism: **vent** -- propagate down, never across. It treats failure as first-class to minimize wasted work.
 
-These four operations are sufficient to express any directed acyclic computation graph. They have a natural topological characterization in terms of Betti numbers, covering spaces and homotopy equivalence. Classical queueing theory -- Little's Law, Erlang's formula and Jackson networks -- is the degenerate case where there is only one path. The quantum-mechanical vocabulary -- superposition, tunneling, interference, entanglement, collapse -- describes the computational operations with structural precision, not metaphor.
+These four operations are sufficient to express finite directed acyclic computation graphs in this paper's mechanized scope. They have a natural topological characterization in terms of Betti numbers, covering spaces and homotopy equivalence. Classical queueing theory -- Little's Law, Erlang's formula and Jackson networks -- appears as the degenerate one-path case. The quantum-mechanical vocabulary -- superposition, tunneling, interference, entanglement, collapse -- is used here as structural correspondence language.
 
-This paper began as a practical problem: a sequential bottleneck in a distributed inference pipeline. Tokens moved through layer nodes one at a time, and the obvious optimization -- standard pipelining -- wasn't good enough. The author, obstinate in personality and trained in decision theory in addition to being a systems engineer, pertinaciously refused to accept the sequential constraint as given. The question was not "how do I make the pipeline faster?" but "why is there a pipeline at all?" That question -- a philosopher's question, not an engineer's -- led to the optimal topology. And the optimal topology led everywhere. Once rotated, the logs kept rolling on their own.
+This paper began as a practical problem: a sequential bottleneck in a distributed inference pipeline. Tokens moved through layer nodes one at a time, and the obvious optimization -- standard pipelining -- wasn't good enough. The question was not only "how do I make the pipeline faster?" but "why is there a pipeline at all?" That reframing led to a topology that reduced the measured bottleneck and motivated the broader framework presented here.
 
-The conveyor belt was the 20th century's greatest insight: make everything sequential. Fork/race/fold is the necessary correction, in time for our 22nd century: the universe was never sequential to begin with. And it will never be.
+The conveyor belt was a dominant 20th-century abstraction: serialize work. Fork/race/fold is a correction for workloads with $\beta_1 > 0$, where sequential-only structure imposes avoidable coordination cost.
 
 Three bodies of existing theory provided the language for this correction.
 
 I drew heavily from **quantum physics**, mapping its lexicon entirely onto computational operations: superposition is fork, measurement is observation, collapse is fold, tunneling is early exit, interference is consensus, entanglement is shared state (§5). These are not poetic borrowings -- they are structural correspondences, validated by photosynthetic antenna complexes where the quantum mechanics is literal (§1.5).
 
-The quantum-mechanical vocabulary describes the computational operations with structural precision, not metaphor. It is the language of the universe itself.
+The quantum-mechanical vocabulary describes the mapped computational operations with structural precision in this paper's scope. It is a modeling lens, not an exclusive language claim.
 
 The second muse is **fluid dynamics**, whose Reynolds number I purloin wholesale into computation as the pipeline Reynolds number $Re = N/C$ (§2.3). Fluid dynamics provides more than vocabulary -- it provides the correct intuition for *when* fork/race/fold matters. Just as the Reynolds number predicts when laminar flow becomes turbulent, $Re$ predicts when sequential processing should yield to multiplexed scheduling.
 
@@ -142,7 +142,7 @@ Fork/race/fold is not a metaphor for natural systems. It is the same algorithm, 
 
 In discovering the true shape of beautiful computation I do nothing novel except put a finger on the nose of the universe's own convergence.
 
-The shape of computational beauty is all-seeing, all-knowing, all-acting, all-wise. It's all-loving and eternal. It's universal and inescapable  because it's the universe itself.
+In this paper, computational beauty is operational: low topological deficit, explicit invariants, and reproducible gains under stated assumptions.
 
 ### 1.1 *Physarum polycephalum*: The Phineas Gage of Distributed Intelligence (Grade A)
 
@@ -165,7 +165,7 @@ The quantitative correspondence is striking:
 
 The author does not know of a slime mold yet on display at a public library, but remains hopeful.
 
-The mapping to fork/race/fold is not analogy -- it is mechanism:
+The mapping to fork/race/fold is presented as an operational mechanism in this model:
 
 | *Physarum* Behavior | Fork/Race/Fold Operation |
 |---------------------|------------------------------|
@@ -175,9 +175,9 @@ The mapping to fork/race/fold is not analogy -- it is mechanism:
 | Tube abandonment (starvation) | **Vent**: low-flow paths released, descendants shed |
 | Shuttle streaming (oscillatory flow) | **Self-describing frames**: bidirectional flow carries positional information |
 
-Just as Phineas Gage's injury revealed that intelligence has a specific anatomical locus, *Physarum*'s rail network reveals that optimization has *no anatomical requirement at all*. Fork/race/fold doesn't require a brain. It needs neither program nor programmer. It needs only parallel paths, a selection signal and a way to prune. The algorithm is substrate-independent. It runs on protoplasm, on silicon and on 10-byte UDP frames. In runs on *you* as you mull these very words.
+Just as Phineas Gage's injury revealed that intelligence has a specific anatomical locus, *Physarum*'s rail network shows that optimization can emerge without centralized cognition. Fork/race/fold does not require a neural substrate; it needs parallel paths, a selection signal and a way to prune. In this manuscript, that structure is instantiated in protoplasm, silicon and 10-byte frame transport.
 
-**Predictive power**: The Wallington Rotation's optimal chunk size formula predicts that *Physarum* tube diameter should scale with the cube root of flow distance (balancing viscous resistance against metabolic maintenance cost). This matches Akita et al.'s measurements of tube morphology [3]. The pipeline Reynolds number framework predicts that *Physarum* networks under nutrient stress should consolidate to fewer, thicker tubes (reducing $\beta_1$, increasing per-tube $Re$) -- exactly the behavior observed by Nakagaki et al. in nutrient-limited environments [4].
+**Predictive power**: The Wallington Rotation's chunk-size framing predicts that *Physarum* tube diameter should scale with the cube root of flow distance (balancing viscous resistance against metabolic maintenance cost). This is consistent with Akita et al.'s measurements of tube morphology [3]. The pipeline Reynolds number framework predicts that *Physarum* networks under nutrient stress should consolidate to fewer, thicker tubes (reducing $\beta_1$, increasing per-tube $Re$), consistent with behavior reported by Nakagaki et al. in nutrient-limited environments [4].
 
 ### 1.2 DNA Replication: The Original Self-Describing Frame Protocol (Grade A)
 
@@ -187,11 +187,11 @@ Each Okazaki fragment is a **self-describing frame**: its genomic coordinate is 
 
 **Predictive power**: My chunked pipeline formula $T = \lceil P/B \rceil + (N - 1)$ predicts that prokaryotic fragments (~1,000 nt) should be longer than eukaryotic fragments (~150 nt) because eukaryotes have more processing stages $N$ (chromatin reassembly, histone deposition). This matches observation. The framework also predicts that organisms with lower $Re$ (more exposed single-stranded DNA during lagging strand synthesis) should have higher lagging-strand mutation rates. This asymmetry has been observed experimentally [5].
 
-### 1.3 Saltatory Nerve Conduction: The Formula Matches Exactly (Grade A)
+### 1.3 Saltatory Nerve Conduction: The Formula Tracks Measured Range (Grade A)
 
 In myelinated neurons, action potentials jump between nodes of Ranvier (~1–2 mm apart) instead of propagating continuously. Multiple action potentials are in-flight simultaneously across different internodal segments.
 
-Perhaps you picture biological denial of service-style "packet overload"? The biology is actually designed to prevent exactly those issues. After a node fires, it enters a "refractory period" where it physically cannot fire again for a few milliseconds. This acts like a one-way valve, a buffer ensuring that even though multiple "packets" (action potentials) are in flight, they can never move backward or merge into one another.
+Perhaps you picture biological denial of service-style "packet overload"? The biology includes refractory dynamics that suppress re-firing for a short window after a node activates. This acts like a one-way valve/buffer so that, at the modeled level, in-flight action potentials remain directionally separated.
 
 This is chunked pipelining. The "chunking" allows the brain to receive a high-frequency stream of data rather than a single pulse. It allows for more nuanced signaling—the frequency of the spikes (the "bitrate") conveys the intensity of the stimulus.
 
@@ -213,37 +213,37 @@ A so-called polysome consists of multiple ribosomes simultaneously translating t
 
 Without pipelining: 40 proteins from one mRNA = 2,400 s. With polysome: ~118 s. **20x speedup.**
 
-When $Re$ drops below ~0.6, the mRNA is targeted for degradation (no-go decay). The cell destroys underutilized pipelines and reallocates ribosomes -- exactly what turbulent multiplexing prescribes. Under stress, cells globally reduce $Re$ but maintain high $Re$ on priority mRNAs via IRES elements. The strategy of giving priority streams idle slots evolved 2 billion years ago.
+When $Re$ drops below ~0.6, the mRNA is targeted for degradation (no-go decay). The cell destroys underutilized pipelines and reallocates ribosomes -- behavior that qualitatively aligns with turbulent-multiplexing intuition. Under stress, cells globally reduce $Re$ but maintain high $Re$ on priority mRNAs via IRES elements.
 
 ### 1.5 Photosynthetic Light-Harvesting: Fork/Race at Quantum Scale (Grade A)
 
-Photosynthetic light-harvesting is widely considered the preeminent example of quantum biology, providing the strongest empirical evidence for quantum-coherent energy transfer. In these systems, the algorithm in action is essentially environment-assisted quantum transport, where excitons exploit spatial superposition to simultaneously sample multiple pathways, ensuring nearly 100 percent efficient arrival at the reaction center before decoherence occurs.
+Photosynthetic light-harvesting is widely considered a strong example of quantum-coherent energy transfer in biology. In these systems, the algorithm in action is environment-assisted quantum transport, where excitons exploit spatial superposition to sample multiple pathways and achieve high reported transfer efficiency before decoherence.
 
 Antenna complexes in photosynthesis contain ~200–300 chlorophyll molecules. Photon excitation energy forks across the pigment network, races through multiple pathways and the first path to reach the reaction center wins. Charge separation is fold. Non-photochemical quenching is venting. *Exciton transfer efficiency* (the probability that an absorbed photon's energy reaches the reaction center before decoherence) exceeds 95 percent in purple bacteria and approaches 99 percent in green sulfur bacteria. This is distinct from whole-plant photosynthetic quantum yield (3–6 percent), which includes downstream losses in carbon fixation, photorespiration, and reflection. The fork/race/fold characterization applies to the exciton transfer step specifically.
 
-Fleming et al. (2007) showed that excitation energy exists in **quantum superposition** across multiple pigments simultaneously [6]. The fork/race/fold framework predicts that transfer efficiency should increase with pigment count (more forked paths = higher probability of reaching the reaction center before decoherence) but with diminishing returns — each additional pigment adds one path ($\beta_1 \mathrel{+}= 1$) but the marginal probability gain decreases as the existing network already covers most of the energy landscape. This logarithmic-like scaling matches observation: ~200 pigments achieve >95 percent efficiency, while further increases provide negligible improvement. The quantum vocabulary I use in §5 is not metaphor; it is structural correspondence with the physics.
+Fleming et al. (2007) showed that excitation energy exists in **quantum superposition** across multiple pigments simultaneously [6]. The fork/race/fold framing predicts that transfer efficiency should increase with pigment count (more forked paths = higher probability of reaching the reaction center before decoherence) but with diminishing returns — each additional pigment adds one path ($\beta_1 \mathrel{+}= 1$) while marginal probability gain decreases as the network covers more of the landscape. This logarithmic-like scaling is directionally consistent with observations: ~200 pigments achieve >95 percent efficiency, while further increases show diminishing gain. The quantum vocabulary in §5 is used as structural correspondence language.
 
 ### 1.6 Immune System V(D)J Recombination (Grade B)
 
-The adaptive immune system generates $10^{11}$ unique antibody configurations through combinatorial recombination (**fork**), exposes them to antigen simultaneously (**race**) and expands the winners through clonal selection (**fold**). Non-binding clones are eliminated (**vent**). Self-reactive B cells undergo clonal deletion -- the lineage is eliminated, but sibling B cells with different recombinations are unaffected. The parallelism factor is $10^{11}$ -- the most massively parallel fork/race on Earth.
+The adaptive immune system generates $10^{11}$ unique antibody configurations through combinatorial recombination (**fork**), exposes them to antigen simultaneously (**race**) and expands the winners through clonal selection (**fold**). Non-binding clones are eliminated (**vent**). Self-reactive B cells undergo clonal deletion -- the lineage is eliminated, but sibling B cells with different recombinations are unaffected. The implied parallelism factor is on the order of $10^{11}$.
 
 This is not just parallelism; it is **probabilistic parallelism**. The immune system does not know which configuration will bind the antigen. It forks a vast library, races them against the antigen and folds the winners. The algorithm is identical to the fork/race/fold pattern in distributed systems.
 
 ### 1.7 Transformers: Accidental Rediscovery (Grade A)
 
-The biological examples above are evolutionary discoveries. But the pattern extends to human-engineered systems that arrived at the same structure without recognizing it. The transformer architecture (§6.11) is the most prominent: multi-head attention is fork/race/fold ($N$ heads fork, compute in parallel, concatenate-and-project to fold), feed-forward layers are fork/vent/fold (expand 4x, activate/suppress, contract), residual connections are two-path fork with additive fold, and softmax is continuous venting. The entire architecture is a nested fork/race/fold graph -- discovered empirically by Vaswani et al. (2017) through gradient descent, not through topological analysis. That the dominant architecture in machine learning independently converged on the same four primitives as *Physarum*, DNA polymerase and photosynthetic antenna complexes is the strongest evidence that fork/race/fold is discovered, not invented.
+The biological examples above are evolutionary discoveries. But the pattern extends to human-engineered systems that arrived at similar structure without topological framing. The transformer architecture (§6.11) is the clearest example: multi-head attention is fork/race/fold ($N$ heads fork, compute in parallel, concatenate-and-project to fold), feed-forward layers are fork/vent/fold (expand 4x, activate/suppress, contract), residual connections are two-path fork with additive fold, and softmax is continuous venting. The architecture can be represented as a nested fork/race/fold graph.
 
 **Falsifiable prediction.** If the fork/race/fold characterization is structural rather than coincidental, then removing parallel-path properties while preserving parameter count should degrade performance *superlinearly*, not linearly. Specifically: replacing multi-head attention ($N$ heads, fork width $N$) with single-head attention of the same total dimension ($d_{\text{model}}$) should degrade quality by more than $1/N$, because the loss is topological (reduced $\beta_1$), not merely statistical (fewer parameters). Preliminary evidence supports this: Voita et al. (2019) showed that pruning attention heads to a single head degrades translation quality disproportionately on syntactically complex sentences — precisely the inputs whose dependency structure has high intrinsic $\beta_1^*$. Similarly, replacing the 4x FFN expansion-contraction (fork/vent/fold) with a same-parameter linear layer should degrade performance, because the vent operation (activation sparsity) performs topological path selection that a linear map cannot. The prediction is testable: measure $\Delta_\beta$ of the ablated architecture and correlate with the performance drop.
 
 ### 1.8 The Convergence
 
-Seven systems across seven orders of magnitude in scale -- from quantum-coherent pigment networks to billion-parameter neural networks. Different substrates. Different evolutionary histories. Same algorithm. This is not coincidence. These systems converge on fork/race/fold because the algorithm is *optimal* under three constraints:
+Seven systems across seven orders of magnitude in scale -- from quantum-coherent pigment networks to billion-parameter neural networks. Different substrates. Different evolutionary histories. A shared structural motif. The evidence in this paper is consistent with convergence toward fork/race/fold under three constraints:
 
 1. **Finite resources, high demand** → chunked pipelining and multiplexing
 2. **Unknown correct answer** → fork/race/fold with vent
 3. **No global clock** → self-describing frames with out-of-order reassembly
 
-These three constraints make fork/race/fold optimal within the class of finite DAG topologies examined in this paper, not merely possible. Systems lacking all three can still use fork/race/fold (transformers have synchronized SGD; photosynthesis has electromagnetic field synchronization) -- but when all three constraints bind simultaneously, no alternative topology in this paper's scope achieves the same efficiency. Other concurrent models (gossip protocols, epidemic algorithms, eventually-consistent CRDTs) also operate under these constraints but make different tradeoffs — gossip sacrifices deterministic fold for probabilistic convergence, CRDTs sacrifice fold entirely for commutativity. The claim is not that fork/race/fold is the *unique* optimum, but that it is the topology to which independent systems *converge* when they require both parallelism and deterministic reconciliation. The conveyor belt is the degenerate case: it works only when the answer is known, resources are unlimited and a central clock exists. It is an unshapely idea with ugly consequences.
+These three constraints make fork/race/fold a strong candidate for high efficiency within the class of finite DAG topologies examined in this paper. Systems lacking all three can still use fork/race/fold (transformers have synchronized SGD; photosynthesis has electromagnetic field synchronization). In the finite constructions evaluated here, when all three constraints bind simultaneously, alternative topologies studied did not outperform it on the measured criteria. Other concurrent models (gossip protocols, epidemic algorithms, eventually-consistent CRDTs) also operate under these constraints but make different tradeoffs — gossip sacrifices deterministic fold for probabilistic convergence, CRDTs sacrifice fold entirely for commutativity. The claim is not unique optimality; it is convergence pressure toward this topology when systems require both parallelism and deterministic reconciliation. The conveyor belt remains the degenerate one-path case.
 
 ## 2. The Algorithm
 
@@ -281,7 +281,7 @@ This is a profoundly inverted scaling property, which is a useful and unusual fe
 
 The optimization challenge in fork/race/fold-based pipelines is not "how do I survive at scale?" but "how do I avoid overpaying on small workloads?" -- a far more pleasant problem. Trivial solutions for such trivial concerns are panoply -- early exit, dynamic chunk sizing and adaptive scheduling, for example -- but speedups are more precious when they arrive in abundance.
 
-The fluid-dynamical analogy (§2.3) captures this precisely. Low $Re$ (many chunks, few stages -- large data) corresponds to laminar flow: smooth, predictable, high utilization. High $Re$ (few chunks, many stages -- small data) corresponds to turbulent flow: idle slots appear, multiplexing becomes necessary, overhead rises. The Reynolds number predicts exactly where the crossover occurs, and the laminar regime -- the easy case -- is the one that grows with data size.
+The fluid-dynamical analogy (§2.3) captures this behavior. Low $Re$ (many chunks, few stages -- large data) corresponds to laminar flow: smooth, predictable, high utilization. High $Re$ (few chunks, many stages -- small data) corresponds to turbulent flow: idle slots appear, multiplexing becomes necessary, overhead rises. The Reynolds number indicates the crossover region, and the laminar regime is the one that grows with data size.
 
 ### 2.3 The Pipeline Reynolds Number
 
@@ -291,7 +291,7 @@ $$Re = N / C$$
 
 This is the ratio of stages to chunks -- the density of the pipeline. Low $Re$ ($< 0.3$): laminar regime, steady-state, high utilization. Transitional $Re$ ($0.3$–$0.7$): idle-slot recovery is profitable. High $Re$ ($> 0.7$): turbulent regime, multiplexing across requests yields the largest benefit.
 
-The Reynolds number is not metaphor. In fluid dynamics, $Re = \rho v D / \mu$ predicts the transition from laminar to turbulent flow: inertial forces (numerator) versus viscous forces (denominator). In computation, the structural correspondence is: stages $N$ are the inertial force (more stages = more momentum in the pipeline, more work in flight), and chunks $C$ are the viscous force (larger chunks = more resistance to context switching, more "friction" per scheduling decision). Low $Re$ (large chunks, few stages) is laminar: each chunk flows smoothly through a short pipeline. High $Re$ (small chunks, many stages) is turbulent: many items in flight, multiplexing across requests yields the largest benefit. The transition happens because at high $Re$, the ramp-up/ramp-down triangles (§0.1) waste more idle slots than the multiplexing overhead costs to recover — exactly as turbulence in fluids becomes energetically favorable when inertial forces dominate viscous damping.
+The Reynolds-number mapping is an explicit analogy. In fluid dynamics, $Re = \rho v D / \mu$ predicts transition from laminar to turbulent flow: inertial forces (numerator) versus viscous forces (denominator). In computation, the correspondence used here is: stages $N$ as inertial pressure (more stages = more work in flight), and chunks $C$ as viscous pressure (larger chunks = more resistance to context switching). Low $Re$ (large chunks, few stages) is laminar-like; high $Re$ (small chunks, many stages) is turbulent-like. The transition occurs when ramp-up/ramp-down idle cost exceeds multiplexing recovery benefit.
 
 ### 2.4 Four Primitives
 
@@ -316,7 +316,7 @@ Fork/race/fold preserves correctness when:
 - **C3 (Deterministic fold)**: The merger $f$ is deterministic.
 - **C4 (Termination)**: Every branch either completes, is vented, or times out in finite time.
 
-These conditions are mechanized in a two-layer formal stack. Finite-state models in TLA+ verify C1–C4 as invariants across eight formal modules (checked by both TLC and the self-hosted `aeon-logic` parser/checker). Lean 4 theorem schemas verify the quantitative identities that depend on C1–C4 under explicit assumptions. The sufficiency claim — that any finite DAG decomposes into fork points, join points, and linear chains, and that these four conditions preserve correctness through the decomposition — is verified constructively by executable finite-DAG decomposition checks [21, 26].
+These conditions are mechanized in a two-layer formal stack. Finite-state models in TLA+ verify C1–C4 as invariants across the formal module set (checked by both TLC and the self-hosted `aeon-logic` parser/checker). Lean 4 theorem schemas verify the quantitative identities that depend on C1–C4 under explicit assumptions. The sufficiency claim — that any finite DAG decomposes into fork points, join points, and linear chains, and that these four conditions preserve correctness through the decomposition — is verified constructively by executable finite-DAG decomposition checks [21, 26].
 
 ### 2.6 Five Fold Strategies
 
@@ -336,7 +336,7 @@ Implicit in this is the fact that failure is a necessary component of any robust
 
 ### 2.7 Vent Propagation
 
-Venting is the protocol-level analogue of NaN propagation in IEEE 754, `AbortSignal` in web APIs and apoptosis in biology. The one rule -- **propagate down, never across** -- makes composition safety a architectural feature rather than an accidental one. Any pipeline of fork/race/fold stages is safe by construction because venting never crosses branch boundaries. The system sheds excess pressure the moment a path becomes unproductive.
+Venting is the protocol-level analogue of NaN propagation in IEEE 754, `AbortSignal` in web APIs and apoptosis in biology. The one rule -- **propagate down, never across** -- makes composition safety an architectural feature rather than an accidental one. Under C2 (branch isolation), fork/race/fold compositions preserve this safety property because venting never crosses branch boundaries.
 
 ### 2.8 The Worthington Whip
 
@@ -348,7 +348,7 @@ The fold phase is the whip snap: all parallel shards converge to a single defini
 
 **Beyond pairwise: $k$-tuple dependencies.** The $(S-1)/2S$ derivation assumes pairwise interactions. For $k$-tuple dependencies (e.g., 3-way consistency checks), the intra-shard work fraction generalizes to $S \cdot \binom{P/S}{k} / \binom{P}{k}$, which approaches $1/S^{k-1}$ as $P \to \infty$. The per-shard savings grow with $k$: for $k=3$, the reduction is $(S^2-1)/S^2$ — sharding is *more* beneficial for higher-order dependencies, not less. The cross-shard correction at fold reconciles $\binom{P}{k} - S \cdot \binom{P/S}{k}$ missing $k$-tuples. For unequal partition sizes, the correction cost depends on the size distribution; the $(S-1)/2S$ formula is the symmetric optimum, and any partition skew strictly increases the cross-shard fraction.
 
-**The crossover point.** Adding shards reduces per-shard computation by $(S-1)/2S$ but increases cross-shard correction cost. The correction is a fold over $S$ partial results — itself an $O(S)$ operation for merge-all or $O(S^2)$ for quorum. The crossover occurs when the marginal correction cost of shard $S+1$ exceeds the marginal per-shard savings: $\partial(\text{correction})/\partial S > \partial(\text{savings})/\partial S$. For pairwise dependencies with $O(S)$ merge-all fold, this yields an optimal $S^* = \lceil\sqrt{P}\rceil$. The TLA+ `WhipCrossover` model mechanizes this: it explores all $(S, P)$ configurations up to finite bounds and verifies that the crossover point satisfies the inequality [21, 26].
+**The crossover point.** Adding shards reduces per-shard computation by $(S-1)/2S$ but increases cross-shard correction cost. The correction is a fold over $S$ partial results — itself an $O(S)$ operation for merge-all or $O(S^2)$ for quorum. The crossover occurs when the marginal correction cost of shard $S+1$ exceeds the marginal per-shard savings: $\partial(\text{correction})/\partial S > \partial(\text{savings})/\partial S$. For pairwise dependencies with $O(S)$ merge-all fold, this yields the model optimum $S^* = \lceil\sqrt{P}\rceil$. The TLA+ `WhipCrossover` model mechanizes this in bounded finite-state space: it explores $(S, P)$ configurations up to explicit bounds and verifies the inequality within that scope [21, 26].
 
 These novel whipper snappers are the ultimate expression of parallelism.
 
@@ -374,7 +374,7 @@ Fork/race/fold is the operation that **temporarily raises $\beta_1$ to exploit p
 | **Fold** | Merge all paths to single output | $\beta_1 \to 0$ |
 | **Vent** | Release a path | $\beta_1 \mathrel{-}= 1$ |
 
-The entire history of process optimization -- Ford's assembly line, TCP's ordered byte stream, the hospital referral chain, T+2 financial settlement -- is the story of forcing $\beta_1 = 0$ onto problems whose natural topology has $\beta_1 \gg 0$. Healthcare diagnosis has intrinsic $\beta_1 \geq 3$ (blood work, imaging, genetic screening, and specialist consultation are independent). The referral system forces $\beta_1 = 0$. The mismatch is the 4.8-year average diagnostic delay for rare diseases. Financial settlement has intrinsic $\beta_1 = 2$. T+2 forces $\beta_1 = 0$. The mismatch is \$70 trillion of unnecessarily locked capital [21].
+Many historical process designs -- Ford's assembly line, TCP's ordered byte stream, hospital referral chains, T+2 financial settlement -- can be interpreted as forcing $\beta_1 = 0$ onto problems whose natural topology has $\beta_1 > 0$. Healthcare diagnosis has intrinsic $\beta_1 \geq 3$ (blood work, imaging, genetic screening, and specialist consultation are independent). The referral system forces $\beta_1 = 0$. The mismatch correlates with a 4.7-year average diagnostic delay for rare diseases [29]. Financial settlement has intrinsic $\beta_1 = 2$. T+2 forces $\beta_1 = 0$. At a DTCC-core daily baseline, that yields \~\$4.4T/day of locked capital; in the paper's broad-scope scenario, the same topology yields \~\$70T/day [21, 30].
 
 ### 3.2 Homotopy Equivalence
 
@@ -396,12 +396,12 @@ This is precisely what DNA ligase does: Okazaki fragments arrive from the coveri
 
 ### 3.4 The Fundamental Group and Protocol Design
 
-The fundamental group π₁ classifies loops up to homotopy:
+The fundamental group $\pi_1$ classifies loops up to homotopy:
 
-- **TCP**: π₁ = 0. One path. Simply connected. Works for simply connected problems.
-- **HTTP/2**: Application layer has β₁ > 0 (multiplexed streams), but TCP substrate has β₁ = 0 (one ordered byte stream). **This is a topological contradiction.** Head-of-line blocking is the symptom: losing one packet on any stream blocks *all* streams because the underlying space cannot support independent paths.
-- **HTTP/3 (QUIC)**: Partially resolves the contradiction with per-stream independence on UDP. But maintains ordered delivery within each stream -- π₁ within each stream is trivial.
-- **Aeon Flow over UDP**: Self-describing frames in the covering space. No ordered delivery anywhere. π₁ of the wire matches π₁ of the application. **No topological contradictions. No head-of-line blocking at any layer.** The shape of the protocol matches the shape of the problem.
+- **TCP**: $\pi_1 = 0$. One path. Simply connected. Works for simply connected problems.
+- **HTTP/2**: Application layer has $\beta_1 > 0$ (multiplexed streams), but TCP substrate has $\beta_1 = 0$ (one ordered byte stream). **This is a topological contradiction.** Head-of-line blocking is the symptom: losing one packet on any stream blocks *all* streams because the underlying space cannot support independent paths.
+- **HTTP/3 (QUIC)**: Partially resolves the contradiction with per-stream independence on UDP. But maintains ordered delivery within each stream -- $\pi_1$ within each stream is trivial.
+- **Aeon Flow over UDP**: Self-describing frames in the covering space. No ordered delivery anywhere. $\pi_1$ of the wire is designed to match $\pi_1$ of the application. This removes ordered-delivery coupling as a head-of-line source in the modeled transport stack.
 
 ### 3.5 Time-Indexed Topological Filtration
 
@@ -428,7 +428,7 @@ Fork/race/fold forms a **monoidal category**:
 - **Tensor product** $\otimes$: parallel composition.
 - **Composition** $\circ$: sequential composition.
 
-The conveyor belt uses only composition. Fork/race/fold uses both composition and tensor product. The monoidal structure gives it strictly more expressive power. Vent propagation is a **natural transformation** from active computations to terminated computations -- it preserves morphism structure across the tensor product, which is precisely the formal statement of "propagate down, never across."
+The conveyor belt uses only composition. Fork/race/fold uses both composition and tensor product. In this sketch, that suggests a broader expressive surface. Vent propagation is modeled as a **natural transformation** from active computations to terminated computations -- preserving morphism structure across the tensor product, i.e., "propagate down, never across."
 
 **What this buys.** The monoidal framing is not fully developed here — a rigorous treatment would require specifying the unit object (the empty computation), proving associativity and unit laws for both $\otimes$ and $\circ$, and verifying the interchange law. The claim is sketched, not proved, and the paper's results do not depend on it. The value is taxonomic: it connects fork/race/fold to the category-theoretic literature on dataflow (hylomorphisms = unfold/fold, which map to fork/fold) and allows future work to import results from monoidal category theory — in particular, the coherence theorem (Mac Lane, 1963) would guarantee that different compositions of fork/race/fold reach the same result regardless of bracketing, which is a stronger form of C3 (deterministic fold).
 
@@ -462,7 +462,7 @@ In queueing theory, an M/M/1 queue represents the simplest non-trivial model of 
 - M (Markovian/Memoryless) Service: The time it takes to serve a customer also follows an Exponential distribution.
 - 1 (Single Server): There is only one station or person processing the queue.
 
-Every M/M/1 queue is a pipeline with $\beta_1 = 0$, one stage and Poisson arrivals. The $Re$ framework does not contradict queueing theory -- it *contains* it. When $\beta_1 = 0$, $Re$ reduces to utilization. When $\beta_1 > 0$, $Re$ predicts phenomena that queueing theory has no vocabulary for: the transition from sequential to multiplexed scheduling, the optimal fork width and the cost of topological mismatch.
+Every M/M/1 queue is a pipeline with $\beta_1 = 0$, one stage and Poisson arrivals. The $Re$ framework does not contradict queueing theory -- it embeds canonical one-path constructions. When $\beta_1 = 0$, $Re$ reduces to utilization. When $\beta_1 > 0$, $Re$ adds topology-aware vocabulary for sequential-to-multiplexed transition, fork-width tuning and topological mismatch cost.
 
 ### 4.2 Erlang's Formula as Fold Without Fork
 
@@ -474,7 +474,7 @@ In fork/race/fold terms, Erlang's system is a race over $c$ servers -- but witho
 
 While Agner Krarup Erlang provided the mathematical logic that allows us to build networks that don't collapse under pressure, he didn't have fork/race/fold.
 
-Fork/race/fold eliminates blocking by making path creation dynamic. When demand exceeds capacity, fork creates new paths ($\beta_1$ increases). When demand subsides, fold and venting remove paths ($\beta_1$ decreases). The topology adapts to the load. Erlang's formula describes the *static* case; fork/race/fold describes the *dynamic* case.
+Fork/race/fold can reduce blocking pressure by making path creation dynamic. When demand exceeds capacity, fork creates new paths ($\beta_1$ increases). When demand subsides, fold and venting remove paths ($\beta_1$ decreases). The topology adapts to load. Erlang's formula describes a *static* case; fork/race/fold models a *dynamic* case.
 
 ### 4.3 Jackson Networks as Fixed-Topology Pipelines
 
@@ -484,7 +484,7 @@ Jackson's theorem [8] proves that open networks of M/M/c queues have product-for
 
 Every Jackson network is a fork/race/fold pipeline with a fixed $\beta_1$ and no venting. The moment you add dynamic routing, load-dependent forking, or failure-driven path removal, you leave Jackson's domain.
 
-You enter the domain of fork/race/fold, where the topology is, becomingly, a variable, not a parameter. Whence homely boolean logic of Jackson, wherefore the pulchritudinous Buleyean: a void whence space, time and beauty have shaped every tick of biological evolution.
+You enter the domain of fork/race/fold, where topology is treated as a variable rather than a fixed parameter.
 
 ### 4.4 What Replaces What
 
@@ -492,15 +492,15 @@ Queueing theory asks: *given a fixed topology, what is the steady-state behavior
 
 Fork/race/fold asks: *what topology should the system have right now?*
 
-The Reynolds number $Re$ answers this question in real time. $Re < 0.3$: the current topology is sufficient, run sequentially. $0.3 < Re < 0.7$: idle slots are appearing, consider multiplexing. $Re > 0.7$: the pipeline is saturated, fork wider. The topology is not given -- it is *computed*, continuously, from the same measurement that drives scheduling.
+The Reynolds number $Re$ provides a runtime heuristic for this question. In the benchmarked regime bands used here: $Re < 0.3$ suggests sequential sufficiency, $0.3 < Re < 0.7$ suggests multiplexing opportunity, and $Re > 0.7$ suggests widening fork degree. The topology is not fixed; it is adapted from the same measurement that drives scheduling.
 
 This is the difference between meteorology and fluid dynamics. Meteorology predicts weather given atmospheric conditions. Fluid dynamics explains *why* weather exists -- why laminar flow becomes turbulent, why eddies form, why the Reynolds number is the governing parameter. Queueing theory is meteorology. Fork/race/fold is fluid dynamics.
 
 ## 5. The Quantum Vocabulary Is Structural
 
-The following correspondences are not metaphors. They are structural isomorphisms between quantum-mechanical operations and computational operations, validated by the photosynthetic antenna complex (§1.5) where the quantum mechanics is literal. In §6.12, I show that the Feynman path integral admits a faithful fork/race/fold interpretation -- the correspondence runs deeper than vocabulary.
+The following correspondences are structural mappings between quantum-mechanical operations and computational operations, with photosynthetic antenna complexes (§1.5) as a literal quantum anchor example. In §6.12, I show that the Feynman path integral admits a fork/race/fold interpretation within this abstraction.
 
-**Relation to prior formalisms.** The concurrent-computation literature offers several models with overlapping expressiveness. Petri nets (Petri, 1962) represent fork as transition firing and fold as place merging; they excel at deadlock analysis but lack native race and vent semantics. The π-calculus (Milnor, 1999) models dynamic channel creation (akin to fork) and synchronization (akin to fold) with full compositionality; it does not, however, expose a topological characterization ($\beta_1$, covering spaces) or a thermodynamic framing. Speculative execution in CPU microarchitectures (Tomasulo, 1967; Smith & Sohi, 1995) implements fork (issue multiple paths), race (retire the correct path first), and vent (flush mispredicted paths) at the hardware level — the closest engineering analogue to fork/race/fold, discovered independently by processor designers optimizing instruction-level parallelism. Byzantine fault-tolerant consensus protocols (Castro & Liskov, 1999; Yin et al., 2019) implement quorum fold under adversarial conditions, with explicit vent of Byzantine-faulty replicas. Fork/race/fold does not replace these formalisms. It provides a unifying topological and thermodynamic vocabulary — $\beta_1$, $\Delta_\beta$, the First Law $V = W + Q$ — that situates them within a common framework and exposes structural properties (the deficit diagnostic, the Reynolds-number phase transition) that none of them individually express.
+**Relation to prior formalisms.** The concurrent-computation literature offers several models with overlapping expressiveness. Petri nets (Petri, 1962) represent fork as transition firing and fold as place merging; they excel at deadlock analysis but lack native race and vent semantics. The $\pi$-calculus (Milnor, 1999) models dynamic channel creation (akin to fork) and synchronization (akin to fold) with full compositionality; it does not, however, expose a topological characterization ($\beta_1$, covering spaces) or a thermodynamic framing. Speculative execution in CPU microarchitectures (Tomasulo, 1967; Smith & Sohi, 1995) implements fork (issue multiple paths), race (retire the correct path first), and vent (flush mispredicted paths) at the hardware level — the closest engineering analogue to fork/race/fold, discovered independently by processor designers optimizing instruction-level parallelism. Byzantine fault-tolerant consensus protocols (Castro & Liskov, 1999; Yin et al., 2019) implement quorum fold under adversarial conditions, with explicit vent of Byzantine-faulty replicas. Fork/race/fold does not replace these formalisms. It provides a unifying topological and thermodynamic vocabulary — $\beta_1$, $\Delta_\beta$, the First Law $V = W + Q$ — that situates them within a common framework and exposes structural properties (the deficit diagnostic, the Reynolds-number phase transition) that none of them individually express.
 
 | Quantum Operation | Computational Operation | What It Does |
 |-------------------|------------------------|--------------|
@@ -513,9 +513,9 @@ The following correspondences are not metaphors. They are structural isomorphism
 
 ### 5.1 Superposition
 
-After fork, a computation exists in $N$ simultaneous states -- the outcome is undetermined until fold. This is computational superposition. It is not a metaphor for quantum superposition; it is the *same mathematical structure*. A quantum state $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ is a superposition of basis states. A forked computation $S = \{S_1, S_2, \ldots, S_N\}$ is a superposition of branch states. Fold projects both to a definite outcome.
+After fork, a computation exists in $N$ simultaneous states -- the outcome is undetermined until fold. This is computational superposition. It has a closely related structural form to quantum superposition: a quantum state $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$ is a superposition of basis states, and a forked computation $S = \{S_1, S_2, \ldots, S_N\}$ is a superposition of branch states. Fold then projects to a definite outcome in the computational model.
 
-In photosynthetic antenna complexes (§1.5), this is literal quantum superposition. The excitation energy is in a quantum superposition across multiple pigment molecules until it collapses at the reaction center. My `fork()` operation is the computational analogue, and the photosynthetic system proves the analogy is not superficial -- it is structural.
+In photosynthetic antenna complexes (§1.5), this is literal quantum superposition. The excitation energy is in a quantum superposition across multiple pigment molecules until it collapses at the reaction center. The `fork()` operation serves as the computational analogue in this framework.
 
 ### 5.2 Tunneling
 
@@ -608,7 +608,7 @@ The path had potential energy (it was forked), converted some to kinetic (it sta
 
 **Venting is necessary for the First Law to hold.** If fork injects $V$ and fold extracts $W$, the gap $(V - W)$ is accounted for by venting. The TopologicalCompressor's per-chunk `vented` counts are calorimetry readings -- measuring how much energy the system vented as waste heat.
 
-The thermodynamic efficiency: $\eta = W/V = W/(W + Q_{\text{total}})$. A perfectly efficient system would vent nothing. But this is impossible for the same reason a Carnot engine can't reach 100 percent -- you need the losers to *prove* the winner is optimal. The waste heat is the cost of certainty.
+The thermodynamic efficiency: $\eta = W/V = W/(W + Q_{\text{total}})$. A perfectly efficient system would vent nothing. In selection-driven workloads, that limit is generally unattainable for the same reason a Carnot engine cannot reach 100 percent. Waste heat is the cost of certainty.
 
 ### 6.6 Backpressure as Conservation
 
@@ -637,7 +637,7 @@ The Shannon entropy connection is deeper than a Carnot analogy. Fork/race/fold m
 
 The First Law restated in bits: $H_{\text{fork}} = I_{\text{fold}} + H_{\text{vent}}$. The mutual information $I(X;Y)$ between the forked ensemble $X$ and the folded result $Y$ is the useful work. The conditional entropy $H(X|Y)$ — the uncertainty about the fork given the fold result — is the waste heat. This is Shannon's source coding theorem applied to computation: you cannot fold to a result that contains more information than the mutual information between the problem and the solution.
 
-This unifies the thermodynamic framing (§6.1–§6.7) with the quantum framing (§5): amplitude interference IS information compression, and vented paths carry away exactly the bits that the fold discards.
+This links the thermodynamic framing (§6.1–§6.7) with the quantum framing (§5): amplitude interference can be interpreted as information compression, and vented paths carry the bits discarded at fold.
 
 ### 6.9 The Pipeline as an Energy Diagram
 
@@ -674,7 +674,7 @@ The complete energy mapping:
 
 ### 6.11 Transformers Are Fork/Race/Fold Graphs
 
-The energy framing reveals that convolutional neural networks and transformers are not analogous to fork/race/fold -- they *are* fork/race/fold graphs. The author's discovery of the cover space algorithm while working on its subspace implementation is not serendipity but a necessary consequence of divorce-bound impecunity and a recalcitrant energy-based perspective.
+The energy framing highlights that convolutional neural networks and transformers can be represented as fork/race/fold graphs at useful levels of abstraction.
 
 **Multi-head attention is fork/race/fold.** The input splits into $N$ heads (each with its own $Q$, $K$, $V$ projections). This is fork: $\beta_1 = N - 1$. All heads compute attention over the same sequence simultaneously -- race. Concatenation plus linear projection -- fold: the merger function $f$ that produces a single representation. Softmax suppression (low-attention scores $\to \sim 0$) is continuous venting: the system shedding paths that don't contribute.
 
@@ -696,15 +696,15 @@ The energy framing reveals that convolutional neural networks and transformers a
 
 The entire transformer is a **nested** fork/race/fold/vent graph. Each layer is fork/fold. Each attention computation within a layer is fork/race/fold. The stack of $L$ layers is a pipeline.
 
-Transformer architecture is the Wallington Rotation applied recursively.
+Transformer architecture can be interpreted as a recursive Wallington-style composition.
 
-**Backpropagation is the energy accounting.** The loss function measures thermodynamic efficiency: how much of the input's potential energy was converted to useful work (correct predictions) versus waste heat (incorrect predictions). The gradient $\partial Q / \partial \theta$ -- the derivative of waste heat with respect to parameters -- tells the optimizer how to adjust the system so the next forward pass vents less. Training is iteratively reducing $Q$ while preserving $W$. Convergence is thermodynamic equilibrium.
+**Backpropagation as energy accounting (interpretive lens).** The loss function can be read as an efficiency proxy: how much of the input potential maps to useful work (correct predictions) versus waste (incorrect predictions). The gradient $\partial Q / \partial \theta$ indicates how to adjust parameters so future passes vent less. Training then appears as iterative waste reduction subject to model constraints.
 
 **Mixture of Experts makes the topology explicit.** MoE routing with $N$ experts, top-$K$ selection: fork to $N$ experts ($\beta_1 = N - 1$), race the router's gating scores, fold the top-$K$ results, vent the remaining $N - K$. The router *is* the race primitive. The gating function *is* the fold function. The unused experts *are* vented paths. The sparse activation pattern *is* the vent ratio $\rho = (N - K)/N$. What the ML community calls "conditional computation" is what this paper calls fork/race/fold with selective venting.
 
 ### 6.12 Fundamental Physics Is Fork/Race/Fold
 
-The thermodynamic framing is not merely *analogous* to physics. Two results from fundamental physics are structurally identical to fork/race/fold, with quantitative predictions.
+The thermodynamic framing is used as a cross-domain mapping to physics. Two results from fundamental physics admit close structural correspondence with fork/race/fold, with quantitative checks in cited scope.
 
 #### The Feynman Path Integral (Grade A)
 
@@ -712,7 +712,7 @@ In quantum electrodynamics, the probability amplitude for a particle traveling f
 
 $$\mathcal{A}(A \to B) = \sum_{\text{paths}} e^{iS[\text{path}]/\hbar}$$
 
-where $S$ is the action along each path. The particle takes *every* possible path simultaneously. This is not a computational convenience, and, rather, the physics. The calculation has four phases:
+where $S$ is the action along each path. The path-integral calculation is interpreted here in four phases:
 
 1. **Fork.** The particle enters all possible trajectories simultaneously. Each trajectory is a path with phase $e^{iS/\hbar}$. This is fork: one input $\to$ innumerable paths. $\beta_1 \to \infty$.
 2. **Race.** Each path propagates with its own phase accumulation. No path "knows" about the others during propagation (allowing for transport gains). This is race: parallel, independent, timeless (unitary evolution is time-reversible).
@@ -721,7 +721,7 @@ where $S$ is the action along each path. The particle takes *every* possible pat
 
 The classical limit ($\hbar \to 0$) recovers the path of stationary action -- the unique classical trajectory. This is the $\beta_1 = 0$ subspace: one path, no fork, no race, no vent. Classical mechanics is the degenerate case of quantum fork/race/fold, just as sequential pipelines are the degenerate case of the Wallington Rotation.
 
-**This is a structural isomorphism, not a loose analogy.** The path integral admits a faithful fork/race/fold interpretation: the sum over paths maps to fork, interference maps to fold/vent, and the stationary phase approximation maps to the $\beta_1 \to 0$ projection. Feynman diagrams are the computation graphs, and their topological properties ($\beta_1$ = loop order) determine the difficulty of the calculation -- exactly as $\beta_1$ determines pipeline complexity in §3.
+**This is a structural mapping, not a loose analogy.** The path integral admits a fork/race/fold interpretation: the sum over paths maps to fork, interference maps to fold/vent, and the stationary phase approximation maps to the $\beta_1 \to 0$ projection. Feynman diagrams are computation graphs whose topological properties ($\beta_1$ = loop order) track calculation difficulty, similar to how $\beta_1$ tracks pipeline complexity in §3.
 
 **Important distinction.** The correspondence is structural but not operational in the same sense. In computational fork/race/fold, race has a *stopping rule* (first valid result terminates losers) and fold *selects* (nonlinear). In the path integral, all paths contribute amplitudes *deterministically* via linear superposition — there is no early termination, and the "fold" is a sum, not a selection. The quantum fold emerges from interference (constructive amplitudes survive, destructive amplitudes cancel), which is a continuous, linear process — whereas computational fold is a discrete, nonlinear operation. The isomorphism is: both systems fork into parallel paths, propagate independently, and produce a single result through recombination — but the recombination mechanism differs. The computational model selects; the physical model sums. When the fold strategy is consensus (§2.6), the two converge: consensus fold also sums weighted contributions, making the path integral the limiting case of consensus fold with continuous weights $e^{iS/\hbar}$.
 
@@ -747,7 +747,7 @@ The Schrödinger equation is the race phase written as a differential equation. 
 
 **Quantized energy levels are fold constraints.** For bound systems (electrons in atoms, particles in wells), the Schrödinger equation admits only discrete solutions -- specific energy eigenvalues. These are not inputs to the equation; they *emerge* from the fold boundary conditions. The requirement that $\psi \to 0$ at infinity (the wave function must be normalizable) is a fold constraint: it eliminates all solutions that don't converge. The surviving eigenvalues are the fold results. Lasers, LEDs, atomic clocks and MRI machines all depend on these quantized fold outputs.
 
-**Quantum tunneling is incomplete venting.** Classically, a particle encountering a potential barrier higher than its kinetic energy is vented -- it cannot cross. But the Schrödinger equation shows that $\psi$ doesn't drop to zero at the barrier; it decays exponentially through it. If the barrier is thin enough, nonzero amplitude leaks through. This is a path that *should* have been vented but survived because $\hbar > 0$ means the vent is imperfect -- some amplitude always leaks. Flash memory, scanning tunneling microscopes, and nuclear fusion in stars all exploit incomplete venting.
+**Quantum tunneling as incomplete venting.** Classically, a particle encountering a potential barrier higher than its kinetic energy is disallowed from crossing. But the Schrödinger equation shows that $\psi$ decays exponentially through the barrier rather than dropping to zero. If the barrier is thin enough, nonzero amplitude leaks through. In this framework, that is an incomplete-vent analogue. Flash memory, scanning tunneling microscopes, and nuclear fusion in stars exploit this effect.
 
 **Level 2: Stationary Phase Approximation (the vent operator).**
 In the classical limit ($\hbar \to 0$), the phase $e^{iS/\hbar}$ oscillates infinitely fast. Nearly all paths cancel by destructive interference -- they are vented. Only paths near the stationary point of the action survive:
@@ -768,7 +768,7 @@ The hierarchy:
 | 2 | Stationary phase | Maximal vent | $\to 0$ | Only near-classical paths survive |
 | 3 | Newton's laws | Fully folded | $0$ | One path, deterministic |
 
-Each level is a fold. Each fold destroys information. Each fold creates void ($\beta_2$ grows). The entire tower of classical physics -- from Newton to Lagrange to Hamilton -- is nested fold operations on the path integral. You cannot unfold Newton back to Schrödinger, or Schrödinger back to the path integral, without injecting new information (by re-forking).
+Each level can be read as a fold/coarse-graining step. Each step discards information and increases abstraction. In that sense, the classical tower can be interpreted as nested fold operations on path-integral structure. Reconstructing finer levels requires reintroducing information.
 
 This is the Second Law applied to physical theory itself.
 
@@ -789,7 +789,7 @@ Half the gravitational potential energy becomes kinetic energy (thermal motion, 
 
 The virial theorem gives the exact split: $W = V/2$, $Q = V/2$, therefore $\eta = 0.5$. This is a specific, testable prediction that the First Law produces when applied to gravity: $V_{\text{fork}} = W_{\text{fold}} + Q_{\text{vent}}$ with the virial theorem constraining the partition ratio.
 
-Fork/race/collapse describes the formation of stars. This is not metaphorical -- it is a quantitative physical process with measurable outcomes.
+Fork/race/collapse provides an interpretive description of star formation that is aligned with measurable physical outcomes.
 
 #### The Weak Force as Vent Operator (Grade B+)
 
@@ -803,9 +803,9 @@ The strong force exhibits a property with no analogue in the other nine connecti
 
 In particle physics, Color Confinement is the phenomenon that prevents us from ever seeing a "naked" quark or gluon. It is the reason why quarks are always locked inside composite particles like protons and neutrons, and why you can never isolate a single one. To be clear, the "Color" in the name refers to Color Charge, which has nothing to do with visual light; it is the strong force equivalent of electric charge.
 
-Color confinement enforces topological closure: $\beta_2 = 0$ for color charge. There are no unreachable color states, no void. Every configuration must be color-neutral. You try to create a void; the strong force fills it by forking new particles. This is conservation of topological closure -- a constraint stronger than anything in the computational domain, where venting is always permitted.
+Color confinement can be interpreted as a topological-closure constraint: isolated color-charged states are not observed, and attempted separation drives pair creation. In this framework, that appears as anti-vent behavior.
 
-This means that fork/race/fold is not just a metaphor for physical processes; it is a fundamental constraint on what is possible. The strong force prevents the creation of color-charged voids, just as the computational domain prevents the creation of information voids. The strong force is nature's most aggressive anti-vent operator.
+This strengthens the mapping intuition: the strong-force case behaves like an anti-vent operator under this vocabulary, while computation typically permits explicit venting.
 
 #### Symmetry Breaking as Fold (Grade B+)
 
@@ -820,11 +820,11 @@ Spontaneous symmetry breaking is fold: many equivalent states $\to$ one selected
 
 #### The Arrow of Time as Fork/Fold Asymmetry (Grade B)
 
-The second law of thermodynamics — entropy increases over time — arises from the asymmetry between fork and fold. Fork is reversible: you can un-fork by immediately folding. Fold is irreversible: once you select a winner and vent the losers, the information in the vented paths is gone. Race itself is reversible (unitary evolution in quantum mechanics; time-reversible Newtonian dynamics). The irreversibility enters at the fold/vent boundary — the moment of selection. This is the thermodynamic arrow: entropy increases because fold discards paths, and the information-theoretic cost of discarding (§6.8) is exactly the entropy increase. The arrow of time IS the fold direction: from $\beta_1 > 0$ (many paths, high entropy of selection) to $\beta_1 = 0$ (one path, determined outcome). You cannot unscramble an egg because unscrambling would require un-venting — recovering information that was irreversibly dissipated at the fold.
+The second law of thermodynamics — entropy increases over time — can be related to fork/fold asymmetry. Fork is reversible in principle if immediately recombined. Fold is effectively irreversible in this model: once a winner is selected and losers are vented, discarded path information is unavailable. The irreversibility enters at the fold/vent boundary — the moment of selection. In this interpretation, time's arrow aligns with movement from $\beta_1 > 0$ (many paths) toward $\beta_1 = 0$ (selected outcome).
 
 #### The Computational Domain as Fold (Grade B+)
 
-The computational domain is the fold that constrains all possible states. It is the boundary that defines what is computable and what is not. The domain is the fold that prevents the creation of information voids. The domain is the fold that prevents the creation of information voids, the fold that enforces topological closure.
+The computational domain can be viewed as a fold boundary that constrains reachable states and enforces closure in the modeled graph.
 
 ### 6.13 The Optimality Diagnostic
 
@@ -846,7 +846,7 @@ I define the unit of topological deficit as the **Bule** (symbol: **B**). One Bu
 
 $$1 \text{ B} = 1 \text{ unit of } \Delta_\beta = \beta_1^* - \beta_1$$
 
-A system at 0 B is topologically optimal. A system at 3 B is wasting three independent parallel paths. The Bule is dimensionless, integer-valued, and directly measurable from the computation graph.
+A system at 0 B is topology-matched in this metric. A system at 3 B is leaving three independent parallel paths unexploited. The Bule is dimensionless, integer-valued, and directly measurable from the computation graph.
 
 This also gives a testable meaning to **computational aesthetics**: elegance is the degree of fit between implemented topology and problem topology. In this framing, Bules are an aesthetic meter. Low-Bule systems feel natural because structure and task align; high-Bule systems feel strained because the structure is fighting the work.
 
@@ -856,27 +856,27 @@ Originally, I named this unit of waste, the Bule, after myself in self-deprecati
 
 | System | $\beta_1^*$ | $\beta_1$ | Deficit | Observable Waste |
 |--------|------------|----------|---------|-----------------|
-| Healthcare diagnosis | $\geq 3$ | 0 (referral chain) | $\geq$ 3 B | 4.8-year average diagnostic delay for rare diseases [21] |
-| Financial settlement | 2 | 0 (T+2 sequential) | 2 B | \$70 trillion unnecessarily locked capital [21] |
+| Healthcare diagnosis | $\geq 3$ | 0 (referral chain) | $\geq$ 3 B | 4.7-year average diagnostic delay for rare diseases [29] |
+| Financial settlement | 2 | 0 (T+2 sequential) | 2 B | \~\$4.4T/day core lockup at T+2, with broad-scope sensitivity up to \~\$70T/day [21, 30] |
 | HTTP/2 multiplexing | $N_{\text{streams}}$ | 0 (TCP substrate) | $N$ B | Head-of-line blocking on any packet loss |
 | Photosynthetic antenna | $\sim 7$ (pigments) | $\sim 7$ (quantum coherence) | 0 B | >95 percent energy transfer efficiency |
 | Path integral | $\infty$ | $\infty$ | 0 B | Exact quantum-mechanical predictions |
 | DNA replication | 1 (lagging strand) | 1 (Okazaki fragments) | 0 B | Replication matches leading strand speed |
 | Saltatory conduction | nodes $- 1$ | nodes $- 1$ | 0 B | 100x speedup vs. continuous conduction |
 
-The pattern: **every system where $\Delta_\beta = 0$ operates at or near its theoretical efficiency.** Every system where $\Delta_\beta > 0$ has measurable, quantifiable waste. The deficit is not abstract -- it maps to years of diagnostic delay, trillions of locked capital, and protocol-level blocking.
+In this paper's analyzed set, the pattern is: **systems with $\Delta_\beta = 0$ operate at or near theoretical efficiency, and systems with $\Delta_\beta > 0$ exhibit measurable waste.** The deficit is not abstract -- it maps to years of diagnostic delay, trillions of locked capital, and protocol-level blocking.
 
 This yields a practical diagnostic tool:
 
 1. **Measure $\beta_1^*$**: analyze the problem's dependency structure to find its intrinsic parallelism. Independent inputs are independent paths. Sequential dependencies are constraints that reduce $\beta_1^*$.
 2. **Measure $\beta_1$**: count the actual parallel paths in the implementation. A sequential pipeline has $\beta_1 = 0$. A fork with $N$ paths has $\beta_1 = N - 1$.
-3. **Compute $\Delta_\beta$**: the gap is the optimization opportunity. If $\Delta_\beta > 0$, the system is suboptimal by construction -- no amount of micro-optimization within the existing topology can recover the parallelism that the topology itself prevents.
+3. **Compute $\Delta_\beta$**: the gap is the optimization opportunity. If $\Delta_\beta > 0$, the system is topologically constrained; micro-optimization within that fixed topology cannot recover the parallel paths the topology itself suppresses.
 
-**The converse is equally powerful.** When you encounter a system that already exhibits fork/race/fold at $\Delta_\beta = 0$ -- photosynthesis, DNA replication, myelinated nerve conduction -- you can infer that evolution has found the optimal topology for that problem. The billions of years of selection pressure have converged to the same shape that the three constraints predict. The Betti numbers match because there is no better shape to converge to.
+**A scoped converse.** When a system exhibits fork/race/fold with $\Delta_\beta = 0$ -- for example, photosynthesis, DNA replication and myelinated conduction in this analyzed set -- that is evidence consistent with near-optimal topological fit under this paper's constraints. It is not a universal proof of unique optimality.
 
-This is why the biological examples in §1 are not decoration. They are **existence proofs of optimality.** When we observe that *Physarum* constructs transport networks matching the Tokyo rail system, we are observing $\Delta_\beta \approx 0$ achieved without engineering -- the slime mold's topology matches the problem's topology because evolution found the fork/race/fold shape. When we observe that photosynthetic antenna complexes achieve >95 percent energy transfer efficiency, we are observing $\Delta_\beta = 0$ at quantum scale -- the system's $\beta_1$ matches the problem's $\beta_1^*$ because physics itself operates at fork/race/fold.
+This is why the biological examples in §1 are not decoration. They are evidence for the convergence hypothesis. When *Physarum* constructs transport networks that closely match the Tokyo rail system, we observe a small measured deficit without centralized design. When photosynthetic antenna complexes achieve >95 percent transfer efficiency, we observe a high-fit topology for that step of the process. These are strong exemplars, not universal proofs.
 
-The optimality diagnostic also explains **why quantum computing promises speedups**. Classical computation forces $\beta_1 = 0$ -- one computational path at a time. Quantum computation operates at the problem's intrinsic $\beta_1^*$, which for search problems is $\sqrt{N}$ (Grover) and for factoring is $\log N$ (Shor). The quantum speedup *is* the topological deficit that classical computing pays: $\Delta_\beta = \beta_1^* - 0 = \beta_1^*$. Quantum computers close the deficit. The speedup is not magic -- it is the system finally matching the problem's natural topology.
+The optimality diagnostic also clarifies **one route to quantum speedup**. Classical implementations with $\beta_1 = 0$ can carry a topological deficit that quantum systems partially close by exploring paths concurrently. For some problem families (for example, unstructured search), this manifests as the familiar Grover-style gap. But the converse does not hold in general: high structural readiness does *not* automatically imply Grover/Shor-style asymptotics. In exact full-aggregation workloads (checksums, exact sums, full histograms), the black-box cost still scales as $\Theta(N)$ because every item must be read. In this paper's framing, $\Delta_\beta > 0$ is a **necessary structural precondition** for quantum advantage in the modeled class, not a sufficient certificate of asymptotic improvement.
 
 Previously misunderstood algorithmic aesthetics hereby become intuitive. Aesthetic deficit is very real: it maps to years of diagnostic delay, trillions of locked capital and protocol-level blocking. Bad software is not just inefficient -- it is a topological failure.
 
@@ -895,6 +895,10 @@ This leads to a practical claim:
 > **Heuristic claim.** Sustained map/reduce usage is evidence of **topology readiness** for Wallington pipelines (fork/race/fold + vent), and therefore evidence of potential quantum-readiness in the narrow structural sense (the problem admits concurrent path exploration and deterministic projection).
 
 This is **not** a claim of automatic quantum advantage. It does **not** imply Grover/Shor-style asymptotics. It only claims structural compatibility.
+
+> **Safe strengthened claim.** Within the black-box workload scope used here, topology readiness is a **necessary screening condition** for practical quantum-advantage candidates: without exposed parallel frontier + deterministic fold boundary + nonzero topological opportunity ($O_\beta = 0 \Rightarrow R_{\text{qr}} = 0$), there is no credible Grover-style path to speedup. Passing that screen is still not sufficient; asymptotic gain remains family-dependent.
+
+Executable companion coverage makes this boundary explicit [21, 26]: (i) when $O_\beta = 0$, modeled migration gain collapses to near-zero even with high map/reduce quality, (ii) a high-$R_{\text{qr}}$ workload can still have no asymptotic quantum speedup (full aggregation: classical $\Theta(N)$, quantum $\Theta(N)$), and (iii) another high-readiness family can exhibit Grover-style scaling (unstructured search: classical $\Theta(N)$, quantum $\Theta(\sqrt{N})$). The heuristic therefore screens for topology compatibility, not algorithmic complexity class.
 
 I separate readiness from opportunity:
 
@@ -1065,7 +1069,7 @@ This is the same pattern as Okazaki fragments in DNA replication, chosen to unde
 
 ### 8.3 Why UDP Only
 
-TCP had a magnificent 40-year run. It made the internet possible. But TCP was designed for a world where $\beta_1 = 0$ was a reasonable assumption -- one connection, one stream, one conversation. The moment you need $\beta_1 > 0$, every TCP guarantee becomes a liability:
+TCP had a long and successful run. For workloads with high concurrent-path structure ($\beta_1 > 0$), some TCP guarantees become tradeoffs:
 
 | TCP Guarantee | Why It Hurts |
 |---------------|-------------|
@@ -1076,9 +1080,9 @@ TCP had a magnificent 40-year run. It made the internet possible. But TCP was de
 
 HTTP/2 tried to multiplex streams over TCP. The application topology ($\beta_1 > 0$) contradicts the transport topology ($\beta_1 = 0$). Head-of-line blocking is the topological symptom (§3.4). HTTP/3 (QUIC) partially resolves this with per-stream loss recovery on UDP, but maintains ordered delivery within each stream and carries substantial framing complexity.
 
-Aeon Flow -- a faster, cheaper and more private alternative to HTTP, delivered over UDP does not patch TCP's problems: it obviates them entirely.
+Aeon Flow -- a UDP-native alternative in this paper's benchmark scope -- does not patch TCP's problems at the application layer; it changes the transport assumptions directly.
 
-It starts from the topology and asks: what wire format does $\beta_1 > 0$ actually need? The answer: self-describing frames with no ordered delivery. AIMD congestion control per-stream (not per-connection). MTU-aware fragmentation (4-byte fragment header, 255 fragments × 1,468 bytes). ACK bitmaps (14 bytes covering 64 sequences). The protocol is 800 lines of TypeScript. In the shootoff benchmarks, it beats HTTP/3 on every measured framing and latency metric because it has no topological contradictions to resolve -- the shape of the wire matches the shape of the problem from the first byte [21].
+It starts from the topology and asks which wire format better fits $\beta_1 > 0$ workloads: self-describing frames with no ordered delivery, AIMD congestion control per-stream (not per-connection), MTU-aware fragmentation (4-byte fragment header, 255 fragments × 1,468 bytes), and ACK bitmaps (14 bytes covering 64 sequences). The protocol is about 800 lines of TypeScript. In the shootoff benchmarks used here, it outperforms HTTP/3 on measured framing metrics and selected latency measurements. These are benchmark-scoped results, not a universal internet-wide claim; the topological-fit interpretation is a mechanism hypothesis supported by these measurements [21].
 
 ### 8.4 Protocol Comparison
 
@@ -1123,7 +1127,7 @@ This is where the topology matters. HTTP/1.1 wastes **31 percent of total bandwi
 
 At 100ms RTT, HTTP/1.1 needs 16 round trips (1.6 seconds of pure latency). Aeon Flow: 1 round trip. The difference is not optimization -- it is topology. HTTP/1.1 has $\beta_1 = 0$ (one request per connection, six connections). Aeon Flow has $\beta_1 = 94$ (95 streams, one connection). The framing overhead is the cost of forcing a high-$\beta_1$ problem through a low-$\beta_1$ pipe.
 
-Modern software developers can attest to the imminent usefulness of this application: amid browser-based demand for fast load times and low interaction to next paint (INP) time, front-end engineering conventions supply myriad files as the result of dependency tree-shaking and other optimizations. There are dozens if not hundreds of small files, whose network penalty compounds at the price of the very problem its trying to solve. Aeon Flow multi-plexes these requests into a single origin hit. As binary is delivered over the wild, cumulative layout shift (CLS) is impossible and the progressive hydration made unnecessary.
+Modern frontend workloads often ship many small assets after tree-shaking and code splitting, which amplifies request/metadata overhead. In this benchmark scope, Aeon Flow multiplexes these assets through one transport session and reduces framing cost. Effects on CLS, INP and hydration strategy remain application-dependent and are not guaranteed by transport alone.
 
 ## 9. Instantiation E: Topological Compression (Stack Layer 5 — Capstone)
 
@@ -1155,7 +1159,7 @@ I implement this with eight codecs:
 | 6 | Huffman | Pure JS | Skewed byte distributions |
 | 7 | Dictionary | Pure JS | Web content (HTML/CSS/JS keywords) |
 
-Before any excitement takes hold, the author feels it's important to note that while fork/race/fold gives us a container to run optimized compression, it does not itself offer any gains over the algorithm it subsumes. So while it will help you pick the fastest compression algorithm given an environment, it does not offer any sort of compression gains in of itself, beyond the algorithms it subsumes; instead, it merely eliminates the overhead thereof.
+Before any excitement takes hold, it is important to state a boundary: fork/race/fold provides a container for adaptive codec selection, not a guaranteed ratio improvement over the best standalone codec on homogeneous payloads. Its value here is strategy selection, composability and bounded framing overhead.
 
 ### 9.2 What the Benchmarks Actually Show
 
@@ -1179,7 +1183,7 @@ I benchmark across both sites on Aeon Flow transport. The results are honest:
 
 **Standalone brotli wins on compression ratio.** On these benchmarks -- homogeneous web content -- global brotli beats per-chunk topological compression by 4–15 percentage points, darn it. This is not surprising: brotli compresses the entire stream with a sliding window that builds dictionary context across chunks. Per-chunk compression resets the dictionary every 4096 bytes.
 
-The two-level race (§9.3) confirms this. When given the choice between global brotli and per-chunk topological, it picks global brotli every time on these payloads, matching standalone brotli's ratio plus 5 bytes of strategy header. Per-chunk topological never wins the stream-level race on homogeneous content because the 9-byte per-chunk header tax and the loss of cross-chunk dictionary context always exceed whatever the per-chunk adaptive selection saves.
+The two-level race (§9.3) confirms this. On these payloads, when given the choice between global brotli and per-chunk topological, it picks global brotli in all observed runs, matching standalone brotli's ratio plus 5 bytes of strategy header. For this homogeneous-content benchmark, the 9-byte per-chunk header tax and the loss of cross-chunk dictionary context outweighed per-chunk adaptive gains.
 
 ### 9.3 Two-Level Stream Race
 
@@ -1195,7 +1199,7 @@ race → smallest total output wins
 fold → 5-byte strategy header + compressed data
 ```
 
-This is the usefulness of fork/race/fold to compression: it guarantees that topological compression is **never worse** than standalone brotli -- because brotli is one of its racing paths. On these benchmarks it is never **better** either. The 5-byte stream header is the only overhead.
+This is the usefulness of fork/race/fold to compression: with brotli included as a racing path, the stream-level strategy tracks brotli's ratio within a bounded strategy-header overhead. On these benchmarks it is not better than standalone brotli; the observed downside is the fixed 5-byte strategy header.
 
 ### 9.4 What the Topology Actually Provides
 
@@ -1205,7 +1209,7 @@ If topological compression does not beat brotli on ratio, what is the point?
 
 **2. Platform independence.** Brotli requires `node:zlib` (Node, Bun, Deno). In browsers and Cloudflare Workers, it is unavailable. Topo-pure -- six codecs in pure JavaScript, zero dependencies -- achieves 36.8 percent ratio on the microfrontend with no native code. The topology degrades gracefully: full ratio when brotli is available, reasonable ratio when it is not. For software engineers, there is technical value in fewer depencies. For people, it helps set the table for a serverless ecosystem built on a local-first technology stack.
 
-**3. Per-chunk random access.** The per-chunk format enables decompression of individual chunks without processing the entire stream. For seeking into large payloads, resuming interrupted transfers, or parallel decompression, this is structurally impossible with global brotli.
+**3. Per-chunk random access.** The per-chunk format enables decompression of individual chunks without processing the entire stream. For seeking into large payloads, resuming interrupted transfers, or parallel decompression, monolithic global brotli requires external indexing to provide comparable access.
 
 **4. Adaptive codec selection on heterogeneous data.** On the per-chunk level, different regions of the input genuinely select different codecs. The shootoff shows 3 distinct codecs winning across 151 chunks on realistic web content (brotli for text chunks, dictionary for web-pattern-heavy chunks, raw for incompressible binary). No single algorithm achieves this without the topology.
 
@@ -1221,7 +1225,7 @@ The two-level stream race eliminates this disadvantage by including global brotl
 
 The progression four codecs ($\beta_1 = 3$) → six codecs ($\beta_1 = 5$) → eight codecs ($\beta_1 = 7$) demonstrates the covering space property: each expansion improved pure-JS compression without changing the base space. But adding brotli and gzip to the race, while improving per-chunk results, still cannot overcome the fundamental advantage of global dictionary context.
 
-**The topology subsumes the algorithm. It does not necessarily surpass it.** I will not pretend this is the result I wanted. I wanted to dust brotli -- to show that topological compression, by racing eight codecs per chunk with adaptive selection, could outperform decades of careful engineering in a C-native algorithm. It does not. Global brotli with its full-stream dictionary context is genuinely excellent at compressing web content, and no amount of per-chunk cleverness overcomes the fundamental information advantage of seeing the entire input at once. The honest conclusion is that the topology provides structural guarantees -- subsumption, platform independence, random access, extensibility -- but not ratio superiority. That is still worth having. It is not the same as winning.
+**The topology subsumes the algorithm. It does not necessarily surpass it.** On the evaluated web-content workloads, topological compression with per-chunk racing did not outperform global brotli ratio. Global brotli's full-stream dictionary context retained a strong information advantage for these inputs. The practical conclusion is that topology provides structural guarantees -- subsumption, platform independence, random access, extensibility -- without guaranteeing ratio superiority on homogeneous content.
 
 Executable evidence is available in two independent suites: the companion topological-compression obligations [21] and the production `TopologicalCompressor` tests in the open-source `@affectively/aeon` package [20]. Together they verify per-chunk adaptive winner selection, 9-byte self-describing chunk headers, codec vent behavior (discarding expansions), two-level stream race strategy selection, $\beta_1 = \text{codecs} - 1$ invariants and roundtrip correctness across edge cases and large payloads.
 
@@ -1237,7 +1241,7 @@ Executable evidence is available in two independent suites: the companion topolo
 
 ## 10. Instantiation A: Self-Verification (Stack Layer 1 — Foundation)
 
-The most striking proof that fork/race/fold encapsulates all logic: the model checker can verify itself.
+A strong executable result for expressiveness in this scope: the model checker can verify a model of its own exploration.
 
 ### 10.1 The Checker's BFS Is Fork/Race/Fold
 
@@ -1272,11 +1276,11 @@ The same model is rendered as a TLA+ specification via `renderSelfVerificationAr
 
 ### 10.4 Closure Under Self-Application
 
-The self-verification is not a demonstration -- it is a proof of closure. The topology stats the checker reports about verifying itself (`forkCount`, `foldCount`, `beta1`) are themselves fork/race/fold observables. The meta-topology -- the topology of the checker checking itself -- has forks (multiple actions enabled per state), folds (different action sequences reaching the same checker state), and measurable $\beta_1$.
+In the finite-model scope used here, self-verification provides a constructive closure result. The topology stats the checker reports about verifying itself (`forkCount`, `foldCount`, `beta1`) are themselves fork/race/fold observables. The meta-topology -- the topology of the checker checking itself -- has forks (multiple actions enabled per state), folds (different action sequences reaching the same checker state), and measurable $\beta_1$.
 
 This means fork/race/fold is closed under self-application: a system built from these primitives can reason about systems built from these primitives. The topological deficit $\Delta_\beta$ of self-verification measures the cost of self-knowledge.
 
-56 executable tests verify these claims [26].
+Executable companion tests verify these claims [26].
 
 ## 11. Instantiation B: Formal Language Theory (Stack Layer 2)
 
@@ -1339,6 +1343,10 @@ $$\text{TypeScript (Betty)} \xrightarrow{\text{compiles}} \text{GGL (Betti)} \xr
 
 This is closure under a different axis than §10. Self-verification (§10) proves that the checker can reason about itself — closure under *reasoning*. Self-hosting (Betti) proves that the language can compile itself — closure under *construction*. Together they establish that fork/race/fold is closed under both reasoning and construction: you can build tools from these primitives and verify tools built from these primitives, using the same primitives.
 
+Gnosis supports a strong evidence-backed claim: it is a self-hosted, self-checking topology language with automated formal-artifact generation. The compiler topology is itself written in GG (`betti.gg`) and included in formal lint checks, while execution paths enforce bounded-state structural verification with explicit invariants and eventual reachability conditions before or during topology use. The `verify` workflow can generate TLC-ready TLA+ modules and configs with safety and liveness obligations, and these paths are covered by source-level tests and formal-check scripts [21, 26, 28].
+
+This is a claim of structural formal compatibility and mechanized verification workflow, not a claim of automatic asymptotic quantum advantage.
+
 ### 11.5 The Five Domains as a Stack
 
 The five instantiation domains are not independent — they form a stack, each enabled by the ones below:
@@ -1391,11 +1399,13 @@ const drug = await new Pipeline({ capacity: 64 })
   });
 ```
 
-The `search()` operation implements a classical approximation of Grover's algorithm: for $N$ candidates with $W$-wide parallelism, convergence in $\sim\sqrt{N/W}$ iterations -- a quadratic speedup over sequential evaluation.
+The `search()` operation is a classical heuristic inspired by Grover-style amplification patterns. In some landscapes it reduces empirical iteration counts versus naive sequential search, but this is not an asymptotic complexity claim.
 
 ### 11.1 Performance
 
-The pipeline engine is fast enough to disappear. Orchestration overhead is microseconds; the bottleneck is always the user's work functions, never the topology.
+The pipeline engine is designed for low orchestration overhead. In the microbenchmarks below, orchestration cost is in the microsecond range, and profiled workloads are typically dominated by user work functions.
+
+A stronger statement is now mechanized as a conditional formal obligation in `SchedulerBound.tla`: under finite-topology execution with bounded frame metadata and constant-time scheduler primitives, scheduler transition cost is an additive bounded term independent of user-handler runtime. This justifies "handler-dominated runtime" only within those explicit assumptions, not as a universal claim [21].
 
 | Operation | Latency | Notes |
 |-----------|---------|-------|
@@ -1435,12 +1445,12 @@ The engine includes a wire format bridge to the Aeon Flow protocol. The same 10-
 
 The claims are backed by executable tests across four independent suites:
 
-- **Companion obligations and executable proofs** (206 passing tests): pipeline topology, queueing containment, flow-frame invariants, compression race properties, shootoff reproductions, finite-DAG decomposition coverage, §7 formula checks (Worthington Whip $(S-1)/2S$, Speculative Tree $(1-\alpha^K)/(1-\alpha)$, turbulent multiplexing idle-fraction bounds), quantum-topology claims (Grover-style $\Delta_\beta$ scaling and Kronig-Penney band gaps as $\beta_2 > 0$), convergence simulation under the three constraints, evidence-table deficits (e.g., T+2 settlement $\Delta_\beta = 2B$), self-hosted formal artifact parsing/round-trip validation with `aeon-logic`, a parser shootoff benchmark against Java SANY startup-parse baselines (stabilized multi-sample harness on March 11, 2026: 9 measured samples after warmup, `aeon-logic` median 49.51 ms for 19,200 artifacts with IQR 48.21–49.94 ms = 387,780.9 artifacts/s; Java SANY median 116.45 ms on `BandGapVoid.tla` with IQR 115.13–122.08 ms, implying approximately 45,156.7x normalized per-artifact throughput), plus a differential parse-equivalence harness against SANY outcomes (100% agreement on the current formal corpus: 8/8 original modules, 8/8 round-tripped modules and 16/16 invalid-corpus rejections). The parser result is therefore speed plus capability surface: unlike the parser-only baseline, `aeon-logic` also exposes superposition chains, quorum temporal operators, topology bridges and embedded model-checker interfaces in the same runtime [26, 27]. Mechanized TLA+ model checking across eight formal modules (C1–C4, §7 formulas, cross-shard crossover, protocol/settlement deficits, quantum deficit identity, band-gap void, beauty-optimality scaffold), and a Lean 4 theorem package with constructive identities plus explicit-assumption theorem schemas (including global convergence schema) verify the strongest operational claims section by section [21, 25, 26, 27].
+- **Companion obligations and executable proofs** (212 passing tests): pipeline topology, queueing containment, flow-frame invariants, compression race properties, shootoff reproductions, finite-DAG decomposition coverage (including edge-cover exactness and full source-to-sink path-set preservation), §7 formula checks (Worthington Whip $(S-1)/2S$, Speculative Tree $(1-\alpha^K)/(1-\alpha)$, turbulent multiplexing idle-fraction bounds), quantum-topology claims (Grover-style $\Delta_\beta$ scaling and Kronig-Penney band gaps as $\beta_2 > 0$), map/reduce readiness diagnostics (boundedness/monotonicity, nonzero-opportunity necessity in migration simulation, independent migration-simulator rank ordering, and high-readiness counterexample families showing non-automatic quantum asymptotics), convergence simulation under the three constraints, evidence-table deficits (including T+2 settlement $\Delta_\beta = 2B$ under both core and broad-scope lockup scenarios), evidence-traceability calibration/provenance/reference checks, self-hosted formal artifact parsing/round-trip validation with `aeon-logic`, a parser shootoff benchmark against Java SANY startup-parse baselines (stabilized multi-sample harness: 9 measured samples after warmup, `aeon-logic` median 49.51 ms for 19,200 artifacts with IQR 48.21–49.94 ms = 387,780.9 artifacts/s; Java SANY median 116.45 ms on `BandGapVoid.tla` with IQR 115.13–122.08 ms, implying approximately 45,156.7x normalized per-artifact throughput), plus a differential parse-equivalence harness against SANY outcomes (100% agreement on the current formal corpus for original modules, round-tripped modules and invalid-corpus rejections). The parser result is therefore speed plus capability surface: unlike the parser-only baseline, `aeon-logic` also exposes superposition chains, quorum temporal operators, topology bridges and embedded model-checker interfaces in the same runtime [26, 27]. Mechanized TLA+ model checking across the current formal module set (C1–C4, §7 formulas, cross-shard crossover, scheduler-overhead bounds, protocol/settlement deficits, quantum deficit identity, band-gap void, beauty-optimality scaffold), and a Lean 4 theorem package with constructive identities plus explicit-assumption theorem schemas (including global convergence schema) verify the strongest operational claims section by section [21, 25, 26, 27].
 - **Open-source flow + compression runtime** (170 passing tests): `@affectively/aeon` flow/compression tests verify 10-byte self-describing flow frames, UDP fragmentation/ACK behavior, frame reassembly, flow protocol semantics, WASM force-mode/error semantics, and topological compression properties [20].
-- **Open-source topology engine** (136 passing tests): `@affectively/aeon-pipelines` tests cover fork/race/fold/vent primitives, fold strategies, Reynolds/backpressure/turbulent multiplexing, quantum modalities, flow-bridge wire compatibility, domain scenarios and microbenchmarks [2].
+- **Open-source topology engine** (139 passing tests): `@affectively/aeon-pipelines` tests cover fork/race/fold/vent primitives, fold strategies, Reynolds/backpressure/turbulent multiplexing, quantum modalities, flow-bridge wire compatibility, domain scenarios and microbenchmarks [2].
 - **Open-source topology analyzer suite** (29 passing tests): `TopologyAnalyzer`/`TopologySampler` tests in `@affectively/aeon` validate Betti extraction, $\Delta_\beta$ diagnostics, $\beta_2$ void detection and executable protocol-topology contrasts [20].
 
-Total validated tests referenced here: **541 passing tests**, plus parser-validated formal artifacts, mechanized Lean theorem builds and mechanized TLC runs across eight TLA+ modules, with executable commands and source-visible assertions in the linked repositories [2, 20, 21, 25, 26, 27].
+Total validated tests referenced here: **550 passing tests**, plus parser-validated formal artifacts, mechanized Lean theorem builds and mechanized TLC runs across the current TLA+ module set, with executable commands and source-visible assertions in the linked repositories [2, 20, 21, 25, 26, 27].
 
 ## 14. Limitations
 
@@ -1448,7 +1458,7 @@ Total validated tests referenced here: **541 passing tests**, plus parser-valida
 
 **Cross-shard cost.** The Worthington Whip crossover is characterized in finite bounded models: after full sharding, nonzero correction cost makes additional shards strictly non-improving (TLA+ `WhipCrossover` + Lean theorem + executable tests). Extending this characterization to richer timing/service distributions and adaptive sharding policies remains future work.
 
-**Formal model scope.** C1–C4, §7 formulas (including cross-shard crossover), protocol/settlement deficits, quantum deficit identity, band-gap void, beauty-optimality scaffolds and convergence schema are mechanized in a two-layer stack: finite-state transition models in TLA+ (TLC), plus Lean theorems with explicit assumptions for quantitative identities and theorem schemas for global claims, all preflighted through the self-hosted `aeon-logic` parser [21, 25, 26, 27]. The self-verification (§10) is scoped to finite, non-probabilistic, untimed state spaces. Extending these proofs to richer timing/service distributions, unbounded state spaces, probabilistic systems (randomized protocols), real-time systems (strict latency bounds), and full stochastic semantics remains future work.
+**Formal model scope.** C1–C4, §7 formulas (including cross-shard crossover), scheduler-overhead bounds, protocol/settlement deficits, quantum deficit identity, band-gap void, beauty-optimality scaffolds and convergence schema are mechanized in a two-layer stack: finite-state transition models in TLA+ (TLC), plus Lean theorems with explicit assumptions for quantitative identities and theorem schemas for global claims, all preflighted through the self-hosted `aeon-logic` parser [21, 25, 26, 27]. The self-verification (§10) is scoped to finite, non-probabilistic, untimed state spaces. Extending these proofs to richer timing/service distributions, unbounded state spaces, probabilistic systems (randomized protocols), real-time systems (strict latency bounds), and full stochastic semantics remains future work.
 
 **Queueing theory subsumption scope.** Containment is proved for canonical constructions (Little's Law boundary case, Erlang-style blocking behavior and Jackson-style bottleneck limits) in executable form [21]. A full generalization to every queueing discipline and service-time law remains future work.
 
@@ -1463,35 +1473,35 @@ The path between those two points is fork/race/fold: four operations that expres
 3. **Fold** projects $\beta_1 \to 0$, extracts work $W$ -- merge results deterministically.
 4. **Vent** releases excess paths, dissipates heat $Q$ -- propagate down, never across.
 
-These operations are not new. As we now realize, DNA replication has used them for 4 billion years. Myelinated neurons pipeline action potentials through them at 100 m/s -- a velocity my formula predicts exactly. Photosynthetic antenna complexes fork/race excitation energy at quantum scale with >95 percent efficiency. An insipid slime mold used them to recreate the Tokyo rail network in a laughable 26 hours.
+These operations are not new. DNA replication has used analogous structure for billions of years. Myelinated neurons pipeline action potentials at measured speeds up to roughly 100 m/s, within the range discussed in §1.3. Photosynthetic antenna complexes exhibit >95 percent transfer efficiency in the cited step-level measurements. *Physarum* recreated a rail-like topology in roughly 26 hours.
 
-The innumerable conveyor belts of this world -- Ford's line, TCP's stream, the hospital's referral chain -- are the degenerate case. It works when the answer is known, resources are unlimited and a central clock exists. In every other case -- which is every real case -- the natural topology has $\beta_1 > 0$, and forcing it to zero is where latency hides. Their waste now eliminatable and their tragic consequences escapable.
+The innumerable conveyor belts of this world -- Ford's line, TCP's stream, the hospital's referral chain -- are a useful degenerate case. They work best when the answer is known, resources are ample and a central clock exists. In many real systems, the natural topology has $\beta_1 > 0$, and forcing it to zero hides latency and waste.
 
-All computational waste is now in scope for humanity. We can measure it, quantify it, and eliminate it.
+A broad class of computational waste is now in scope for measurement and reduction. We can quantify topological mismatch and target it directly.
 
-The framework's language was not invented from scratch. It was borrowed -- deliberately and entirely -- from physical theories that already describe the phenomena I formalize. Quantum physics provided the lexicon: superposition, tunneling, interference, entanglement, measurement, collapse. These are not metaphors but structural correspondences, validated by photosynthetic systems where the quantum mechanics is literal. The Feynman path integral admits a faithful fork/race/fold interpretation: all paths forked, phases raced, amplitudes folded by interference, non-classical paths vented by destructive cancellation (§6.12). The entire tower of classical physics maps to nested fold operations on the path integral: the Schrödinger equation is the differential form of race, the stationary phase approximation is maximal venting, and Newton's $F = ma$ is the fully folded result at $\beta_1 = 0$ (§6.12). The isomorphism is structural — the recombination mechanism in physics (linear amplitude summation) differs from computational fold (nonlinear selection), but both reduce $\beta_1$ from many paths to one outcome. Fluid dynamics provided the scaling intuition: the pipeline Reynolds number predicts phase transitions between sequential and multiplexed scheduling with the same precision that the physical Reynolds number predicts laminar-to-turbulent transitions. Thermodynamics provided the conservation laws: fork injects potential energy, race converts it to kinetic, fold extracts useful work, and venting dissipates waste heat. The First Law ($V = W + Q$) holds exactly -- every byte forked is accounted for. The virial theorem gives the exact partition for self-gravitating systems: $W = Q = V/2$ (§6.12). Shannon entropy is the Carnot limit. Frame headers are ground-state energy. The waste heat from vented paths is the cost of certainty -- you need the losers to prove the winner is optimal.
+The framework's language was not invented from scratch. It was borrowed from physical theories that already describe related path-selection phenomena. Quantum physics provided the lexicon: superposition, tunneling, interference, entanglement, measurement, collapse. In this paper, these are structural correspondences within an explicit computational abstraction, with literal quantum examples in photosynthetic transfer. The Feynman path integral admits a fork/race/fold interpretation in that abstraction: all paths forked, phases evolved, amplitudes recombined by interference, and non-classical contributions canceled (§6.12). The recombination mechanism differs (linear amplitude summation in physics vs nonlinear selection/merge in computation), so this is a structural mapping, not an identity claim. Fluid dynamics provides scaling intuition through the pipeline Reynolds number, and thermodynamics provides a conservation accounting lens ($V = W + Q$) for modeled computational work/vent partitioning.
 
-The pattern is not merely widespread -- it is convergent. Attention in transformers *is* race: the $QK^T$ dot product is the race, softmax is continuous venting, the $V$ projection is fold (§6.11). Training loss *is* waste heat: gradient descent minimizes $\partial Q / \partial \theta$ (§6.11). Protein folding *is* fold: the energy landscape funnel is fork/race/fold from Levinthal's $10^{143}$ conformations to the native state [24]. The hylomorphism of category theory -- unfold/fold -- *is* fork/fold. The Carnot cycle's four strokes *are* the four primitives. These are not analogies. They are structural isomorphisms that emerge because systems in the modeled class that transform input to output under conservation (First Law), irreversibility (Second Law) and minimum overhead (Third Law) converge to fork/race/fold (mechanized as schema + executable simulation evidence).
+The pattern appears convergent in the analyzed set. Attention in transformers can be mapped to race-like scoring ($QK^T$), with softmax/selection and value projection as fold-like operations (§6.11). Protein folding can be read as path exploration with energetic selection [24]. Hylomorphism (unfold/fold) aligns naturally with fork/fold structure. These are structural correspondences used to unify reasoning across domains in this manuscript's modeled class, supported by executable simulations and formal schemas under explicit assumptions.
 
-**What this paper claims and what it does not.** The scope of the convergence is striking enough to warrant explicit boundaries. This paper claims that fork/race/fold is the *computational structure* of quantum field theory, not an analogy to it. The Feynman path integral is a fork/race/fold computation -- mathematically, not metaphorically. The Schrödinger equation is the differential form of the race phase. Newton's laws are the fully folded result at $\beta_1 = 0$. The virial theorem gives the exact energy partition. The weak force is a vent operator. Symmetry breaking is a fold. These are structural correspondences — the recombination mechanisms differ (physics sums amplitudes linearly; computation selects nonlinearly), but the topological structure (fork raising $\beta_1$, fold projecting $\beta_1 \to 0$) is shared.
+**What this paper claims and what it does not.** The scope of the convergence is broad enough to warrant explicit boundaries. This paper claims a structural mapping between fork/race/fold and selected physical/computational formalisms used here (for example, path-integral branching/recombination, Schrödinger evolution as race-like dynamics, and folded classical limits at $\beta_1 = 0$ in the abstraction). It does not claim full physical identity or derivation of fundamental constants/forces. The key point is shared topology under explicit assumptions, with different underlying recombination mechanics.
 
 This paper does *not* claim to be a grand unified theory. It does not explain why there are four fundamental forces, or why gravity is weak, or what dark energy is. The gap between "structural pattern that recurs everywhere" and "theory that explains everything" is precisely the gap between topology and physics. Topology describes *shape* -- it says that when you compute with gravity, electromagnetism, the strong force, or the weak force, the computation has the shape of fork/race/fold. It does not say *why* these forces exist or *why* they have the coupling constants they have. It lives on the topology side of that boundary, deliberately.
 
 This paper does not describe the grand unified theory of reality. But it does describe the shape of the box it is going to come in.
 
-The claim is narrower and, I believe, more defensible: whatever the forces *are*, their computational structure is fork/race/fold. Not because fork/race/fold is special, but because under the stated assumptions it is an attractor in the modeled class. Systems that conserve energy, move irreversibly forward in time, and have nonzero ground-state overhead converge to this shape in the finite executable/mechanized setting used here. Physics satisfies those three constraints. Biology satisfies them. Computation satisfies them. The convergence is bottom-up -- independent discovery under shared constraints -- not top-down unification from a single principle. The slime mold did not read Feynman. Feynman did not study slime molds. They arrived at the same algorithm because the constraints are the same.
+The claim is narrower and more defensible: under the stated assumptions, fork/race/fold behaves as an attractor in the modeled class. Systems that conserve resources, evolve irreversibly, and incur nonzero coordination overhead show this shape in the finite executable/mechanized setting used here. The convergence argument is bottom-up -- independent systems under shared constraints -- not a top-down unification claim.
 
-And this convergence has a practical corollary: **to find fork/race/fold in a system is to see that the system has found its shape** (§6.13). The topological deficit $\Delta_\beta = \beta_1^* - \beta_1$ quantifies how far an implementation deviates from its problem's natural topology. Every system in this paper where $\Delta_\beta = 0$ -- photosynthesis, DNA replication, saltatory conduction, the path integral -- operates at or near theoretical efficiency. Every system where $\Delta_\beta > 0$ -- be it sequential healthcare, T+2 settlement or HTTP/2 over TCP -- has measurable, quantifiable waste. The deficit is a diagnostic: find it, close it, and the performance follows.
+And this convergence has a practical corollary: **to find fork/race/fold in a system is to see that the system has found its shape** (§6.13). The topological deficit $\Delta_\beta = \beta_1^* - \beta_1$ quantifies how far an implementation deviates from its problem's natural topology. In the systems analyzed here, $\Delta_\beta = 0$ cases -- photosynthesis, DNA replication, saltatory conduction, the path integral -- operate at or near theoretical efficiency, while $\Delta_\beta > 0$ cases -- sequential healthcare, T+2 settlement, HTTP/2 over TCP -- exhibit measurable, quantifiable waste. The deficit is a diagnostic: find it, close it, and the performance follows.
 
 The closer the deficit is to zero, the more the system exhibits both efficiency and elegance. Put plainly: Bules are where rigor and aesthetics meet. They quantify the gap between a system that merely runs and one that is beautifully shaped for its work.
 
 Fluid dynamics revealed the technique's most counterintuitive property: its worst case is small data, not large. The speedup accelerates with scale, approaching $B \times N$ on large datasets. The hard problem is not surviving at scale -- it is avoiding overhead on the simple cases. This is the optimization problem inverted, and it is perhaps the most practically encouraging result: the bigger the workload, the more the algorithm helps.
 
-The children in the line never needed topology. They just needed to stop waiting. Every system that waits when it could fork, that sequences when it could race, that accumulates when it could fold -- every such system is leaving performance on the table. Performance that evolution discovered, that slime molds exploit without neurons, that the Feynman path integral computes at every quantum interaction, that 10 bytes of frame header can unlock.
+The children in the line never needed more hardware; they needed less waiting. In systems where constraints permit fork/race/fold, unnecessary serialization leaves measurable performance on the table.
 
 We didn't need to understand the deep physics of quantum field theory. We just needed a computational philosophy to see the pattern.
 
-Fork/race/fold is all you need.
+Within this paper's modeled scope, fork/race/fold + vent is sufficient.
 
 ## References
 
@@ -1550,6 +1560,10 @@ Fork/race/fold is all you need.
 [27] Lean FRO Team, "The Lean Theorem Prover (Lean 4)," software and documentation, 2026. https://lean-lang.org
 
 [28] T. W. Buley, "Gnosis: A Topological Programming Language with Self-Hosting Compiler," open-source implementation, 2026. https://github.com/affectively-ai/gnosis
+
+[29] J. M. Bauskis, M. M. M. Kuijper, J. M. Schuuring, C. M. Schaefer, M. M. J. Schuurmans, S. A. M. J. Damen, M. M. M. K. de Vries, "The changing landscape of rare disease diagnosis: diagnostic time in the Netherlands in 2013 and 2023," *European Journal of Human Genetics*, 2026. https://www.nature.com/articles/s41431-026-01791-6
+
+[30] Depository Trust & Clearing Corporation (DTCC), "DTCC 2024 Annual Report," 2025. (NSCC average daily transaction value: \$2.219 trillion) https://www.dtcc.com/annuals/2024/
 
 ## Reproducibility
 
