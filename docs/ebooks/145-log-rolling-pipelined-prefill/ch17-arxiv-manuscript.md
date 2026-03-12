@@ -10,7 +10,7 @@ I model **fork/race/fold** as a reusable computational primitive: `fork` work in
 
 I show closely related structure across natural and engineered systems: *Physarum polycephalum* recreated a rail-like network over nutrient gradients [1], myelinated neurons pipeline action potentials (with measured large speedups), photosynthetic antenna complexes exhibit >95 percent exciton-transfer efficiency in cited systems, and DNA replication uses out-of-order fragment synthesis with deterministic reassembly (Okazaki fragments).
 
-What is new is recognizing these as the *same* algorithm. I present the **Wallington Rotation**, a scheduling algorithm that rotates partially ordered work into concurrent stage-local tracks with controlled reconciliation and prove (constructively plus executable verification) that four primitives -- fork, race, fold, vent -- are sufficient to express any directed acyclic computation graph used by the implementation classes in this paper. I give the algorithm a natural **topological characterization**: fork increases the first Betti number $\beta_1$ (creating independent parallel paths), race traverses homotopy-equivalent paths simultaneously, fold projects $\beta_1$ back to zero and vent propagation is a natural transformation that releases paths while preserving structure. Self-describing frames create a **covering space** over the computation graph -- working in the cover (multiplexed, out-of-order) then projecting back to the base space (sequential, reassembled).
+What is new is recognizing these as the *same* algorithm. I present the **Wallington Rotation**, a scheduling algorithm that rotates partially ordered work into concurrent stage-local tracks with controlled reconciliation, and I show (constructively plus executable verification) that four primitives -- fork, race, fold, vent -- are sufficient for the finite DAG classes used in this paper's implementation scope. I give the algorithm a natural **topological characterization**: fork increases the first Betti number $\beta_1$ (creating independent parallel paths), race traverses homotopy-equivalent paths simultaneously, fold projects $\beta_1$ back to zero and vent propagation is a natural transformation that releases paths while preserving structure. Self-describing frames create a **covering space** over the computation graph -- working in the cover (multiplexed, out-of-order) then projecting back to the base space (sequential, reassembled).
 
 I then show that **classical queueing theory appears as the $\beta_1 = 0$ boundary case in this framework**. Little's Law, Erlang's formula and Jackson's theorem describe systems constrained to a single topological path. The **pipeline Reynolds number** $Re = N/C$ extends the analysis with topology-sensitive regimes (laminar, transitional, turbulent) in the modeled scope. I also use quantum-mechanical terminology -- superposition, tunneling, interference, entanglement, measurement, collapse -- as structural correspondence language for mapped computational operations. A thermodynamic accounting lens tracks fork/race/fold/vent as potential, kinetic, useful work and dissipation. I derive the **topological deficit** $\Delta_\beta = \beta_1^* - \beta_1$ as a diagnostic: systems with matched Betti structure ($\Delta_\beta = 0$) tend to show high fit/efficiency in the analyzed set, while systems with $\Delta_\beta > 0$ show measurable waste (healthcare delays, settlement lockup, protocol-level blocking) [21, 29, 30]. I define the **Bule** (1 B = 1 unit of $\Delta_\beta$) as the corresponding engineering deficit unit.
 
@@ -36,11 +36,11 @@ I instantiate the algorithm in **five** domains, presented in stack order — fr
 
 3) In distributed staged computation (the scheduling algorithm, §7), chunked pipelined processing reduces sequential depth from $O(PN)$ to $O(\lceil P/B \rceil + N - 1)$, yielding measured speedups of 3.1x–267x. The Wallington Rotation, expressed in layer 2's language, verified by layer 1's checker.
 
-4) In edge transport (the wire format, §8), I implement a binary stream protocol with 10-byte self-describing frame headers and native fork/race/fold operations on UDP, reducing framing overhead by 95 percent versus HTTP/1.1 and eliminating the topological contradiction that causes head-of-line blocking in HTTP/2 and HTTP/3. Layer 3's scheduling algorithm runs over layer 4's wire format.
+4) In edge transport (the wire format, §8), I implement a binary stream protocol with 10-byte self-describing frame headers and native fork/race/fold operations on UDP, reducing framing overhead by 95 percent versus HTTP/1.1 and removing one-path ordered-delivery coupling that drives head-of-line behavior in TCP-bound stacks. Layer 3's scheduling algorithm runs over layer 4's wire format.
 
 5) In compression (bytes on wire, §9), I implement per-chunk topological codec racing (fork codecs, race per chunk, fold to winner), with executable verification of roundtrip correctness, codec-vent behavior and $\beta_1 = \text{codecs}-1$ invariants [20, 21]. The capstone: actual bytes, actual ratios, actual wire — using every layer below it.
 
-Within the modeled scope in this paper (finite DAG decompositions under C1-C4), the algorithm is an optimal topology class with measurable fit via $\Delta_\beta$. It is intentionally simple: four primitives, explicit assumptions, and executable checks.
+Within the modeled scope in this paper (finite DAG decompositions under C1-C4), the algorithm is a high-fit topology class with measurable fit via $\Delta_\beta$. It is intentionally simple: four primitives, explicit assumptions, and executable checks.
 
 The technique and tooling now exist to identify, measure and reduce topological waste in high-impact domains, including drug discovery, health care and energy systems.
 
@@ -131,13 +131,13 @@ The second muse is **fluid dynamics**, whose Reynolds number I purloin wholesale
 
 The fluid-dynamical framing reveals an inverted scaling property (§2.2): the worst case is small data, where ramp-up overhead dominates. As data grows, speedup accelerates toward $B \times N$. Scale is the friend, not the enemy.
 
-A thermodynamic framing (§6) reveals the **topological deficit** $\Delta_\beta = \beta_1^* - \beta_1$: the gap between a problem's intrinsic parallel topology and the implementation's actual topology. An information-theoretic framing (§6.8) unifies both: fork creates $\log N$ bits of uncertainty, fold compresses to a single outcome, and vented paths carry away exactly the bits that cannot be recovered.
+A thermodynamic framing (§6) reveals the **topological deficit** $\Delta_\beta = \beta_1^* - \beta_1$: the gap between a problem's intrinsic parallel topology and the implementation's actual topology. An information-theoretic framing (§6.8) unifies both: fork creates uncertainty, fold compresses to a single outcome, and vented paths carry away bits that are not retained.
 
 ## 1. Nature Got There First
 
 Fork/race/fold is not a metaphor for natural systems. It is the same algorithm, discovered accidentally, running on different substrates. I grade each mapping:
 
-- **Grade A**: Quantitative isomorphism -- the algorithm's math directly models the system with embedded predictive power.
+- **Grade A**: Quantitative correspondence -- the algorithm's math directly models the system with embedded predictive power.
 - **Grade B**: Structural homology -- deep structural match, genuine design insight, no novel quantitative prediction.
 
 In discovering the true shape of beautiful computation I do nothing novel except put a finger on the nose of the universe's own convergence.
@@ -614,7 +614,7 @@ The thermodynamic efficiency: $\eta = W/V = W/(W + Q_{\text{total}})$. A perfect
 
 Backpressure -- slowing producers when consumers can't keep up -- is energy conservation. When input flow rate exceeds processing capacity, energy accumulates without bound (buffers overflow, the system crashes). Backpressure throttles $\Phi_{\text{in}}$ to maintain $dE/dt \leq C$.
 
-In the rotational frame (the Worthington Whip), backpressure is conservation of angular momentum: $L = I\omega = \text{const}$. When fork increases $I$ (more paths at large radii), $\omega$ decreases. When fold decreases $I$ (paths removed, mass concentrated), $\omega$ increases. The whip-crack from §6.3 of the pipeline volume is exactly this: fold reduces $I$, angular velocity spikes, throughput surges.
+In the rotational frame (the Worthington Whip), backpressure is modeled via an angular-momentum analogy: $L = I\omega = \text{const}$. When fork increases $I$ (more paths at large radii), $\omega$ decreases. When fold decreases $I$ (paths removed, mass concentrated), $\omega$ increases. The whip-crack from §6.3 of the pipeline volume is interpreted through this lens: fold reduces $I$, angular velocity rises, throughput can surge.
 
 ### 6.7 The Carnot Limit
 
@@ -624,13 +624,13 @@ $$W_{\max} = H(X) = -\sum p(x) \log_2 p(x)$$
 
 This is the Carnot limit: the theoretical maximum efficiency.
 
-The two-level stream race (§9.3) approaches this limit by ensuring the best available codec always wins. But "best available" is bounded by "best theoretically possible." Brotli is already close to the Carnot limit for text. Racing brotli against itself cannot beat brotli. The topology's value is *reliably reaching* the Carnot limit across diverse inputs without prior knowledge of which codec is optimal.
+The two-level stream race (§9.3) approaches this limit by selecting the smallest output among available codec paths. But "best available" is bounded by "best theoretically possible." Brotli is already close to the Carnot limit for text. Racing brotli against itself cannot beat brotli. The topology's value is reaching strong codec choices across diverse inputs without prior knowledge of which codec is optimal.
 
 ### 6.8 The Information-Theoretic Framing
 
 The Shannon entropy connection is deeper than a Carnot analogy. Fork/race/fold maps directly onto the information-theoretic primitives:
 
-- **Fork** creates $\log_2 N$ bits of uncertainty. Before fork, the outcome is determined. After fork into $N$ paths, the system carries $\log_2 N$ bits of entropy — the observer cannot predict which path will win.
+- **Fork** creates up to $\log_2 N$ bits of selection uncertainty under uniform-path assumptions. Before fork, the outcome is determined. After fork into $N$ paths, the observer cannot predict which path will win.
 - **Race** is observation — each step of execution reduces entropy by revealing partial information about which paths are viable. The race phase is a channel: input entropy flows through the channel toward the observer.
 - **Fold** is compression to a single outcome. The fold function $f$ reduces $\log_2 N$ bits to 0 bits of residual uncertainty. The Kraft inequality constrains this: no prefix-free encoding can compress below entropy without losing information.
 - **Vent** is the bits that cannot be recovered — the information-theoretic cost of certainty. The vented paths carry $H(X) - I(X;Y)$ bits of equivocation: information that was created by fork but is not preserved by fold.
@@ -785,7 +785,7 @@ Half the gravitational potential energy becomes kinetic energy (thermal motion, 
 1. **Fork.** Gravitational potential energy $V$ is stored in the spatial distribution of mass. Every particle has a trajectory it *could* follow. $V = -\sum_{i<j} G m_i m_j / r_{ij}$.
 2. **Race.** Free-fall collapse. Particles accelerate toward the center. $V \to K$ conversion.
 3. **Fold.** A star forms -- the bound state. Useful work $W$ is extracted as nuclear fusion becomes possible. Hydrostatic equilibrium is the fold: gravitational compression balanced by radiation pressure.
-4. **Vent.** Half the energy radiates away as heat and light. $Q = V/2$. The Kelvin-Helmholtz mechanism is the vent -- the star shines because it must dissipate excess energy.
+4. **Vent.** In this virial-budget interpretation, an order-half energy partition appears as dissipative output during relaxation. The Kelvin-Helmholtz mechanism is the vent analogue.
 
 The virial theorem gives the exact split: $W = V/2$, $Q = V/2$, therefore $\eta = 0.5$. This is a specific, testable prediction that the First Law produces when applied to gravity: $V_{\text{fork}} = W_{\text{fold}} + Q_{\text{vent}}$ with the virial theorem constraining the partition ratio.
 
@@ -793,7 +793,7 @@ Fork/race/collapse provides an interpretive description of star formation that i
 
 #### The Weak Force as Vent Operator (Grade B+)
 
-Beta decay: $n \to p + e^- + \bar{\nu}_e$. The neutrino carries away energy that is never recovered -- it barely interacts with matter and propagates away permanently. This is venting: "propagate down, never across." The weak force is how unstable nuclear configurations dissipate excess energy to reach stable states.
+Beta decay: $n \to p + e^- + \bar{\nu}_e$. The neutrino carries away energy that is effectively not recovered locally because it weakly interacts and propagates away. This is a venting analogue: unstable nuclear configurations dissipate excess energy toward more stable states.
 
 Supernovae are the extreme case: 99 percent of the gravitational binding energy ($\sim 3 \times 10^{46}$ J) is carried away by neutrinos. The visible explosion -- light, shock wave, ejecta -- is only $\sim 1$ percent. The vent-to-work ratio: $Q/W \approx 99$. Thermodynamic efficiency $\eta \approx 0.01$. The weak force is nature's most aggressive vent operator.
 
@@ -1223,7 +1223,7 @@ The per-chunk topological approach pays a real cost: 9 bytes per chunk of header
 
 The two-level stream race eliminates this disadvantage by including global brotli as a racing path. But it also reveals that per-chunk topological compression, as currently implemented, is not the winning strategy for web content. It is a structurally sound framework that provides platform independence, random access and future extensibility -- at the cost of matching, not beating, the state of the art on ratio.
 
-The progression four codecs ($\beta_1 = 3$) → six codecs ($\beta_1 = 5$) → eight codecs ($\beta_1 = 7$) demonstrates the covering space property: each expansion improved pure-JS compression without changing the base space. But adding brotli and gzip to the race, while improving per-chunk results, still cannot overcome the fundamental advantage of global dictionary context.
+The progression four codecs ($\beta_1 = 3$) → six codecs ($\beta_1 = 5$) → eight codecs ($\beta_1 = 7$) demonstrates the covering-space property: each expansion improved pure-JS compression without changing the base space. But adding brotli and gzip to the race, while improving per-chunk results, did not overcome the global-dictionary advantage on these benchmarked workloads.
 
 **The topology subsumes the algorithm. It does not necessarily surpass it.** On the evaluated web-content workloads, topological compression with per-chunk racing did not outperform global brotli ratio. Global brotli's full-stream dictionary context retained a strong information advantage for these inputs. The practical conclusion is that topology provides structural guarantees -- subsumption, platform independence, random access, extensibility -- without guaranteeing ratio superiority on homogeneous content.
 
@@ -1341,7 +1341,7 @@ The ultimate goal is self-hosting. Because a compiler is a pipeline — `(source
 
 $$\text{TypeScript (Betty)} \xrightarrow{\text{compiles}} \text{GGL (Betti)} \xrightarrow{\text{compiles}} \text{Everything else}$$
 
-This is closure under a different axis than §10. Self-verification (§10) proves that the checker can reason about itself — closure under *reasoning*. Self-hosting (Betti) proves that the language can compile itself — closure under *construction*. Together they establish that fork/race/fold is closed under both reasoning and construction: you can build tools from these primitives and verify tools built from these primitives, using the same primitives.
+This is closure under a different axis than §10. Self-verification (§10) provides finite-model evidence that the checker can reason about itself — closure under *reasoning*. Self-hosting (Betti) provides executable evidence that the language can compile itself — closure under *construction*. Together they support closure under both reasoning and construction in this manuscript's scope.
 
 Gnosis supports a strong evidence-backed claim: it is a self-hosted, self-checking topology language with automated formal-artifact generation. The compiler topology is itself written in GG (`betti.gg`) and included in formal lint checks, while execution paths enforce bounded-state structural verification with explicit invariants and eventual reachability conditions before or during topology use. The `verify` workflow can generate TLC-ready TLA+ modules and configs with safety and liveness obligations, and these paths are covered by source-level tests and formal-check scripts [21, 26, 28].
 
@@ -1353,17 +1353,17 @@ The five instantiation domains are not independent — they form a stack, each e
 
 | Stack Layer | Domain | §  | Primitive | Role |
 |:-----------:|--------|:--:|-----------|------|
-| 1 (foundation) | Self-verification | §10 | Temporal model checking | Proves the math works |
+| 1 (foundation) | Self-verification | §10 | Temporal model checking | Verifies modeled invariants |
 | 2 | Formal language | §11 | GGL + Betty/Betti | The programming model |
 | 3 | Distributed computation | §7 | Wallington Rotation | The scheduling algorithm |
 | 4 | Edge transport | §8 | 10-byte FlowFrame | The wire format |
 | 5 (capstone) | Compression | §9 | Per-chunk codec racing | Bytes on wire |
 
-The stack reads bottom-up: *from building blocks to bytes on wire*. Layer 1 (§10) proves the primitives are correct. Layer 2 (§11) gives you a language to write topologies, verified by layer 1. Layer 3 (§7) schedules work through the topology, expressed in layer 2's language. Layer 4 (§8) puts frames on the wire, carrying layer 3's scheduled work. Layer 5 (§9) compresses the payload — actual bytes, actual ratios, actual wire — using every layer below it.
+The stack reads bottom-up: *from building blocks to bytes on wire*. Layer 1 (§10) verifies modeled primitive properties. Layer 2 (§11) gives a language to write topologies, checked by layer 1 workflows. Layer 3 (§7) schedules work through the topology, expressed in layer 2's language. Layer 4 (§8) puts frames on the wire, carrying layer 3's scheduled work. Layer 5 (§9) compresses the payload — actual bytes, actual ratios, actual wire — using layers below it.
 
 The Rust/WASM runtime executes the FlowFrames at the same byte-level format defined in §8.2. The language is not a wrapper around the protocol — it is the protocol's native programming model.
 
-The stack is the paper's strongest existence proof: a single set of four primitives (fork, race, fold, vent) generates a scheduling algorithm, a wire protocol, a compression strategy, a verification engine, and a programming language. Each layer is independently useful. Together they form a closed computational ecosystem where the topology is the program, the program is the protocol, and the protocol is the topology.
+The stack is the paper's clearest existence demonstration: one set of four primitives (fork, race, fold, vent) yields a scheduling algorithm, wire protocol, compression strategy, verification engine, and programming language. Each layer is independently useful. Together they form a computational ecosystem where topology, program structure, and protocol design are aligned.
 
 ## 12. The Engine
 
@@ -1435,7 +1435,7 @@ The same API -- unchanged -- was validated across many independent domains, incl
 9. **Journal publishing**: fork reviewers, vent timeout, quorum verdict
 10. **Legal review**: fork reviewers, weighted fold by seniority
 
-The universality is not designed -- it is discovered, the same way *Physarum* discovers optimal networks without knowing how to do so.
+The recurrence is framed here as discovered rather than imposed, similar to how *Physarum* discovers high-fit transport networks without centralized planning.
 
 ### 11.3 Wire Format Bridge
 
@@ -1464,9 +1464,9 @@ Total validated tests referenced here: **550 passing tests**, plus parser-valida
 
 ## 15. Conclusion
 
-I began with a child handing a ball to another child in a line. Four hundred handoffs. I ended with a topological framework that subsumes queueing theory, predicts biological mutation rates, explains why HTTP/2 has head-of-line blocking and runs on 10-byte UDP frames blasted as fast as theoretically possible.
+I began with a child handing a ball to another child in a line. Four hundred handoffs. I ended with a topological framework that contains canonical queueing boundary cases, frames biological mutation-rate asymmetry as a testable consequence, explains head-of-line behavior in one-path transport stacks, and runs on 10-byte UDP frames in benchmarked implementations.
 
-The path between those two points is fork/race/fold: four operations that express any directed acyclic computation graph.
+The path between those two points is fork/race/fold: four operations that express the finite DAG classes modeled in this paper.
 
 1. **Fork** raises $\beta_1$, injects potential energy $V$ -- create parallel paths, store work.
 2. **Race** traverses homotopy-equivalent paths, converts $V \to K$ -- take the fastest.
@@ -1491,7 +1491,7 @@ This paper does not describe the grand unified theory of reality. But it does de
 
 The claim is narrower and more defensible: under the stated assumptions, fork/race/fold behaves as an attractor in the modeled class. Systems that conserve resources, evolve irreversibly, and incur nonzero coordination overhead show this shape in the finite executable/mechanized setting used here. The convergence argument is bottom-up -- independent systems under shared constraints -- not a top-down unification claim.
 
-And this convergence has a practical corollary: **to find fork/race/fold in a system is to see that the system has found its shape** (§6.13). The topological deficit $\Delta_\beta = \beta_1^* - \beta_1$ quantifies how far an implementation deviates from its problem's natural topology. In the systems analyzed here, $\Delta_\beta = 0$ cases -- photosynthesis, DNA replication, saltatory conduction, the path integral -- operate at or near theoretical efficiency, while $\Delta_\beta > 0$ cases -- sequential healthcare, T+2 settlement, HTTP/2 over TCP -- exhibit measurable, quantifiable waste. The deficit is a diagnostic: find it, close it, and the performance follows.
+And this convergence has a practical corollary: **finding fork/race/fold in a system often indicates a high-fit shape** (§6.13). The topological deficit $\Delta_\beta = \beta_1^* - \beta_1$ quantifies how far an implementation deviates from its problem's natural topology. In the systems analyzed here, $\Delta_\beta = 0$ cases -- photosynthesis, DNA replication, saltatory conduction, path-integral mappings -- align with high-fit outcomes, while $\Delta_\beta > 0$ cases -- sequential healthcare, T+2 settlement, HTTP/2 over TCP -- exhibit measurable waste. The deficit is a diagnostic signal: reduce it and performance often follows.
 
 The closer the deficit is to zero, the more the system exhibits both efficiency and elegance. Put plainly: Bules are where rigor and aesthetics meet. They quantify the gap between a system that merely runs and one that is beautifully shaped for its work.
 
