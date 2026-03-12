@@ -8,6 +8,7 @@ Vitest suites that provide executable claim coverage for the manuscript.
 
 - `pipeline-topology.test.ts`: triangle/order/betti lifecycle checks.
 - `pipeline-formulas.test.ts`: §7 formula checks, including Whip crossover characterization.
+- `cross-shard-stochastic.test.ts`: finite stochastic-service and adaptive-sharding crossover characterization for Worthington Whip.
 - `dag-completeness.test.ts`: executable finite-DAG fork/join/chain decomposition coverage.
 - `flow-protocol.test.ts`: flow framing and wire semantics.
 - `topological-compression.test.ts`: codec race/fold behavior.

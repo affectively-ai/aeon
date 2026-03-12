@@ -34,10 +34,43 @@ export class FlowCodec {
      * Create a FlowCodec. Tries WASM acceleration, falls back to JS.
      * The JS path is always correct — WASM is a performance optimization only.
      */
-    static async create() {
-        // WASM acceleration is a future enhancement.
-        // For now, always use the pure JS path which is correct and portable.
-        return new FlowCodec(null);
+    static async create(options = {}) {
+        const wasmMode = options.wasmMode ?? 'auto';
+        if (wasmMode === 'off') {
+            return new FlowCodec(null);
+        }
+        if (typeof WebAssembly === 'undefined') {
+            if (wasmMode === 'force') {
+                throw new Error('FlowCodec WASM requested in force mode, but WebAssembly is unavailable');
+            }
+            return new FlowCodec(null);
+        }
+        const source = options.wasmModule ?? null;
+        if (!source) {
+            if (wasmMode === 'force') {
+                throw new Error('FlowCodec WASM module not found (expected src/flow/wasm/aeon-flow-codec.wasm)');
+            }
+            return new FlowCodec(null);
+        }
+        try {
+            if (source instanceof WebAssembly.Module) {
+                new WebAssembly.Instance(source, {});
+            }
+            else {
+                const bytes = source instanceof ArrayBuffer
+                    ? new Uint8Array(source)
+                    : new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
+                await WebAssembly.instantiate(bytes, {});
+            }
+            // JS path remains canonical in this build artifact.
+            return new FlowCodec(null);
+        }
+        catch (error) {
+            if (wasmMode === 'force') {
+                throw error;
+            }
+            return new FlowCodec(null);
+        }
     }
     /**
      * Create a FlowCodec synchronously (JS-only, no WASM attempt).

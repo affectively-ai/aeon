@@ -25,6 +25,7 @@ bun run test:formal
 | `flow-protocol.test.ts` | §8 The Wire, §8.2.1 Self-Describing Frames | 10-byte framing, fork/race/collapse/poison on wire |
 | `topological-compression.test.ts` | §8.6 Topological Compression | Per-chunk adaptive codec selection, subsumption |
 | `pipeline-formulas.test.ts` | §7 formulas | Worthington Whip, Speculative Tree, turbulent idle-fraction bounds, cross-shard correction crossover characterization |
+| `cross-shard-stochastic.test.ts` | §7.3 limitation closure | Finite crossover characterization under stochastic service laws and adaptive shard heuristics |
 | `dag-completeness.test.ts` | §2.4 completeness | Executable finite-DAG decomposition coverage (fork/join/chain partition totality) |
 | `quantum-topology.test.ts` | §6.11–§6.12, §13 | Quantum deficit identity, band-gap as β₂, convergence simulation under three constraints |
 | `deficit-evidence.test.ts` | §6.12 evidence table, §8.3 | Protocol/settlement/healthcare deficits and entropy-vent trend checks |
@@ -51,7 +52,7 @@ bun test:shootoff      # §8.5
 bun test:queueing      # §5
 bun test:formal:parser # aeon-logic parser preflight for formal artifacts
 bun test:formal:lean   # Lean theorem build
-bun test:formal        # all formal models via TLC
+bun test:formal        # formal parser preflight + SANY equivalence + Lean + TLC
 bun test:formal:shootoff # parser throughput vs Java baseline
 bun test:formal:equivalence # differential semantic-equivalence harness vs Java SANY
 bun test:all           # vitest suite + TLA+ model check

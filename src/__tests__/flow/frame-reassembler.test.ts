@@ -5,7 +5,7 @@
  * makes Aeon Flow work over UDP without head-of-line blocking.
  */
 
-import { describe, test, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { FrameReassembler } from '../../flow/frame-reassembler';
 import type { FlowFrame } from '../../flow/types';
 

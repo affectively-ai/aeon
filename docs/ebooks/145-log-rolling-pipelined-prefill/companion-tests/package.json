@@ -10,7 +10,7 @@
     "test:formal:lean": "bash ./scripts/run-lean-theorems.sh",
     "test:formal:shootoff": "bun ./scripts/formal-parser-shootoff.ts",
     "test:formal:equivalence": "bun ./scripts/formal-parser-equivalence.ts",
-    "test:formal": "bun run test:formal:parser && bun run test:formal:lean && bash ./scripts/run-formal-verification.sh",
+    "test:formal": "bun run test:formal:parser && bun run test:formal:equivalence && bun run test:formal:lean && bash ./scripts/run-formal-verification.sh",
     "test:all": "bun run test && bun run test:formal",
     "test:watch": "vitest",
     "test:pipeline": "vitest run -t 'Pipeline'",

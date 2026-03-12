@@ -56,7 +56,7 @@ Handoffs are unnecessary overhead: waste to be eliminated. In real life, they ta
 
 ### 0.1 The Triangle
 
-Now look at what happens when four chunks move through four children. Draw it as a grid -- time moves left to right, children are stacked top to bottom. This is the **triangle**:
+Now look at what happens when four chunks move through four children. Draw it as a grid where time moves left to right, children are stacked top to bottom. This is the **grid**:
 
 ```
 Time:  t1   t2   t3   t4   t5   t6   t7
@@ -189,7 +189,7 @@ Each Okazaki fragment is a **self-describing frame**: its genomic coordinate is 
 
 In myelinated neurons, action potentials jump between nodes of Ranvier (~1–2 mm apart) instead of propagating continuously. Multiple action potentials are in-flight simultaneously across different internodal segments.
 
-Perhaps you picture biological denial of service-style "packet overload"? The biology is actually designed to prevent exactly those issues. After a node fires, it enters a "refractory period" where it physically cannot fire again for a few milliseconds. This acts like a one-way valve, a buffer ensuring that even though multiple "packets" (action potentials) are in flight, they can never move backward or merge into one another. 
+Perhaps you picture biological denial of service-style "packet overload"? The biology is actually designed to prevent exactly those issues. After a node fires, it enters a "refractory period" where it physically cannot fire again for a few milliseconds. This acts like a one-way valve, a buffer ensuring that even though multiple "packets" (action potentials) are in flight, they can never move backward or merge into one another.
 
 This is chunked pipelining. The "chunking" allows the brain to receive a high-frequency stream of data rather than a single pulse. It allows for more nuanced signaling—the frequency of the spikes (the "bitrate") conveys the intensity of the stimulus.
 
@@ -332,7 +332,7 @@ The Worthington Whip extends fold for aggressive parallel shard merging. A singl
 
 In staged computations with pairwise dependencies, each shard processes only its own partition, reducing per-shard compute by $(S-1)/2S$. The correction is derived from cross-shard state projections. The fold phase is the whip snap: all parallel shards converge to a single definite state. The computational snap is single-threaded execution with the speed of parallel processing.
 
-These novel whipper snappers are the ultimate expression of parallelism. 
+These novel whipper snappers are the ultimate expression of parallelism.
 
 ## 3. The Topology of Fork/Race/Fold
 
@@ -458,11 +458,11 @@ James R. Jackson was a mathematician at UCLA who, by 1963, realized that, in the
 
 Jackson's theorem [8] proves that open networks of M/M/c queues have product-form stationary distributions. But Jackson networks have **fixed topology** -- the routing matrix is constant. Fork/race/fold has **dynamic topology** -- fork creates paths, venting removes them, fold merges them. The topology is the control variable, not a parameter.
 
-Every Jackson network is a fork/race/fold pipeline with a fixed $\beta_1$ and no venting. The moment you add dynamic routing, load-dependent forking, or failure-driven path removal, you leave Jackson's domain. 
+Every Jackson network is a fork/race/fold pipeline with a fixed $\beta_1$ and no venting. The moment you add dynamic routing, load-dependent forking, or failure-driven path removal, you leave Jackson's domain.
 
 You enter the domain of fork/race/fold, where the topology is, becomingly, a variable, not a parameter. Whence homely boolean logic of Jackson, wherefore the pulchritudinous Buleyean: a void whence space, time and beauty have shaped every tick of biological evolution.
 
-### 4.4 What Replaces What  
+### 4.4 What Replaces What
 
 Queueing theory asks: *given a fixed topology, what is the steady-state behavior?*
 
@@ -657,7 +657,7 @@ The energy framing reveals that convolutional neural networks and transformers a
 
 The entire transformer is a **nested** fork/race/fold/vent graph. Each layer is fork/fold. Each attention computation within a layer is fork/race/fold. The stack of $L$ layers is a pipeline.
 
-Transformer architecture is the Wallington Rotation applied recursively. 
+Transformer architecture is the Wallington Rotation applied recursively.
 
 **Backpropagation is the energy accounting.** The loss function measures thermodynamic efficiency: how much of the input's potential energy was converted to useful work (correct predictions) versus waste heat (incorrect predictions). The gradient $\partial Q / \partial \theta$ -- the derivative of waste heat with respect to parameters -- tells the optimizer how to adjust the system so the next forward pass vents less. Training is iteratively reducing $Q$ while preserving $W$. Convergence is thermodynamic equilibrium.
 
@@ -698,7 +698,7 @@ Feynman showed [22] that evaluating the path integral in the limit of infinitesi
 
 $$i\hbar \frac{\partial \psi}{\partial t} = \hat{H}\psi$$
 
-This is not a separate postulate -- it is what happens when you demand the fork/race/fold computation be expressible as a *local* differential equation. The wave function $\psi$ is the bookkeeping device that tracks the superposition of all racing paths at each instant. $|\psi|^2$ is the probability density -- the energy distribution across surviving paths. 
+This is not a separate postulate -- it is what happens when you demand the fork/race/fold computation be expressible as a *local* differential equation. The wave function $\psi$ is the bookkeeping device that tracks the superposition of all racing paths at each instant. $|\psi|^2$ is the probability density -- the energy distribution across surviving paths.
 
 In physics and mathematics, the Hamiltonian is a mathematical operator that represents the total energy of a system. It's a function that sums up all the energy "bank accounts" of a particle or system. When applied, the Hamiltonian $\hat{H}$ is the race operator: it governs how potential converts to kinetic at each infinitesimal step.
 
@@ -789,7 +789,7 @@ The computational domain is the fold that constrains all possible states. It is 
 
 If fork/race/fold is the shape that any system converges to under conservation, irreversibility and minimum overhead, then finding this shape in a system is evidence that the system is operating near its theoretical optimum. Not finding it -- where the problem's intrinsic topology demands it -- is a diagnostic for waste.
 
-Measuring waste in computational systems requires understanding a topologically-correct structure for both the problem and the implementation.  The topological deficit is the difference between the intrinsic Betti number and the actual Betti number. This deficit represents the wasted parallelism that could be exploited to improve performance. 
+Measuring waste in computational systems requires understanding a topologically-correct structure for both the problem and the implementation.  The topological deficit is the difference between the intrinsic Betti number and the actual Betti number. This deficit represents the wasted parallelism that could be exploited to improve performance.
 
 This opportunity has eluded computer science for decades, but, then again, the field has traditionally focused on algorithmic complexity rather than topological structure perhaps exactly because such solutions work in sequential space and don't require understanding the problem's intrinsic topology.
 
@@ -1008,7 +1008,7 @@ TCP had a magnificent 40-year run. It made the internet possible. But TCP was de
 
 HTTP/2 tried to multiplex streams over TCP. The application topology ($\beta_1 > 0$) contradicts the transport topology ($\beta_1 = 0$). Head-of-line blocking is the topological symptom (§3.4). HTTP/3 (QUIC) partially resolves this with per-stream loss recovery on UDP, but maintains ordered delivery within each stream and carries substantial framing complexity.
 
-Aeon Flow -- a faster, cheaper and more private alternative to HTTP, delivered over UDP does not patch TCP's problems: it obviates them entirely. 
+Aeon Flow -- a faster, cheaper and more private alternative to HTTP, delivered over UDP does not patch TCP's problems: it obviates them entirely.
 
 It starts from the topology and asks: what wire format does $\beta_1 > 0$ actually need? The answer: self-describing frames with no ordered delivery. AIMD congestion control per-stream (not per-connection). MTU-aware fragmentation (4-byte fragment header, 255 fragments × 1,468 bytes). ACK bitmaps (14 bytes covering 64 sequences). The protocol is 800 lines of TypeScript. In the shootoff benchmarks, it beats HTTP/3 on every measured framing and latency metric because it has no topological contradictions to resolve -- the shape of the wire matches the shape of the problem from the first byte [21].
 
@@ -1232,7 +1232,7 @@ The engine includes a wire format bridge to the Aeon Flow protocol. The same 10-
 
 The claims are backed by executable tests across four independent suites:
 
-- **Companion obligations and executable proofs** (206 passing tests): pipeline topology, queueing containment, flow-frame invariants, compression race properties, shootoff reproductions, finite-DAG decomposition coverage, §7 formula checks (Worthington Whip $(S-1)/2S$, Speculative Tree $(1-\alpha^K)/(1-\alpha)$, turbulent multiplexing idle-fraction bounds), quantum-topology claims (Grover-style $\Delta_\beta$ scaling and Kronig-Penney band gaps as $\beta_2 > 0$), convergence simulation under the three constraints, evidence-table deficits (e.g., T+2 settlement $\Delta_\beta = 2B$), self-hosted formal artifact parsing/round-trip validation with `aeon-logic`, a parser shootoff benchmark against Java SANY startup-parse baselines (representative run on March 11, 2026: `aeon-logic` parsed 19,200 artifacts in 70.56 ms = 272,103.4 artifacts/s; Java SANY median was 139.02 ms startup+parse on `BandGapVoid.tla`, implying $\sim$37,828.6x per-artifact throughput), plus a differential parse-equivalence harness against SANY outcomes (100% agreement on the current formal corpus: 8/8 original modules, 8/8 round-tripped modules and 16/16 invalid-corpus rejections). The parser result is therefore speed plus capability surface: unlike the parser-only baseline, `aeon-logic` also exposes superposition chains, quorum temporal operators, topology bridges and embedded model-checker interfaces in the same runtime [26, 27]. Mechanized TLA+ model checking across eight formal modules (C1–C4, §7 formulas, cross-shard crossover, protocol/settlement deficits, quantum deficit identity, band-gap void, beauty-optimality scaffold), and a Lean 4 theorem package with constructive identities plus explicit-assumption theorem schemas (including global convergence schema) verify the strongest operational claims section by section [21, 25, 26, 27].
+- **Companion obligations and executable proofs** (206 passing tests): pipeline topology, queueing containment, flow-frame invariants, compression race properties, shootoff reproductions, finite-DAG decomposition coverage, §7 formula checks (Worthington Whip $(S-1)/2S$, Speculative Tree $(1-\alpha^K)/(1-\alpha)$, turbulent multiplexing idle-fraction bounds), quantum-topology claims (Grover-style $\Delta_\beta$ scaling and Kronig-Penney band gaps as $\beta_2 > 0$), convergence simulation under the three constraints, evidence-table deficits (e.g., T+2 settlement $\Delta_\beta = 2B$), self-hosted formal artifact parsing/round-trip validation with `aeon-logic`, a parser shootoff benchmark against Java SANY startup-parse baselines (stabilized multi-sample harness on March 11, 2026: 9 measured samples after warmup, `aeon-logic` median 49.51 ms for 19,200 artifacts with IQR 48.21–49.94 ms = 387,780.9 artifacts/s; Java SANY median 116.45 ms on `BandGapVoid.tla` with IQR 115.13–122.08 ms, implying approximately 45,156.7x normalized per-artifact throughput), plus a differential parse-equivalence harness against SANY outcomes (100% agreement on the current formal corpus: 8/8 original modules, 8/8 round-tripped modules and 16/16 invalid-corpus rejections). The parser result is therefore speed plus capability surface: unlike the parser-only baseline, `aeon-logic` also exposes superposition chains, quorum temporal operators, topology bridges and embedded model-checker interfaces in the same runtime [26, 27]. Mechanized TLA+ model checking across eight formal modules (C1–C4, §7 formulas, cross-shard crossover, protocol/settlement deficits, quantum deficit identity, band-gap void, beauty-optimality scaffold), and a Lean 4 theorem package with constructive identities plus explicit-assumption theorem schemas (including global convergence schema) verify the strongest operational claims section by section [21, 25, 26, 27].
 - **Open-source flow + compression runtime** (170 passing tests): `@affectively/aeon` flow/compression tests verify 10-byte self-describing flow frames, UDP fragmentation/ACK behavior, frame reassembly, flow protocol semantics, WASM force-mode/error semantics, and topological compression properties [20].
 - **Open-source topology engine** (136 passing tests): `@affectively/aeon-pipelines` tests cover fork/race/fold/vent primitives, fold strategies, Reynolds/backpressure/turbulent multiplexing, quantum modalities, flow-bridge wire compatibility, domain scenarios and microbenchmarks [2].
 - **Open-source topology analyzer suite** (29 passing tests): `TopologyAnalyzer`/`TopologySampler` tests in `@affectively/aeon` validate Betti extraction, $\Delta_\beta$ diagnostics, $\beta_2$ void detection and executable protocol-topology contrasts [20].

@@ -10,7 +10,10 @@ const rootDir = resolve(scriptDir, '..');
 const formalDir = join(rootDir, 'formal');
 
 const parserIterations = Number.parseInt(process.env.PARSER_ITERS ?? '1200', 10);
-const javaSamples = Number.parseInt(process.env.JAVA_SAMPLES ?? '5', 10);
+const parserSamples = Number.parseInt(process.env.PARSER_SAMPLES ?? '9', 10);
+const parserWarmups = Number.parseInt(process.env.PARSER_WARMUPS ?? '2', 10);
+const javaSamples = Number.parseInt(process.env.JAVA_SAMPLES ?? '9', 10);
+const javaWarmups = Number.parseInt(process.env.JAVA_WARMUPS ?? '1', 10);
 
 interface FormalPair {
   readonly baseName: string;
@@ -32,6 +35,16 @@ function median(values: readonly number[]): number {
     return sorted[mid] ?? 0;
   }
   return ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2;
+}
+
+function quantile(values: readonly number[], q: number): number {
+  if (values.length === 0) {
+    return 0;
+  }
+  const sorted = [...values].sort((left, right) => left - right);
+  const clamped = Math.min(Math.max(q, 0), 1);
+  const index = Math.floor(clamped * (sorted.length - 1));
+  return sorted[index] ?? 0;
 }
 
 function loadFormalPairs(): readonly FormalPair[] {
@@ -98,6 +111,17 @@ function resolveJavaBinary(): string | null {
 }
 
 function benchJavaSany(javaBin: string, tlaPath: string, jarPath: string): readonly number[] {
+  for (let i = 0; i < Math.max(javaWarmups, 0); i += 1) {
+    const warmup = spawnSync(
+      javaBin,
+      ['-cp', jarPath, 'tla2sany.SANY', tlaPath],
+      { cwd: formalDir, encoding: 'utf8' },
+    );
+    if (warmup.status !== 0) {
+      return [];
+    }
+  }
+
   const samples: number[] = [];
   for (let i = 0; i < javaSamples; i += 1) {
     const start = nowMs();
@@ -121,12 +145,26 @@ function main(): void {
     throw new Error('No formal .tla/.cfg pairs found for shootoff');
   }
 
-  const parserBench = runAeonLogicParserBench(formalPairs);
-  const parserPerSecond = (parserBench.artifactsParsed / parserBench.elapsedMs) * 1000;
+  for (let i = 0; i < Math.max(parserWarmups, 0); i += 1) {
+    runAeonLogicParserBench(formalPairs);
+  }
+
+  const parserRuns = Array.from({ length: Math.max(parserSamples, 1) }, () =>
+    runAeonLogicParserBench(formalPairs),
+  );
+  const parserElapsed = parserRuns.map((run) => run.elapsedMs);
+  const artifactsParsed = parserRuns[0]?.artifactsParsed ?? 0;
+  const parserMedianMs = median(parserElapsed);
+  const parserQ1Ms = quantile(parserElapsed, 0.25);
+  const parserQ3Ms = quantile(parserElapsed, 0.75);
+  const parserPerSecond = parserMedianMs > 0 ? (artifactsParsed / parserMedianMs) * 1000 : 0;
 
   process.stdout.write('\n=== Formal Parser Shootoff ===\n');
   process.stdout.write(
-    `aeon-logic parser: ${parserBench.artifactsParsed} artifacts in ${parserBench.elapsedMs.toFixed(2)} ms (${parserPerSecond.toFixed(1)} artifacts/sec)\n`,
+    `aeon-logic parser median: ${artifactsParsed} artifacts in ${parserMedianMs.toFixed(2)} ms (${parserPerSecond.toFixed(1)} artifacts/sec)\n`,
+  );
+  process.stdout.write(
+    `aeon-logic parser IQR (q1-q3): ${parserQ1Ms.toFixed(2)}-${parserQ3Ms.toFixed(2)} ms (${Math.max(parserSamples, 1)} samples, ${Math.max(parserWarmups, 0)} warmups)\n`,
   );
   process.stdout.write(
     `(workload: ${formalPairs.length} module pairs × ${parserIterations} iterations)\n`,
@@ -150,8 +188,18 @@ function main(): void {
   }
 
   const javaMedianMs = median(javaSamplesMs);
+  const javaQ1Ms = quantile(javaSamplesMs, 0.25);
+  const javaQ3Ms = quantile(javaSamplesMs, 0.75);
+  const parserArtifactMs = parserMedianMs > 0 && artifactsParsed > 0 ? parserMedianMs / artifactsParsed : 0;
+  const normalizedRatio = parserArtifactMs > 0 ? javaMedianMs / parserArtifactMs : 0;
   process.stdout.write(
     `java SANY parse median: ${javaMedianMs.toFixed(2)} ms for ${basename(baselineTla)} (${javaSamples} samples)\n`,
+  );
+  process.stdout.write(
+    `java SANY IQR (q1-q3): ${javaQ1Ms.toFixed(2)}-${javaQ3Ms.toFixed(2)} ms (${Math.max(javaWarmups, 0)} warmups)\n`,
+  );
+  process.stdout.write(
+    `normalized per-artifact throughput ratio (median): ${normalizedRatio.toFixed(1)}x\n`,
   );
   process.stdout.write(
     'note: this is a startup+parse baseline and not a semantic-equivalence benchmark\n',

@@ -7,7 +7,7 @@
  * Uses in-memory mock sockets to test without actual network.
  */
 
-import { describe, test, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { FlowCodec, HEADER_SIZE } from '../../flow/FlowCodec';
 import {
   UDP_MTU,

@@ -20,6 +20,21 @@ import type { FlowFrame } from './types';
 export declare const HEADER_SIZE = 10;
 /** Maximum payload length (2^24 - 1 = 16,777,215 bytes ≈ 16 MB) */
 export declare const MAX_PAYLOAD_LENGTH = 16777215;
+type WasmMode = 'auto' | 'off' | 'force';
+type WasmModuleInput = WebAssembly.Module | BufferSource;
+export interface FlowCodecCreateOptions {
+    /**
+     * WASM mode:
+     * - auto: try WASM, fallback to JS on any failure (default)
+     * - off: force JS path
+     * - force: require WASM, throw if unavailable
+     */
+    wasmMode?: WasmMode;
+    /**
+     * Optional caller-supplied WASM module or bytes.
+     */
+    wasmModule?: WasmModuleInput;
+}
 /**
  * FlowCodec — binary encoder/decoder for FlowFrames.
  *
@@ -33,7 +48,7 @@ export declare class FlowCodec {
      * Create a FlowCodec. Tries WASM acceleration, falls back to JS.
      * The JS path is always correct — WASM is a performance optimization only.
      */
-    static create(): Promise<FlowCodec>;
+    static create(options?: FlowCodecCreateOptions): Promise<FlowCodec>;
     /**
      * Create a FlowCodec synchronously (JS-only, no WASM attempt).
      */

@@ -29,3 +29,20 @@ export {
   type Sample,
   type SamplerReport,
 } from './TopologySampler';
+
+export {
+  beta2FromBandGap,
+  firstLawConserved,
+  protocolDeficits,
+  quantumDeficitIdentity,
+  settlementDeficits,
+  speculativeTreeExpectedAccepted,
+  turbulentIdleFraction,
+  worthingtonWhipSavings,
+  type ProtocolDeficitResult,
+  type QuantumDeficitResult,
+  type SettlementDeficitResult,
+  type SpeculativeTreeResult,
+  type TurbulentIdleResult,
+  type WorthingtonWhipResult,
+} from './formal-claims';

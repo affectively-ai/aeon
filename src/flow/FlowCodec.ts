@@ -98,7 +98,13 @@ export class FlowCodec {
    */
   static async create(options: FlowCodecCreateOptions = {}): Promise<FlowCodec> {
     const wasmMode = options.wasmMode ?? 'auto';
-    if (wasmMode === 'off' || typeof WebAssembly === 'undefined') {
+    if (wasmMode === 'off') {
+      return new FlowCodec(null);
+    }
+    if (typeof WebAssembly === 'undefined') {
+      if (wasmMode === 'force') {
+        throw new Error('FlowCodec WASM requested in force mode, but WebAssembly is unavailable');
+      }
       return new FlowCodec(null);
     }
 
