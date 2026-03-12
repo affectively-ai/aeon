@@ -2,10 +2,10 @@
 
 > *"You don't need to move the entire mass at once. By pivoting on one corner, you are only overcoming the friction of a fraction of the weight at any given moment."* — Wally Wallington
 
-- Parent index: [open-source/aeon/docs/ebooks/README.md](../README.md)
+- Parent index: [Ebook Library](../README.md)
 - Live docs home: [docs.aeonflux.dev](https://docs.aeonflux.dev)
-- ArXiv manuscript source: [ch17-arxiv-manuscript.md](./ch17-arxiv-manuscript.md)
-- Companion tests: [companion-tests/README.md](./companion-tests/README.md)
+- ArXiv manuscript source: [Manuscript Draft (Chapter 17)](./ch17-arxiv-manuscript.md)
+- Companion tests: [Companion Test Suite](./companion-tests/README.md)
 
 ## About This Book
 

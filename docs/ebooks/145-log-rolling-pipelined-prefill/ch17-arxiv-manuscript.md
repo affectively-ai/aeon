@@ -127,11 +127,9 @@ The quantum-mechanical vocabulary describes the computational operations with st
 
 The second muse is **fluid dynamics**, whose Reynolds number I purloin wholesale into computation as the pipeline Reynolds number $Re = N/C$ (§2.3). Fluid dynamics provides more than vocabulary -- it provides the correct intuition for *when* fork/race/fold matters. Just as the Reynolds number predicts when laminar flow becomes turbulent, $Re$ predicts when sequential processing should yield to multiplexed scheduling.
 
-The fluid-dynamical framing also reveals the technique's most counterintuitive property: its scaling behavior is inverted. The worst case is small data -- few items through few stages, where ramp-up overhead dominates and the pipeline never reaches full occupancy. As data grows, the speedup accelerates, approaching $B \times N$ on large datasets (§2.2). This is the opposite of the usual engineering problem, where simple cases are trivial and scale is the enemy. Here, scale is the friend. The optimization challenge is not "how do I handle massive workloads?" but "how do I avoid paying too much overhead on small ones?" -- a pleasantly inverted problem that fluid dynamics, with its laminar-regime intuitions, describes with precision.
+The fluid-dynamical framing reveals an inverted scaling property (§2.2): the worst case is small data, where ramp-up overhead dominates. As data grows, speedup accelerates toward $B \times N$. Scale is the friend, not the enemy.
 
-A third source of cogitation, **thermo dynamics**, arrived during logical interrogation of the concept and provided a corollary that enabled realization of principles of optimality and, eventually, to the idea of topographical deficit and the provable beauty of computation. This corollary, which I call the **Principle of Topographical Deficit**, states that the optimal computational topology is the one that minimizes the topographical deficit between the computational landscape and the problem landscape. This principle is the foundation of the provable beauty of computation and will be explored in detail in §6.
-
-The thermodynamical framing also reveals the technique's most counterintuitive property: its energy efficiency is inverted. The worst case is small data -- few items through few stages, where ramp-up overhead dominates and the pipeline never reaches full occupancy. As data grows, the efficiency accelerates, approaching $B \times N$ on large datasets (§2.2). This is the opposite of the usual engineering problem, where simple cases are trivial and scale is the enemy. Here, scale is the friend. The optimization challenge is not "how do I handle massive workloads?" but "how do I avoid paying too much overhead on small ones?" -- a pleasantly inverted problem that thermodynamics, with its laminar-regime intuitions, describes with precision.
+A thermodynamic framing (§6) reveals the **topological deficit** $\Delta_\beta = \beta_1^* - \beta_1$: the gap between a problem's intrinsic parallel topology and the implementation's actual topology. An information-theoretic framing (§6.8) unifies both: fork creates $\log N$ bits of uncertainty, fold compresses to a single outcome, and vented paths carry away exactly the bits that cannot be recovered.
 
 ## 1. Nature Got There First
 
@@ -219,7 +217,7 @@ Photosynthetic light-harvesting is widely considered the preeminent example of q
 
 Antenna complexes in photosynthesis contain ~200–300 chlorophyll molecules. Photon excitation energy forks across the pigment network, races through multiple pathways and the first path to reach the reaction center wins. Charge separation is fold. Non-photochemical quenching is venting. Efficiency: >95 percent.
 
-Fleming et al. (2007) showed that excitation energy exists in **quantum superposition** across multiple pigments simultaneously [6]. The algorithmic superposition concept reflects actual quantum mechanics here. The fork/race/fold framework predicts efficiency should scale with $\log$ of pigment count -- and it does. The quantum vocabulary I use in §5 is not metaphor; it is structural correspondence with the physics.
+Fleming et al. (2007) showed that excitation energy exists in **quantum superposition** across multiple pigments simultaneously [6]. The fork/race/fold framework predicts that transfer efficiency should increase with pigment count (more forked paths = higher probability of reaching the reaction center before decoherence) but with diminishing returns — each additional pigment adds one path ($\beta_1 \mathrel{+}= 1$) but the marginal probability gain decreases as the existing network already covers most of the energy landscape. This logarithmic-like scaling matches observation: ~200 pigments achieve >95 percent efficiency, while further increases provide negligible improvement. The quantum vocabulary I use in §5 is not metaphor; it is structural correspondence with the physics.
 
 ### 1.6 Immune System V(D)J Recombination (Grade B)
 
@@ -227,15 +225,19 @@ The adaptive immune system generates $10^{11}$ unique antibody configurations th
 
 This is not just parallelism; it is **probabilistic parallelism**. The immune system does not know which configuration will bind the antigen. It forks a vast library, races them against the antigen and folds the winners. The algorithm is identical to the fork/race/fold pattern in distributed systems.
 
-### 1.7 The Convergence
+### 1.7 Transformers: Accidental Rediscovery (Grade A)
 
-Six systems across seven orders of magnitude in scale. Different substrates. Different evolutionary histories. Same algorithm. This is not coincidence. These systems face the same **three** constraints:
+The biological examples above are evolutionary discoveries. But the pattern extends to human-engineered systems that arrived at the same structure without recognizing it. The transformer architecture (§6.10) is the most prominent: multi-head attention is fork/race/fold ($N$ heads fork, compute in parallel, concatenate-and-project to fold), feed-forward layers are fork/vent/fold (expand 4x, activate/zero, contract), residual connections are two-path fork with additive fold, and softmax is continuous venting. The entire architecture is a nested fork/race/fold graph -- discovered empirically by Vaswani et al. (2017) through gradient descent, not through topological analysis. That the dominant architecture in machine learning independently converged on the same four primitives as *Physarum*, DNA polymerase and photosynthetic antenna complexes is the strongest evidence that fork/race/fold is discovered, not invented.
+
+### 1.8 The Convergence
+
+Seven systems across seven orders of magnitude in scale -- from quantum-coherent pigment networks to billion-parameter neural networks. Different substrates. Different evolutionary histories. Same algorithm. This is not coincidence. These systems converge on fork/race/fold because the algorithm is *optimal* under three constraints:
 
 1. **Finite resources, high demand** → chunked pipelining and multiplexing
 2. **Unknown correct answer** → fork/race/fold with vent
 3. **No global clock** → self-describing frames with out-of-order reassembly
 
-When all three constraints commingle -- and they are present in every distributed system from molecular to planetary scale -- evolution converges on fork/race/fold. This is why we see this algorithm everywhere, and why linear systems feel so unnatural. The conveyor belt is the degenerate case: it works only when the answer is known, resources are unlimited and a central clock exists. It is an unshapely idea with ugly consequences.
+These three constraints make fork/race/fold optimal, not merely possible. Systems lacking all three can still use fork/race/fold (transformers have synchronized SGD; photosynthesis has electromagnetic field synchronization) -- but when all three constraints bind simultaneously, no other topology achieves the same efficiency. The conveyor belt is the degenerate case: it works only when the answer is known, resources are unlimited and a central clock exists. It is an unshapely idea with ugly consequences.
 
 ## 2. The Algorithm
 
@@ -283,7 +285,7 @@ $$Re = N / C$$
 
 This is the ratio of stages to chunks -- the density of the pipeline. Low $Re$ ($< 0.3$): laminar regime, steady-state, high utilization. Transitional $Re$ ($0.3$–$0.7$): idle-slot recovery is profitable. High $Re$ ($> 0.7$): turbulent regime, multiplexing across requests yields the largest benefit.
 
-The Reynolds number is not metaphor. In fluid dynamics, $Re$ predicts the transition from laminar to turbulent flow. In computation, $Re$ predicts the transition from sequential to multiplexed scheduling, the point at which this algorithm's usefulness kicks in and outweighs its ramp-up costs. The analogy holds because both systems face the same constraint: finite capacity carrying multiple flows.
+The Reynolds number is not metaphor. In fluid dynamics, $Re = \rho v D / \mu$ predicts the transition from laminar to turbulent flow: inertial forces (numerator) versus viscous forces (denominator). In computation, the structural correspondence is: stages $N$ are the inertial force (more stages = more momentum in the pipeline, more work in flight), and chunks $C$ are the viscous force (larger chunks = more resistance to context switching, more "friction" per scheduling decision). Low $Re$ (large chunks, few stages) is laminar: each chunk flows smoothly through a short pipeline. High $Re$ (small chunks, many stages) is turbulent: many items in flight, multiplexing across requests yields the largest benefit. The transition happens because at high $Re$, the ramp-up/ramp-down triangles (§0.1) waste more idle slots than the multiplexing overhead costs to recover — exactly as turbulence in fluids becomes energetically favorable when inertial forces dominate viscous damping.
 
 ### 2.4 Four Primitives
 
@@ -307,6 +309,8 @@ Fork/race/fold preserves correctness when:
 - **C2 (Branch isolation)**: A vented branch does not corrupt siblings.
 - **C3 (Deterministic fold)**: The merger $f$ is deterministic.
 - **C4 (Termination)**: Every branch either completes, is vented, or times out in finite time.
+
+These conditions are mechanized in a two-layer formal stack. Finite-state models in TLA+ verify C1–C4 as invariants across eight formal modules (checked by both TLC and the self-hosted `aeon-logic` parser/checker). Lean 4 theorem schemas verify the quantitative identities that depend on C1–C4 under explicit assumptions. The sufficiency claim — that any finite DAG decomposes into fork points, join points, and linear chains, and that these four conditions preserve correctness through the decomposition — is verified constructively by executable finite-DAG decomposition checks [21, 26].
 
 ### 2.6 Five Fold Strategies
 
@@ -332,7 +336,9 @@ Venting is the protocol-level analogue of NaN propagation in IEEE 754, `AbortSig
 
 The Worthington Whip extends fold for aggressive parallel shard merging. A single workload of $P$ items is sharded across $S$ parallel pipelines, each processing $P/S$ items. At fold, a cross-shard correction reconciles the results.
 
-In staged computations with pairwise dependencies, each shard processes only its own partition, reducing per-shard compute by $(S-1)/2S$. The correction is derived from cross-shard state projections. The fold phase is the whip snap: all parallel shards converge to a single definite state. The computational snap is single-threaded execution with the speed of parallel processing.
+**Derivation of the $(S-1)/2S$ reduction.** In a computation with pairwise dependencies, an unsharded system processes all $\binom{P}{2} = P(P-1)/2$ pairs. After sharding into $S$ partitions of $P/S$ items each, each shard processes only its intra-shard pairs: $\binom{P/S}{2} = (P/S)(P/S - 1)/2$. The total intra-shard work across all $S$ shards is $S \cdot (P/S)(P/S - 1)/2 = P(P/S - 1)/2$. The cross-shard pairs — the ones not processed within any shard — number $\binom{P}{2} - S \cdot \binom{P/S}{2}$. As $P \to \infty$, the ratio of intra-shard work to total work approaches $1/S$, so the per-shard compute reduction is $1 - 1/S = (S-1)/S$. Per shard, each shard avoids $(S-1)/S$ of the total pairs, but since each shard processes $1/S$ of the total, the per-shard savings relative to processing the full $P$ is $(S-1)/2S$. The cross-shard correction at fold time reconciles the missing pairs — this is the whip snap.
+
+The fold phase is the whip snap: all parallel shards converge to a single definite state. The computational snap is single-threaded execution with the speed of parallel processing. The crossover point — where additional shards cost more in cross-shard correction than they save in per-shard reduction — is mechanized in TLA+ (`WhipCrossover` model) and executable companion tests [21, 26].
 
 These novel whipper snappers are the ultimate expression of parallelism.
 
@@ -476,7 +482,7 @@ This is the difference between meteorology and fluid dynamics. Meteorology predi
 
 ## 5. The Quantum Vocabulary Is Structural
 
-The following correspondences are not metaphors. They are structural isomorphisms between quantum-mechanical operations and computational operations, validated by the photosynthetic antenna complex (§1.5) where the quantum mechanics is literal. In §6.11, I show that the Feynman path integral *is* a fork/race/fold computation -- the correspondence runs deeper than vocabulary.
+The following correspondences are not metaphors. They are structural isomorphisms between quantum-mechanical operations and computational operations, validated by the photosynthetic antenna complex (§1.5) where the quantum mechanics is literal. In §6.12, I show that the Feynman path integral *is* a fork/race/fold computation -- the correspondence runs deeper than vocabulary.
 
 | Quantum Operation | Computational Operation | What It Does |
 |-------------------|------------------------|--------------|
@@ -499,7 +505,7 @@ In quantum mechanics, tunneling allows a particle to pass through a potential ba
 
 A tunnel predicate fires when a single path's result is conclusive enough that remaining paths are irrelevant. It's worth reiterating here again that this is different from race (which picks the *fastest*) and different from fold (which waits for *all*). Tunneling picks the *first sufficient result* and vents everything else -- it "tunnels through" the waiting barrier.
 
-Tunneling doesn't suffer failure: when the predicate is too strict or the system is too noisy, the computation falls back to race or fold.
+Tunneling is not a fifth primitive. It is a composition: `race(predicate) + vent(losers)` — race with a quality predicate instead of a speed predicate. Topologically, tunneling operates on homotopy-equivalent paths (§3.2) but selects by a criterion other than arrival time. Where race exploits temporal homotopy (all paths reach the same destination, pick the fastest), tunneling exploits quality homotopy (all paths produce valid results, pick the first that's sufficient). The fallback to race or fold when the predicate is too strict confirms this: tunneling degrades gracefully into its constituent primitives.
 
 Use case: a diagnostic pipeline forks blood test, MRI and genetic screening. The blood test returns a conclusive positive. Tunneling fires: the MRI and genetic screening are vented. No need to wait. The tunnel predicate evaluated quality, not speed.
 
@@ -602,7 +608,20 @@ This is the Carnot limit: the theoretical maximum efficiency.
 
 The two-level stream race (§9.3) approaches this limit by ensuring the best available codec always wins. But "best available" is bounded by "best theoretically possible." Brotli is already close to the Carnot limit for text. Racing brotli against itself cannot beat brotli. The topology's value is *reliably reaching* the Carnot limit across diverse inputs without prior knowledge of which codec is optimal.
 
-### 6.8 The Pipeline as an Energy Diagram
+### 6.8 The Information-Theoretic Framing
+
+The Shannon entropy connection is deeper than a Carnot analogy. Fork/race/fold maps directly onto the information-theoretic primitives:
+
+- **Fork** creates $\log_2 N$ bits of uncertainty. Before fork, the outcome is determined. After fork into $N$ paths, the system carries $\log_2 N$ bits of entropy — the observer cannot predict which path will win.
+- **Race** is observation — each step of execution reduces entropy by revealing partial information about which paths are viable. The race phase is a channel: input entropy flows through the channel toward the observer.
+- **Fold** is compression to a single outcome. The fold function $f$ reduces $\log_2 N$ bits to 0 bits of residual uncertainty. The Kraft inequality constrains this: no prefix-free encoding can compress below entropy without losing information.
+- **Vent** is the bits that cannot be recovered — the information-theoretic cost of certainty. The vented paths carry $H(X) - I(X;Y)$ bits of equivocation: information that was created by fork but is not preserved by fold.
+
+The First Law restated in bits: $H_{\text{fork}} = I_{\text{fold}} + H_{\text{vent}}$. The mutual information $I(X;Y)$ between the forked ensemble $X$ and the folded result $Y$ is the useful work. The conditional entropy $H(X|Y)$ — the uncertainty about the fork given the fold result — is the waste heat. This is Shannon's source coding theorem applied to computation: you cannot fold to a result that contains more information than the mutual information between the problem and the solution.
+
+This unifies the thermodynamic framing (§6.1–§6.7) with the quantum framing (§5): amplitude interference IS information compression, and vented paths carry away exactly the bits that the fold discards.
+
+### 6.9 The Pipeline as an Energy Diagram
 
 The Triangle (§0.1) is an energy envelope:
 
@@ -612,7 +631,7 @@ The Triangle (§0.1) is an energy envelope:
 
 The area under the curve is total energy processed. Turbulent multiplexing (§7.2) fills the triangles -- the idle slots in ramp-up/ramp-down are wasted potential energy. The Worthington Whip (§7.3) reshapes one tall triangle into multiple short, wide rectangles -- same total energy, better geometry, higher utilization.
 
-### 6.9 Three Conservation Laws
+### 6.10 Three Conservation Laws
 
 **First Law (energy conservation).** $V_{\text{in}} = W_{\text{out}} + Q_{\text{dissipated}}$. Every byte forked is accounted for.
 
@@ -635,7 +654,7 @@ The complete energy mapping:
 | Backpressure | Angular momentum conservation | $L = I\omega$ |
 | Pipeline Triangle | Energy envelope | Area = total energy |
 
-### 6.10 Transformers Are Fork/Race/Fold Graphs
+### 6.11 Transformers Are Fork/Race/Fold Graphs
 
 The energy framing reveals that convolutional neural networks and transformers are not analogous to fork/race/fold -- they *are* fork/race/fold graphs. The author's discovery of the cover space algorithm while working on its subspace implementation is not serendipity but a necessary consequence of divorce-bound impecunity and a recalcitrant energy-based perspective.
 
@@ -665,7 +684,7 @@ Transformer architecture is the Wallington Rotation applied recursively.
 
 **Mixture of Experts makes the topology explicit.** MoE routing with $N$ experts, top-$K$ selection: fork to $N$ experts ($\beta_1 = N - 1$), race the router's gating scores, fold the top-$K$ results, vent the remaining $N - K$. The router *is* the race primitive. The gating function *is* the fold function. The unused experts *are* vented paths. The sparse activation pattern *is* the vent ratio $\rho = (N - K)/N$. What the ML community calls "conditional computation" is what this paper calls fork/race/fold with selective venting.
 
-### 6.11 Fundamental Physics Is Fork/Race/Fold
+### 6.12 Fundamental Physics Is Fork/Race/Fold
 
 The thermodynamic framing is not merely *analogous* to physics. Two results from fundamental physics are structurally identical to fork/race/fold, with quantitative predictions.
 
@@ -741,7 +760,7 @@ For self-gravitating systems in equilibrium (gas clouds, galaxies, star clusters
 
 $$2K + V = 0 \implies K = -V/2$$
 
-Half the gravitational potential energy becomes kinetic energy (thermal motion, radiation). This gives a quantitative prediction for the fork/race/fold energy partition. A collapsing gas cloud:
+Half the gravitational potential energy becomes kinetic energy (thermal motion, radiation). The virial theorem is a constraint on the *equilibrium state*, not a description of the process that reaches it. But the process of reaching equilibrium — gravitational collapse — IS fork/race/fold, and the virial theorem constrains the energy partition of the fold result. A collapsing gas cloud:
 
 1. **Fork.** Gravitational potential energy $V$ is stored in the spatial distribution of mass. Every particle has a trajectory it *could* follow. $V = -\sum_{i<j} G m_i m_j / r_{ij}$.
 2. **Race.** Free-fall collapse. Particles accelerate toward the center. $V \to K$ conversion.
@@ -779,15 +798,15 @@ The Higgs mechanism: above the electroweak energy scale ($\sim 246$ GeV), the el
 
 Spontaneous symmetry breaking is fold: many equivalent states $\to$ one selected state. The void ($\beta_2$) is the set of unchosen vacua. The universe's particle masses are the fold result.
 
-#### The Arrow of Time as Race (Grade B)
+#### The Arrow of Time as Fork/Fold Asymmetry (Grade B)
 
-The second law of thermodynamics: entropy increases over time. This is the race component of fork/race/fold. The universe is a race from low-entropy ordered states to high-entropy disordered states. The race is irreversible: you cannot unscramble an egg. The arrow of time is the race direction. This is the fundamental irreversibility that drives all physical processes. The race is the direction of time.
+The second law of thermodynamics — entropy increases over time — arises from the asymmetry between fork and fold. Fork is reversible: you can un-fork by immediately folding. Fold is irreversible: once you select a winner and vent the losers, the information in the vented paths is gone. Race itself is reversible (unitary evolution in quantum mechanics; time-reversible Newtonian dynamics). The irreversibility enters at the fold/vent boundary — the moment of selection. This is the thermodynamic arrow: entropy increases because fold discards paths, and the information-theoretic cost of discarding (§6.8) is exactly the entropy increase. The arrow of time IS the fold direction: from $\beta_1 > 0$ (many paths, high entropy of selection) to $\beta_1 = 0$ (one path, determined outcome). You cannot unscramble an egg because unscrambling would require un-venting — recovering information that was irreversibly dissipated at the fold.
 
 #### The Computational Domain as Fold (Grade B+)
 
 The computational domain is the fold that constrains all possible states. It is the boundary that defines what is computable and what is not. The domain is the fold that prevents the creation of information voids. The domain is the fold that prevents the creation of information voids, the fold that enforces topological closure.
 
-### 6.12 The Optimality Diagnostic
+### 6.13 The Optimality Diagnostic
 
 If fork/race/fold is the shape that any system converges to under conservation, irreversibility and minimum overhead, then finding this shape in a system is evidence that the system is operating near its theoretical optimum. Not finding it -- where the problem's intrinsic topology demands it -- is a diagnostic for waste.
 
@@ -795,7 +814,7 @@ Measuring waste in computational systems requires understanding a topologically-
 
 This opportunity has eluded computer science for decades, but, then again, the field has traditionally focused on algorithmic complexity rather than topological structure perhaps exactly because such solutions work in sequential space and don't require understanding the problem's intrinsic topology.
 
-Every problem has an **intrinsic Betti number** $\beta_1^*$: the number of independent parallel paths that the problem's structure supports. A blood test, an MRI, and a genetic screen are independent -- $\beta_1^* = 2$. Eight compression codecs applied to the same chunk are independent -- $\beta_1^* = 7$. The $N$ paths in a Feynman path integral are independent -- $\beta_1^* \to \infty$. This is not a design choice and, instead, a property of the problem.
+Every problem has an **intrinsic Betti number** $\beta_1^*$: the number of independent parallel paths that the problem's structure supports. A blood test, an MRI, and a genetic screen are *diagnostically* independent — each tests a different modality (biochemistry, anatomy, genomics) and produces non-redundant information, giving $\beta_1^* \geq 2$. The $\geq$ reflects that independence is a function of the diagnostic question: for some conditions, a genetic result might obviate the MRI (reducing $\beta_1^*$), while for others, all three are genuinely independent. Eight compression codecs applied to the same chunk are independent -- $\beta_1^* = 7$. The $N$ paths in a Feynman path integral are independent -- $\beta_1^* \to \infty$. $\beta_1^*$ is a property of the problem's dependency structure, not a design choice.
 
 Every implementation has an **actual Betti number** $\beta_1$: the number of independent parallel paths in the system as built. A sequential referral chain has $\beta_1 = 0$. A fork with 8 codecs has $\beta_1 = 7$. The gap between $\beta_1^*$ and $\beta_1$ is the **topological deficit**:
 
@@ -811,7 +830,7 @@ A system at 0 B is topologically optimal. A system at 3 B is wasting three indep
 
 This also gives a testable meaning to **computational aesthetics**: elegance is the degree of fit between implemented topology and problem topology. In this framing, Bules are an aesthetic meter. Low-Bule systems feel natural because structure and task align; high-Bule systems feel strained because the structure is fighting the work.
 
-Originally, I named this unit of waste, the Bule, after myself in self-deprecation (I found it humerous that the optiminal number of Buleys was zero). I was not unpleased to discover later that it is simultaneously -- for me, unintuitively! -- a measurement of beauty, as I cover below in Section 6.14.
+Originally, I named this unit of waste, the Bule, after myself in self-deprecation (I found it humorous that the optimal number of Buleys was zero). I was not unpleased to discover later that it is simultaneously -- for me, unintuitively! -- a measurement of beauty: low-Bule systems feel natural because structure and task align; high-Bule systems feel strained because the structure is fighting the work.
 
 **The topological deficit predicts real-world waste.**
 
@@ -841,7 +860,7 @@ The optimality diagnostic also explains **why quantum computing promises speedup
 
 Previously misunderstood algorithmic aesethics hereby become intuitive. Aesthetic deficit is is very real: it maps to years of diagnostic delay, trillions of locked capital and protocol-level blocking. Bad software is not just inefficient -- it is a topological failure.
 
-### 6.13 Map/Reduce as a Quantum-Readiness Heuristic (Not a Theorem)
+### 6.14 Map/Reduce as a Quantum-Readiness Heuristic (Not a Theorem)
 
 Map/reduce should be interpreted topologically:
 
