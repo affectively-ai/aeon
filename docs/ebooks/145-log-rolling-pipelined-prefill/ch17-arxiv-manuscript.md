@@ -28,15 +28,17 @@ o -> o       o -> o
 
 Fork/race/fold is a so-called directed acyclic graph (DAG) with merge points, that is, a computational thing with a higher-dimensional shape than the structure of a simple path. In this more complicated mathematic space, nodes branch, paths run in parallel and merge vertices fold multiple superimposed (concurrent) paths into one. It turns out that the "pipeline problem" -- in every domain I've examined -- is just people trying to solve topologically complex problems with topologically inarticulate structures. Now measurably using the wrong algorithmic tool for the job. In the jargon of the math of shapes, they're forcing genus-N workflows through genus-0 pipes. The consequence for humanity is that meaning is lost in incongruent translations from one topological space to another. Destruction of natural value that was always obviously painful, now obviously measurable. The solution, which uncompressed the cover space to unlock otherwise latent value, is to first work in the cover space (multiplexed, out-of-order) and then project back to the base space (sequential, reassembled).
 
-I instantiate the algorithm in **four** domains of universal interest to the field of computer science.
+I instantiate the algorithm in **five** domains of universal interest to the field of computer science, presented here in stack order — from building blocks to bytes on wire — each layer enabled by the ones below it.
 
-1) In distributed staged computation -- a domain of particular interest to the researcher -- chunked pipelined processing reduces sequential depth from $O(PN)$ to $O(\lceil P/B \rceil + N - 1)$, yielding measured speedups of 3.1x–267x.
+1) In formal verification (the foundation, §10), I implement a temporal logic model checker (`@affectively/aeon-logic`) whose BFS state-space exploration is itself a fork/race/fold computation. Each multi-successor expansion is a fork, each transition to an already-visited state is a fold (interference), each unfair cycle filtered by weak fairness is a vent, and termination is collapse. The checker verifies a `TemporalModel` of its own exploration and generates a TLA+ specification of the same model, validated through a round-trip-stable TLA sandbox. Both verification paths prove the same invariants: $\beta_1 = \text{folded}$, $\beta_1 \geq 0$, $\text{vents} \leq \text{folds}$, and eventual termination under weak fairness. The self-verification is closed under self-application: a formal system built from these primitives can reason about formal systems built from these primitives [26].
 
-2) In edge transport, I implement a binary stream protocol with 10-byte self-describing frame headers and native fork/race/fold operations on UDP, reducing framing overhead by 95 percent versus HTTP/1.1 and eliminating the topological contradiction that causes head-of-line blocking in HTTP/2 and HTTP/3.
+2) In formal language theory (the programming model, §11), I implement Gnosis [28] — a programming language whose source code IS the computation graph and whose compiler IS a fork/race/fold pipeline. Programs are Cypher-like graphs with four edge types (FORK, RACE, FOLD, VENT). The compiler statically verifies $\beta_1$ bounds, verified by layer 1. The self-hosted compiler (Betti) is itself a GGL program: `(source) -[:FORK]-> (parse_nodes | parse_edges) -[:FOLD]-> (ast)`, establishing closure under construction.
 
-3) In compression, I implement per-chunk topological codec racing (fork codecs, race per chunk, fold to winner), with executable verification of roundtrip correctness, codec-vent behavior and $\beta_1 = \text{codecs}-1$ invariants across the open-source test harnesses [20, 21].
+3) In distributed staged computation (the scheduling algorithm, §7), chunked pipelined processing reduces sequential depth from $O(PN)$ to $O(\lceil P/B \rceil + N - 1)$, yielding measured speedups of 3.1x–267x. The Wallington Rotation, expressed in layer 2's language, verified by layer 1's checker.
 
-4) In formal verification, I implement a temporal logic model checker (`@affectively/aeon-logic`) whose BFS state-space exploration is itself a fork/race/fold computation. Each multi-successor expansion is a fork, each transition to an already-visited state is a fold (interference), each unfair cycle filtered by weak fairness is a vent, and termination is collapse. The checker verifies a `TemporalModel` of its own exploration and generates a TLA+ specification of the same model, validated through a round-trip-stable TLA sandbox. Both verification paths prove the same invariants: $\beta_1 = \text{folded}$ (every back-edge creates exactly one independent cycle), $\beta_1 \geq 0$ (topology is well-formed), $\text{vents} \leq \text{folds}$ (you can only vent what has been folded), and eventual termination under weak fairness. The self-verification is closed under self-application: the topology stats the checker reports about verifying itself (forkCount, foldCount, $\beta_1$) are themselves fork/race/fold observables. This proves fork/race/fold encapsulates all logic -- a formal system built from these primitives can reason about formal systems built from these primitives [26].
+4) In edge transport (the wire format, §8), I implement a binary stream protocol with 10-byte self-describing frame headers and native fork/race/fold operations on UDP, reducing framing overhead by 95 percent versus HTTP/1.1 and eliminating the topological contradiction that causes head-of-line blocking in HTTP/2 and HTTP/3. Layer 3's scheduling algorithm runs over layer 4's wire format.
+
+5) In compression (bytes on wire, §9), I implement per-chunk topological codec racing (fork codecs, race per chunk, fold to winner), with executable verification of roundtrip correctness, codec-vent behavior and $\beta_1 = \text{codecs}-1$ invariants [20, 21]. The capstone: actual bytes, actual ratios, actual wire — using every layer below it.
 
 The algorithm, itself optimal, is demonstrably beautiful. It is a simple, elegant solution to a complex problem that has been plaguing the field of computer science for decades.
 
@@ -436,7 +438,7 @@ The conveyor belt uses only composition. Fork/race/fold uses both composition an
 
 Little's Law states: $L = \lambda W$, where $L$ is the average number of items in a system, $\lambda$ is the arrival rate and $W$ is the average time in the system. This is the foundational result of queueing theory, proved by Little in 1961 [7] and considered universal within its domain.
 
-**Containment theorem (operational form).** Under assumptions C1-C4 and standard Markovian service models, the fork/race/fold framework recovers canonical queueing results when constrained to $\beta_1 = 0$, and strictly extends them when $\beta_1 > 0$ by adding topology as a control variable. The executable proofs in §12 include direct tests for Little, Erlang-style blocking behavior and Jackson-style bottleneck limits [21].
+**Containment theorem (operational form).** Under assumptions C1-C4 and standard Markovian service models, the fork/race/fold framework recovers canonical queueing results when constrained to $\beta_1 = 0$, and strictly extends them when $\beta_1 > 0$ by adding topology as a control variable. The executable proofs in §13 include direct tests for Little, Erlang-style blocking behavior and Jackson-style bottleneck limits [21].
 
 **Precision on "containment."** Little's Law ($L = \lambda W$) holds under remarkably weak assumptions — it requires only ergodicity and finite expectations, not Markovian arrivals or any specific service-time distribution (Little & Graves, 2008). The C1-C4 conditions are *not* equivalent to Little's Law's assumptions; they are *stronger* (C3 demands deterministic fold, C4 demands finite termination). Containment means: every system satisfying C1-C4 with $\beta_1 = 0$ also satisfies the conditions under which Little's Law holds, and the framework produces the same steady-state predictions. The converse does not hold — Little's Law applies to systems that violate C3 (non-deterministic service) or have no fold semantics at all. What fork/race/fold adds is not a relaxation of Little's assumptions but an extension of the *vocabulary*: when $\beta_1 > 0$, topology becomes a control variable that queueing theory has no notation for.
 
@@ -966,9 +968,21 @@ The `TopologyAnalyzer` computes $\beta_0$, $\beta_1$, $\beta_2$ and detects fork
 
 **To see fork/race/fold is to see a system that has found its shape. To not see it is to see a system that hasn't. The Bule count tells you how far off you are.**
 
-## 7. Instantiation A: Distributed Staged Computation
+## 7. Instantiation C: Distributed Staged Computation (Stack Layer 3)
 
 I implement fork/race/fold in a distributed computation engine with processing stages partitioned across networked nodes -- a domain of particular interest to the researcher.
+
+In Gnosis (§11), the Wallington Rotation for a 4-stage pipeline is:
+
+```cypher
+(tokens: Source { data: 'workload' })
+(stage_1: Node { id: '1' }) (stage_2: Node { id: '2' })
+(stage_3: Node { id: '3' }) (stage_4: Node { id: '4' })
+(tokens)-[:FORK]->(stage_1 | stage_2 | stage_3 | stage_4)
+(stage_1 | stage_2 | stage_3 | stage_4)-[:FOLD { strategy: 'merge-all' }]->(result)
+```
+
+The topology is the program. The scheduling is the shape.
 
 ### 7.1 Chunked Pipelined Prefill (Wallington Rotation)
 
@@ -999,11 +1013,22 @@ A single workload is sharded across $S$ parallel pipelines. Each shard processes
 
 A lightweight predictor generates $K$ candidate continuations (fork). All $K$ branches enter the pipeline as multiplexed sub-requests (race). A verifier checks all $K$ in a single batched pass. Invalid branches are pruned via venting. Expected items accepted per pass with acceptance rate $\alpha$: $(1 - \alpha^K)/(1 - \alpha)$.
 
-## 8. Instantiation B: Aeon Flow Protocol
+## 8. Instantiation D: Aeon Flow Protocol (Stack Layer 4)
 
 ### 8.1 Design Principle
 
-The patterns -- fork, race, fold, vent -- recur identically in edge composition, service worker preloading, fragment assembly, deploy artifact streaming, CRDT synchronization and other independent domains validated in §12. Rather than reimplementing per domain, I extract the primitive into a binary wire protocol on UDP dubbed Aeon Flow. [20]
+The patterns -- fork, race, fold, vent -- recur identically in edge composition, service worker preloading, fragment assembly, deploy artifact streaming, CRDT synchronization and other independent domains validated in §13. Rather than reimplementing per domain, I extract the primitive into a binary wire protocol on UDP dubbed Aeon Flow. [20]
+
+In Gnosis (§11), a multiplexed site load over Aeon Flow is:
+
+```cypher
+(html: Asset { type: 'text/html' }) (css: Asset { type: 'text/css' })
+(js: Asset { type: 'application/javascript' }) (font: Asset { type: 'font/woff2' })
+(site)-[:FORK]->(html | css | js | font)
+(html | css | js | font)-[:FOLD { strategy: 'merge-all' }]->(cached_site)
+```
+
+Four assets, one connection, one fold. The GGL program compiles directly to the FlowFrame binary format below.
 
 ### 8.2 Wire Format
 
@@ -1100,11 +1125,22 @@ At 100ms RTT, HTTP/1.1 needs 16 round trips (1.6 seconds of pure latency). Aeon 
 
 Modern software developers can attest to the imminent usefulness of this application: amid browser-based demand for fast load times and low interaction to next paint (INP) time, front-end engineering conventions supply myriad files as the result of dependency tree-shaking and other optimizations. There are dozens if not hundreds of small files, whose network penalty compounds at the price of the very problem its trying to solve. Aeon Flow multi-plexes these requests into a single origin hit. As binary is delivered over the wild, cumulative layout shift (CLS) is impossible and the progressive hydration made unnecessary.
 
-## 9. Instantiation C: Topological Compression
+## 9. Instantiation E: Topological Compression (Stack Layer 5 — Capstone)
 
 ### 9.1 The Claim and Its Limits
 
 The same fork/race/fold primitive applies to compression. **Topological compression** forks all available codecs per chunk, races them and folds to the winner. Each chunk independently selects its best codec. The output is a sequence of self-describing frames (9-byte header: codec ID, original size, compressed size). $\beta_1 = \text{codecs} - 1$.
+
+In Gnosis (§11), the topological compressor is:
+
+```cypher
+(raw: Codec { type: 'raw' }) (rle: Codec { type: 'rle' })
+(brotli: Codec { type: 'brotli' }) (gzip: Codec { type: 'gzip' })
+(chunk)-[:FORK]->(raw | rle | brotli | gzip)
+(raw | rle | brotli | gzip)-[:RACE]->(smallest)
+```
+
+Four lines. The entire compression strategy. The topology IS the algorithm.
 
 I implement this with eight codecs:
 
@@ -1199,7 +1235,7 @@ Executable evidence is available in two independent suites: the companion topolo
 | **CRDT sync** | Fork per-peer delta streams | Race peers to contribute | Merge deltas into canonical state |
 | **Speculative nav** | Fork predicted route preloads | Race prediction vs. actual | Display whichever resolves first |
 
-## 10. Instantiation D: Self-Verification
+## 10. Instantiation A: Self-Verification (Stack Layer 1 — Foundation)
 
 The most striking proof that fork/race/fold encapsulates all logic: the model checker can verify itself.
 
@@ -1242,7 +1278,86 @@ This means fork/race/fold is closed under self-application: a system built from 
 
 56 executable tests verify these claims [26].
 
-## 11. The Engine
+## 11. Instantiation B: Formal Language Theory (Stack Layer 2)
+
+The fifth instantiation domain is the most recursive: a programming language whose source code *is* the computation graph, whose compiler *is* a fork/race/fold pipeline, and whose self-hosting bootstraps through the previous four domains.
+
+### 11.1 Gnosis Graph Language (GGL)
+
+Gnosis [28] is a programming language that dispenses with imperative control flow (`if`/`else`, `for`, `try`/`catch`) entirely. Programs are graphs — nodes define data and compute, edges define topological transitions. The syntax is Cypher-like:
+
+```cypher
+(input) -[:FORK]-> (raw_codec | brotli_codec)
+(raw_codec | brotli_codec) -[:RACE]-> (winner)
+```
+
+The language has exactly four edge types — `FORK`, `RACE`, `FOLD`, `VENT` — plus `PROCESS` for sequential steps and `INTERFERE` for constructive/destructive signal combination. There are no functions, only subgraphs. There are no variables, only nodes with typed properties. There are no loops, only topological cycles detected at compile time by $\beta_1$ analysis.
+
+This is the thesis of the paper made literal: **the source code IS the topology**. The AST is the computation graph. The compiler is the $\beta_1$ analyzer. The runtime is the topology engine.
+
+### 11.2 The Betty Compiler
+
+The compiler (named **Betty**, after the Betti number) statically analyzes the GGL topology to ensure:
+
+1. $\beta_1$ is properly managed — no unbounded superpositions (every `FORK` must reach a `FOLD`, `RACE`, or `VENT`).
+2. All paths eventually collapse — the compiler rejects programs where $\beta_1$ never returns to zero.
+3. Deterministic fold — the merger strategy is declared in the edge properties, satisfying C3.
+
+Betty parses the graph, computes $\beta_1$ at each edge, and translates the AST into 10-byte `FlowFrame` binary buffers (§8.2) — the same wire format used by the Aeon Flow protocol. The compiled output is a sequence of `FlowFrame`s that the Rust/WASM runtime executes at near-native speed.
+
+The compilation pipeline is itself fork/race/fold:
+
+```cypher
+(source_code)
+  -[:PROCESS]-> (read_source)
+  -[:FORK]-> (parse_nodes | parse_edges)
+  -[:FOLD { strategy: 'merge-ast' }]-> (ast)
+  -[:PROCESS]-> (build_wasm_frames)
+  -[:PROCESS]-> (executable_binary)
+```
+
+### 11.3 Transformers as GGL Programs
+
+A transformer written in Gnosis reveals the fork/race/fold structure claimed in §6.11:
+
+```cypher
+(input_sequence)-[:PROCESS]->(qkv_projection)
+(qkv_projection)-[:FORK]->(head_1 | head_2 | head_3 | head_4)
+(head_1 | head_2 | head_3 | head_4)-[:FOLD { strategy: 'concat' }]->(multi_head_out)
+(input_sequence | multi_head_out)-[:INTERFERE { mode: 'constructive' }]->(residual_1)
+(residual_1)-[:PROCESS]->(ffn)
+(residual_1 | ffn)-[:INTERFERE { mode: 'constructive' }]->(transformer_out)
+```
+
+Multi-head attention is `FORK` → `FOLD`. Residual connections are `INTERFERE`. The topology is visible in the source code — not buried in matrix operations, not implicit in framework conventions, but *declared* as the program's structure. The compiler computes $\beta_1 = 3$ at the fork point (four heads) and verifies it returns to zero at the fold.
+
+### 11.4 The Bootstrapping Path: Betty → Betti
+
+The ultimate goal is self-hosting. Because a compiler is a pipeline — `(source) -[:FORK]-> (lexers) -[:FOLD]-> (AST)` — the TypeScript-based Betty compiler can be rewritten entirely in GGL. The self-hosted compiler is named **Betti** (the true topological spelling). The bootstrapping chain:
+
+$$\text{TypeScript (Betty)} \xrightarrow{\text{compiles}} \text{GGL (Betti)} \xrightarrow{\text{compiles}} \text{Everything else}$$
+
+This is closure under a different axis than §10. Self-verification (§10) proves that the checker can reason about itself — closure under *reasoning*. Self-hosting (Betti) proves that the language can compile itself — closure under *construction*. Together they establish that fork/race/fold is closed under both reasoning and construction: you can build tools from these primitives and verify tools built from these primitives, using the same primitives.
+
+### 11.5 The Five Domains as a Stack
+
+The five instantiation domains are not independent — they form a stack, each enabled by the ones below:
+
+| Stack Layer | Domain | §  | Primitive | Role |
+|:-----------:|--------|:--:|-----------|------|
+| 1 (foundation) | Self-verification | §10 | Temporal model checking | Proves the math works |
+| 2 | Formal language | §11 | GGL + Betty/Betti | The programming model |
+| 3 | Distributed computation | §7 | Wallington Rotation | The scheduling algorithm |
+| 4 | Edge transport | §8 | 10-byte FlowFrame | The wire format |
+| 5 (capstone) | Compression | §9 | Per-chunk codec racing | Bytes on wire |
+
+The stack reads bottom-up: *from building blocks to bytes on wire*. Layer 1 (§10) proves the primitives are correct. Layer 2 (§11) gives you a language to write topologies, verified by layer 1. Layer 3 (§7) schedules work through the topology, expressed in layer 2's language. Layer 4 (§8) puts frames on the wire, carrying layer 3's scheduled work. Layer 5 (§9) compresses the payload — actual bytes, actual ratios, actual wire — using every layer below it.
+
+The Rust/WASM runtime executes the FlowFrames at the same byte-level format defined in §8.2. The language is not a wrapper around the protocol — it is the protocol's native programming model.
+
+The stack is the paper's strongest existence proof: a single set of four primitives (fork, race, fold, vent) generates a scheduling algorithm, a wire protocol, a compression strategy, a verification engine, and a programming language. Each layer is independently useful. Together they form a closed computational ecosystem where the topology is the program, the program is the protocol, and the protocol is the topology.
+
+## 12. The Engine
 
 The algorithm is implemented as **Aeon Pipelines** [2], a zero-dependency computation topology engine in TypeScript. It runs on Cloudflare Workers, Deno, Node, Bun and browsers. The API surface is two classes:
 
@@ -1316,7 +1431,7 @@ The universality is not designed -- it is discovered, the same way *Physarum* di
 
 The engine includes a wire format bridge to the Aeon Flow protocol. The same 10-byte frame header (§8.2) encodes `WorkFrame<T>` objects for network transmission. Frames encoded by Aeon Pipelines transcode into frames in Aeon Flow, and vice versa. The computation topology is independent of the transport topology.
 
-## 12. Validation
+## 13. Validation
 
 The claims are backed by executable tests across four independent suites:
 
@@ -1327,7 +1442,7 @@ The claims are backed by executable tests across four independent suites:
 
 Total validated tests referenced here: **541 passing tests**, plus parser-validated formal artifacts, mechanized Lean theorem builds and mechanized TLC runs across eight TLA+ modules, with executable commands and source-visible assertions in the linked repositories [2, 20, 21, 25, 26, 27].
 
-## 13. Limitations
+## 14. Limitations
 
 **Benchmark substrate.** Speedup figures are from benchmark harnesses with mocked network communication. Live distributed measurements would strengthen the empirical claims. Readers interested in seeing this demonstrated first hand should contact the author.
 
@@ -1337,7 +1452,7 @@ Total validated tests referenced here: **541 passing tests**, plus parser-valida
 
 **Queueing theory subsumption scope.** Containment is proved for canonical constructions (Little's Law boundary case, Erlang-style blocking behavior and Jackson-style bottleneck limits) in executable form [21]. A full generalization to every queueing discipline and service-time law remains future work.
 
-## 14. Conclusion
+## 15. Conclusion
 
 I began with a child handing a ball to another child in a line. Four hundred handoffs. I ended with a topological framework that subsumes queueing theory, predicts biological mutation rates, explains why HTTP/2 has head-of-line blocking and runs on 10-byte UDP frames blasted as fast as theoretically possible.
 
@@ -1434,6 +1549,8 @@ Fork/race/fold is all you need.
 
 [27] Lean FRO Team, "The Lean Theorem Prover (Lean 4)," software and documentation, 2026. https://lean-lang.org
 
+[28] T. W. Buley, "Gnosis: A Topological Programming Language with Self-Hosting Compiler," open-source implementation, 2026. https://github.com/affectively-ai/gnosis
+
 ## Reproducibility
 
-Source code, test suites and protocol comparison benchmarks are available under open-source license [2, 20, 21, 26]. The scheduler, flow protocol, compression subsystem, computation topology engine and formal parser/tooling layer are independently testable. The validation totals reported in §12 are reproducible from the linked suites.
+Source code, test suites and protocol comparison benchmarks are available under open-source license [2, 20, 21, 26, 28]. The scheduler, flow protocol, compression subsystem, computation topology engine, formal parser/tooling layer and topological programming language are independently testable. The validation totals reported in §13 are reproducible from the linked suites.
