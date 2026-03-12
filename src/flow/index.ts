@@ -25,6 +25,7 @@ export {
   FOLD,
   VENT,
   FIN,
+  POISON,
   DEFAULT_FLOW_CONFIG,
 } from './types';
 

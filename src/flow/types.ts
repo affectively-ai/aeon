@@ -14,15 +14,17 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /** Fork: opens child streams from a parent */
-export const FORK    = 0x01;
+export const FORK = 0x01;
 /** Race: marks streams as racing — first to complete wins */
-export const RACE    = 0x02;
+export const RACE = 0x02;
 /** Fold: merge results from multiple streams into one */
 export const FOLD = 0x04;
 /** Vent: NaN propagation, error, or cancellation */
-export const VENT  = 0x08;
+export const VENT = 0x08;
 /** Fin: stream is complete, no more frames will be sent */
-export const FIN     = 0x10;
+export const FIN = 0x10;
+/** Poison: stream is terminated due to error or cancellation */
+export const POISON = 0x20;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Wire Format Types
