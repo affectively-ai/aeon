@@ -6,15 +6,15 @@
       "label": "Manuscript draft",
       "category": "document",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/ch17-arxiv-manuscript.md",
-      "sizeBytes": 191375,
-      "sha256": "aca5d15f58145c69cad9814f01afa0ce78b90153e3d0eb0c948041293689689d"
+      "sizeBytes": 186611,
+      "sha256": "c06fd7467f2ebaec868269a52243b92c8e78853af422689f70ad425273ac5ad3"
     },
     {
       "label": "Companion README",
       "category": "document",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/README.md",
-      "sizeBytes": 19806,
-      "sha256": "3fa87bd319d9e1d2a0b559d47bbcc4b18c755ed8bdf5c82d64aa6e88b92b10b8"
+      "sizeBytes": 22445,
+      "sha256": "acf62dd429676745777d24fc4c293fb9a6d852fc69c0ff1f35403df8daa09f72"
     },
     {
       "label": "Evidence workflow",
@@ -80,6 +80,27 @@
       "sha256": "bed334cb6a13a0d27a9831f93b45a3d97299eee9d744bf4c9f0c5808fe093c2f"
     },
     {
+      "label": "Formal adaptive witness artifact",
+      "category": "artifact",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/formal-adaptive-witness-catalog.json",
+      "sizeBytes": 1320,
+      "sha256": "472dc476a483d9c5874fd4d7c428e819934726486d01c25ad6aed6a52e28349a"
+    },
+    {
+      "label": "Adaptive supremum witness artifact",
+      "category": "artifact",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/adaptive-supremum-witness.json",
+      "sizeBytes": 4717,
+      "sha256": "99f474b8e51b06b2dda0334bf290198dd338c895f9fdaa491d41b70b6f514d49"
+    },
+    {
+      "label": "Adaptive supremum family-sweep artifact",
+      "category": "artifact",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/adaptive-supremum-family-sweep.json",
+      "sizeBytes": 7656,
+      "sha256": "d39d0c1e2199a12c84fc23a3c9a9742943f4a5958cbd569adb17300f2e80e961"
+    },
+    {
       "label": "Figure artifact",
       "category": "artifact",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/ch17-correspondence-boundary-figure.svg",
@@ -129,6 +150,27 @@
       "sha256": "d323f121a5d082d8afc2c2193bea1ab5ff7283d52b8dc82b0fc821f075522b02"
     },
     {
+      "label": "Formal adaptive witness script",
+      "category": "script",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/formal-adaptive-witness-catalog.ts",
+      "sizeBytes": 3652,
+      "sha256": "7131487d0e13d446cc8fd74875c3fcab64f7049852b837b76132543d9293cc45"
+    },
+    {
+      "label": "Adaptive supremum witness script",
+      "category": "script",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/adaptive-supremum-witness.ts",
+      "sizeBytes": 2892,
+      "sha256": "9f109f175040fca9eebb8495c4074e7d0d7050509b81b8985d5902ba41cab239"
+    },
+    {
+      "label": "Adaptive supremum family-sweep script",
+      "category": "script",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/adaptive-supremum-family-sweep.ts",
+      "sizeBytes": 2850,
+      "sha256": "e5d04297716175f59321fca1ec9fa60c30bb3ab27180f3865a90ef31032bbd07"
+    },
+    {
       "label": "Expansion figure script",
       "category": "script",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/ch17-boundary-expansion-figure.ts",
@@ -157,11 +199,18 @@
       "sha256": "3a10680a28eaab8ae9cba391848341bb1c167c41d9267a25ba65e26e9637f7d1"
     },
     {
+      "label": "Lean adaptive witness catalog",
+      "category": "formal",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/lean/Lean/ForkRaceFoldTheorems/AdaptiveWitnesses.lean",
+      "sizeBytes": 4125,
+      "sha256": "6eafe2bb1078c82152b3c5010832eb20ba45de8522050c59a2eb586ad63668aa"
+    },
+    {
       "label": "Theorem ledger",
       "category": "formal",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/THEOREM_LEDGER.md",
-      "sizeBytes": 34378,
-      "sha256": "a7ac9a7f817b2dd401e6b64ecda1380d50c8bffc859b52313c9323cfb61671a6"
+      "sizeBytes": 38807,
+      "sha256": "cb5cd82e154cd1ae4fdf8c0d26caf5f9213e7867b305f44e1f6150a2bb8dfa75"
     },
     {
       "label": "Affine benchmark topology suite",
@@ -178,7 +227,7 @@
       "sha256": "282621a787b783cfde5dceaba5cad909de0824ac9f5989b51a50a13e88671a2d"
     }
   ],
-  "entryCount": 25,
-  "artifactCount": 10,
+  "entryCount": 32,
+  "artifactCount": 13,
   "complete": true
 }

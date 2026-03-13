@@ -1,0 +1,223 @@
+{
+  "label": "adaptive-supremum-witness-v1",
+  "parameters": {
+    "maxLeftQueue": 2,
+    "maxRightQueue": 2,
+    "arrivalLeft": 0.25,
+    "arrivalRight": 0.15,
+    "rerouteProbability": 0.5,
+    "serviceLeft": 0.5,
+    "serviceRight": 0.4
+  },
+  "candidate": {
+    "left": 0.25,
+    "right": 0.275,
+    "fixedPointResidualLeft": 0,
+    "fixedPointResidualRight": 0,
+    "nonnegative": true,
+    "serviceSlackLeft": 0.25,
+    "serviceSlackRight": 0.125
+  },
+  "ceiling": {
+    "rowSums": {
+      "left": 0.5,
+      "right": 0
+    },
+    "spectralRadius": 0,
+    "nilpotentOrder": 2,
+    "squareIsZero": true,
+    "strictRowSubstochastic": true
+  },
+  "drift": {
+    "gap": 0.125,
+    "positive": true,
+    "stateCount": 18,
+    "smallSetCount": 1,
+    "dominationViolations": 0,
+    "rowSumViolations": 0,
+    "driftViolations": 0
+  },
+  "schedules": [
+    {
+      "id": "always-uncongested",
+      "description": "Ceiling never activates, so the right node stays at its direct arrival baseline.",
+      "congestionPattern": [
+        false
+      ],
+      "approximants": [
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        }
+      ],
+      "supremum": {
+        "left": 0.25,
+        "right": 0.15
+      },
+      "expectedSupremumRight": 0.15,
+      "allApproximantsBoundedByCandidate": true,
+      "recoveredExpectedSupremum": true
+    },
+    {
+      "id": "always-congested",
+      "description": "Ceiling activates on every step, so the right node reaches the closed-form reroute bound immediately.",
+      "congestionPattern": [
+        true
+      ],
+      "approximants": [
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.275
+        },
+        {
+          "left": 0.25,
+          "right": 0.275
+        },
+        {
+          "left": 0.25,
+          "right": 0.275
+        },
+        {
+          "left": 0.25,
+          "right": 0.275
+        },
+        {
+          "left": 0.25,
+          "right": 0.275
+        },
+        {
+          "left": 0.25,
+          "right": 0.275
+        }
+      ],
+      "supremum": {
+        "left": 0.25,
+        "right": 0.275
+      },
+      "expectedSupremumRight": 0.275,
+      "allApproximantsBoundedByCandidate": true,
+      "recoveredExpectedSupremum": true
+    },
+    {
+      "id": "alternating",
+      "description": "Congestion toggles, so the right coordinate oscillates below the same schedule-uniform ceiling.",
+      "congestionPattern": [
+        false,
+        true
+      ],
+      "approximants": [
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.275
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.275
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.275
+        }
+      ],
+      "supremum": {
+        "left": 0.25,
+        "right": 0.275
+      },
+      "expectedSupremumRight": 0.275,
+      "allApproximantsBoundedByCandidate": true,
+      "recoveredExpectedSupremum": true
+    },
+    {
+      "id": "delayed-reroute",
+      "description": "The ceiling is dormant first and then activates, showing that the constructive supremum picks up the first congested branch without overshooting.",
+      "congestionPattern": [
+        false,
+        false,
+        true,
+        true
+      ],
+      "approximants": [
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.275
+        },
+        {
+          "left": 0.25,
+          "right": 0.275
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        },
+        {
+          "left": 0.25,
+          "right": 0.15
+        }
+      ],
+      "supremum": {
+        "left": 0.25,
+        "right": 0.275
+      },
+      "expectedSupremumRight": 0.275,
+      "allApproximantsBoundedByCandidate": true,
+      "recoveredExpectedSupremum": true
+    }
+  ],
+  "allChecksPass": true
+}

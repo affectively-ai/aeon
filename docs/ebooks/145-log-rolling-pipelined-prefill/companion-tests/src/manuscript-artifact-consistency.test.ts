@@ -222,6 +222,17 @@ interface FormalWitnessCatalogReport {
   }[];
 }
 
+interface FormalAdaptiveWitnessCatalogReport {
+  readonly label: string;
+  readonly witnesses: readonly {
+    readonly id: string;
+    readonly alphaLeft: string;
+    readonly alphaRight: string;
+    readonly driftGap: string;
+    readonly spectralRadius: string;
+  }[];
+}
+
 interface Ch17ReplicationPackReport {
   readonly label: string;
   readonly rootCommand: string;
@@ -294,6 +305,9 @@ describe('Manuscript artifact consistency', () => {
     );
     const formalWitnessCatalog = loadJson<FormalWitnessCatalogReport>(
       join(ARTIFACTS_DIR, 'formal-witness-catalog.json'),
+    );
+    const formalAdaptiveWitnessCatalog = loadJson<FormalAdaptiveWitnessCatalogReport>(
+      join(ARTIFACTS_DIR, 'formal-adaptive-witness-catalog.json'),
     );
     const replicationPack = loadJson<Ch17ReplicationPackReport>(
       join(ARTIFACTS_DIR, 'ch17-replication-pack.json'),
@@ -617,10 +631,17 @@ describe('Manuscript artifact consistency', () => {
         3,
       ),
     );
-    mustContain(manuscript, 'ch17-correspondence-boundary-figure.svg');
-    mustContain(manuscript, 'ch17-boundary-expansion-figure.svg');
+    mustContain(manuscript, 'ch17-correspondence-boundary-figure.{json,md,svg}');
+    mustContain(manuscript, 'ch17-boundary-expansion-figure.{json,md,svg}');
     mustContain(manuscript, String(formalWitnessCatalog.witnesses.length));
     mustContain(manuscript, 'formal-witness-catalog.{json,md}');
+    mustContain(manuscript, 'formal-adaptive-witness-catalog.{json,md}');
+    mustContain(
+      manuscript,
+      `α = (${formalAdaptiveWitnessCatalog.witnesses[0]!.alphaLeft}, ${formalAdaptiveWitnessCatalog.witnesses[0]!.alphaRight})`,
+    );
+    mustContain(manuscript, formalAdaptiveWitnessCatalog.witnesses[0]!.driftGap);
+    mustContain(manuscript, formalAdaptiveWitnessCatalog.witnesses[0]!.spectralRadius);
     mustContain(manuscript, 'ch17-replication-pack.{json,md}');
     mustContain(manuscript, 'bun run test:ch17-external-replication');
     mustContain(manuscript, String(replicationPack.entryCount));

@@ -27,6 +27,9 @@ Utility scripts used by the companion suite.
 - `gnosis-adversarial-controls-benchmark.ts`: symmetric learned-control runner that reuses the same topology families on tasks that reward winner-selection or early-stop folds, then writes JSON/Markdown control artifacts.
 - `gnosis-moe-routing-benchmark.ts`: seeded Gnosis mini-MoE routing runner, reads three routed-expert `.gg` modules and writes JSON/Markdown artifacts for the harder learned fold boundary.
 - `formal-witness-catalog.ts`: Lean-originated witness exporter that builds the witness module, emits JSON/Markdown artifacts, and feeds the runtime correspondence-boundary tests.
+- `formal-adaptive-witness-catalog.ts`: Lean-originated adaptive witness exporter that builds the adaptive witness module, emits JSON/Markdown artifacts, and feeds the runtime adaptive-supremum tests.
+- `adaptive-supremum-witness.ts`: executable mirror of the concrete two-node adaptive ceiling/drift witness, enumerating bounded states and schedule patterns and writing JSON/Markdown artifacts for the closed-form adaptive bound.
+- `adaptive-supremum-family-sweep.ts`: raw-parameter family sweep for the bounded two-node adaptive rerouting theorem, writing JSON/Markdown artifacts that confirm the same nilpotent ceiling and positive drift gap across multiple admissible parameter tuples.
 - `ch17-replication-pack.ts`: replication-bundle writer that hashes the current Chapter 17 evidence files and records the root rerun command in JSON/Markdown form.
 - `ch17-correspondence-boundary-figure.ts`: artifact assembler that reads the quantum, toy-attention, cancellation-benchmark, and mini-MoE reports and writes manuscript-ready JSON/Markdown/SVG figure outputs.
 - `ch17-boundary-expansion-figure.ts`: artifact assembler that reads the regime sweep, adversarial controls, and formal witness catalog and writes manuscript-ready JSON/Markdown/SVG outputs for the expanded boundary story.

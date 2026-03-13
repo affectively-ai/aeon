@@ -39,6 +39,8 @@ This directory contains machine-checked formal artifacts used to mechanize the p
 - `lean/Lean/ForkRaceFoldTheorems/Claims.lean`: constructive Lean theorems for quantitative identities, including finite weighted queueing expectation balance, finite-prefix truncation balance, and the linear-additive vs nonlinear-selection correspondence boundary used in §6.12, including the cancellation-target-family impossibility witness for nonlinear folds.
 - `lean/Lean/ForkRaceFoldTheorems/Witnesses.lean`: constructive witness catalog for the correspondence boundary, exporting concrete cancellation, partition, and order counterexamples from the Lean package itself.
 - `lean/Lean/ForkRaceFoldTheorems/WitnessExport.lean`: Lean-side serializer that turns the witness catalog into the JSON surface consumed by the companion runtime tests and formal-witness artifact writer.
+- `lean/Lean/ForkRaceFoldTheorems/AdaptiveWitnesses.lean`: constructive adaptive witness catalog for the bounded two-node raw adaptive `α` closure, exporting the concrete ceiling/drift witness values and theorem refs from the Lean package itself.
+- `lean/Lean/ForkRaceFoldTheorems/AdaptiveWitnessExport.lean`: Lean-side serializer that turns the adaptive witness catalog into the JSON surface consumed by the companion runtime adaptive-witness tests and artifact writer.
 - `lean/Lean/ForkRaceFoldTheorems/FailureEntropy.lean`: constructive Lean theorems for structured failure as live-frontier entropy reduction, including one-survivor/failure necessity and coupled-repair debt monotonicity.
 - `lean/Lean/ForkRaceFoldTheorems/FailureFamilies.lean`: constructive Lean theorems for the stronger failure-topology family split, separating branch-isolating failure from contagious failure via deterministic-fold preservation and repair-debt forcing.
 - `lean/Lean/ForkRaceFoldTheorems/FailureTrilemma.lean`: constructive Lean theorems for the no-free deterministic-collapse boundary, including the proof that deterministic single-survivor collapse must pay either vented loss or repair debt.
@@ -54,7 +56,8 @@ This directory contains machine-checked formal artifacts used to mechanize the p
 - `lean/Lean/ForkRaceFoldTheorems/MeasureQueueing.lean`: constructive Lean theorems for infinite weighted queue sums, countably supported stochastic queue laws via `PMF`, measure-theoretic `lintegral` conservation, and monotone truncation-to-limit lifting of queue customer-time balance.
 - `lean/Lean/ForkRaceFoldTheorems/QueueStability.lean`: constructive Lean theorems for the stable `M/M/1` stationary occupancy law, its finite first moment, and trajectory-level Cesaro balance for unbounded open-network sample paths.
 - `lean/Lean/ForkRaceFoldTheorems/JacksonQueueing.lean`: constructive Lean theorems for a finite-node product-form open-network occupancy law under a stable throughput witness satisfying the Jackson traffic equations, together with in-package witness constructors from the least fixed-point approximation (`constructiveThroughput`) and the resolvent-style spectral formula (`spectralThroughput`) once their side conditions are discharged.
-- `lean/Lean/ForkRaceFoldTheorems/Axioms.lean`: explicit-assumption theorem schemas for global claims, including convergence in the modeled finite class, stronger queue-limit shells, and a Foster-Lyapunov/irreducibility stability schema for state-dependent open-network stationary and terminal queue balance.
+- `lean/Lean/ForkRaceFoldTheorems/StateDependentQueueFamilies.lean`: constructive state-dependent queue-family wrappers for vacation, retrial, reneging, and adaptive-routing kernels, all funneled through the shared stationary/terminal balance schemas, plus a raw-parameter two-node adaptive rerouting witness that derives its own ceiling kernel, spectral side conditions, throughput bound, and linear drift witness.
+- `lean/Lean/ForkRaceFoldTheorems/Axioms.lean`: explicit-assumption theorem schemas for global claims, including convergence in the modeled finite class, stronger queue-limit shells, a Foster-Lyapunov/irreducibility stability schema for state-dependent open-network stationary and terminal queue balance, and an adaptive supremum-kernel comparison shell that turns a dominating spectral candidate into a drift hypothesis.
 
 ## Current Boundary
 
@@ -62,6 +65,9 @@ This directory contains machine-checked formal artifacts used to mechanize the p
 - The package now proves that any nonnegative real fixed point bounds `constructiveThroughput`, so the spectral candidate can certify finiteness and stability for the iterative witness once its own side conditions are shown.
 - The current in-package route to a stable throughput witness `α` is explicit: set `α_spec := spectralThroughput = λ (I - P)^{-1}` under `spectralRadius P < 1`, prove `α_spec >= 0`, prove `α_spec < μ`, instantiate `spectralNetworkData`, then transfer those same bounds through `constructiveThroughput_le_spectralThroughput`, `constructiveThroughput_finite_of_spectral`, and `constructiveThroughput_stable_of_spectral` to obtain `constructiveNetworkDataOfSpectral`.
 - The full "Jackson Gap" closure path is now readable as one formal pipeline from raw data `(λ, P, μ)`: build the resolvent candidate, prove the traffic equations with `spectralThroughput_fixed_point`, discharge nodewise stability `α_i < μ_i`, then apply the Knaster-Tarski-style dominance bridge `constructiveThroughput_le_of_real_fixed_point` to force finiteness and stability of the constructive witness.
+- Adaptive routing now has a mechanized comparison layer: `AdaptiveJacksonTrafficData` supports state-indexed routing kernels, any dominating Jackson kernel bounds the adaptive constructive witness, and the `supremumKernel` specialization closes the comparison when the pointwise ceiling remains substochastic and contractive.
+- The adaptive drift story is no longer purely schematic: `StateDependentQueueFamilies.TwoNodeAdaptiveRoutingParameters` derives an explicit ceiling kernel, proves the ceiling is strict-row-substochastic and spectrally contractive, bounds the adaptive constructive throughput by a closed-form candidate, and produces a linear drift witness on the bounded adaptive state space.
+- The generic adaptive lift still remains honest about its boundary: constructive domination by the supremum or another dominating kernel is proved in `JacksonQueueing.lean`, while the fully generic Lyapunov-to-positive-recurrence lift for arbitrary raw adaptive kernels stays assumption-parameterized in `Axioms.AdaptiveSupremumStabilityAssumptions`.
 - The remaining Jackson-network gap is automatic discharge of witness side conditions from raw network data: proving the chosen candidate is nonnegative, finite, and strictly below service rates without supplying those proofs separately.
 - `Axioms.lean` remains the location for the stronger state-dependent stability, limit, and convergence shells that still need concrete model instantiations.
 
@@ -73,10 +79,12 @@ From `companion-tests/`:
 bun run test:formal:parser
 bun run test:formal:lean
 bun run test:formal:witnesses
+bun run test:formal:adaptive-witnesses
 bun run test:formal
 ```
 
 `test:formal:parser` validates all `.tla/.cfg` artifacts and inspects the Lean project through the self-hosted `aeon-logic` parser/sandbox surface.
 `test:formal:lean` builds all Lean theorem modules through `aeon-logic`'s `runLeanSandbox`, which in turn requires a successful `lake build`.
 `test:formal:witnesses` builds the Lean witness module, exports the constructive correspondence-boundary counterexamples, and refreshes the runtime-facing witness artifact.
+`test:formal:adaptive-witnesses` builds the adaptive witness module, exports the concrete bounded two-node adaptive `α` witness, and refreshes the runtime-facing adaptive witness artifact.
 `test:formal` runs parser preflight, Lean build and TLC model checking.

@@ -25,6 +25,9 @@ Vitest suites that provide executable claim coverage for the manuscript.
 - `gnosis-adversarial-controls-benchmark.ts` / `.test.ts`: wrapper plus tests for the symmetric learned control suite where winner-selection or early-stop folds are the correct inductive bias.
 - `gnosis-moe-routing-benchmark.ts` / `.test.ts`: wrapper plus tests for the harder seeded Gnosis mini-MoE routing benchmark built from three routed-expert `.gg` modules that differ only in `FOLD` strategy.
 - `formal-witness-catalog.ts` / `.test.ts`: Lean-originated witness loader plus tests that check the runtime boundary suite against the exported constructive counterexamples.
+- `formal-adaptive-witness-catalog.ts` / `.test.ts`: Lean-originated adaptive witness loader plus tests that pin the concrete two-node adaptive `α` witness against the executable adaptive-supremum artifact.
+- `adaptive-supremum-witness.ts` / `.test.ts`: executable mirror of the concrete two-node adaptive ceiling/drift witness, enumerating the bounded state space and schedule-level throughput bounds against the closed-form candidate.
+- `adaptive-supremum-family-sweep.ts` / `.test.ts`: raw-parameter family sweep over bounded two-node adaptive rerouting cases, confirming that the same ceiling/drift closure holds beyond the single exported witness tuple.
 - `ch17-replication-pack.ts` / `.test.ts`: replication-bundle manifest builder and tests that hash the current Chapter 17 evidence surface for outside reruns.
 - `ch17-correspondence-boundary-figure.ts` / `.test.ts`: figure manifest/SVG renderer and tests for the four-panel artifact-generated Chapter 17 correspondence-boundary chart.
 - `ch17-boundary-expansion-figure.ts` / `.test.ts`: figure manifest/SVG renderer and tests for the regime-sweep/adversarial/witness expansion chart.

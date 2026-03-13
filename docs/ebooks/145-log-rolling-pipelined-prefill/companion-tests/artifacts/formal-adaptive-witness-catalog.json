@@ -1,0 +1,27 @@
+{
+  "label": "formal-adaptive-supremum-witness-catalog-v1",
+  "witnesses": [
+    {
+      "id": "two-node-adaptive-raw-ceiling",
+      "theoremRef": "StateDependentQueueFamilies.TwoNodeAdaptiveRoutingParameters.constructiveThroughput_stable",
+      "ceilingTheoremRef": "StateDependentQueueFamilies.TwoNodeAdaptiveRoutingParameters.ceiling_spectralRadius_lt_one",
+      "driftTheoremRef": "StateDependentQueueFamilies.TwoNodeAdaptiveRoutingParameters.expectedLyapunov_drift",
+      "stationaryBalanceRef": "StateDependentQueueFamilies.TwoNodeAdaptiveRoutingParameters.kernelFamily_stationary_balance_from_supremum_schema",
+      "terminalBalanceRef": "StateDependentQueueFamilies.TwoNodeAdaptiveRoutingParameters.kernelFamily_terminal_balance_from_supremum_schema",
+      "maxLeftQueue": 2,
+      "maxRightQueue": 2,
+      "arrivalLeft": "1/4",
+      "arrivalRight": "3/20",
+      "rerouteProbability": "1/2",
+      "serviceLeft": "1/2",
+      "serviceRight": "2/5",
+      "alphaLeft": "1/4",
+      "alphaRight": "11/40",
+      "driftGap": "1/8",
+      "spectralRadius": "0",
+      "stateCount": 18,
+      "smallSetCount": 1,
+      "note": "Concrete two-node adaptive rerouting witness: explicit ceiling kernel, closed-form alpha, bounded constructive throughput, and linear drift on the bounded state cube."
+    }
+  ]
+}

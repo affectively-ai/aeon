@@ -37,6 +37,12 @@ Generated benchmark/formal outputs used by manuscript evidence notes.
 - `gnosis-moe-routing-benchmark.md`: human-readable seeded Gnosis mini-MoE routing benchmark summary with eval-MSE, exact-rate, bootstrap intervals, and dual-active-region error metrics.
 - `formal-witness-catalog.json`: machine-readable Lean-originated witness export for the correspondence boundary.
 - `formal-witness-catalog.md`: human-readable witness summary showing the exact cancellation, partition, and order counterexamples exported from the theorem package.
+- `formal-adaptive-witness-catalog.json`: machine-readable Lean-originated adaptive witness export for the concrete bounded two-node raw adaptive `α` closure.
+- `formal-adaptive-witness-catalog.md`: human-readable adaptive witness summary showing the exported `α`, drift gap, spectral radius, and theorem refs for the bounded two-node rerouting family.
+- `adaptive-supremum-witness.json`: machine-readable runtime mirror of the concrete two-node adaptive ceiling/drift witness, including schedule-level constructive supremum checks on the bounded state cube.
+- `adaptive-supremum-witness.md`: human-readable summary of the concrete two-node adaptive ceiling/drift witness.
+- `adaptive-supremum-family-sweep.json`: machine-readable raw-parameter sweep over bounded two-node adaptive rerouting cases that all satisfy the same ceiling/drift closure.
+- `adaptive-supremum-family-sweep.md`: human-readable summary table for the adaptive raw-parameter family sweep.
 - `ch17-replication-pack.json`: machine-readable replication manifest for the current Chapter 17 evidence bundle, including file sizes, SHA-256 digests, and the root rerun command.
 - `ch17-replication-pack.md`: human-readable replication manifest with the same bundle inventory and hashes.
 - `ch17-correspondence-boundary-figure.json`: machine-readable manifest for the Chapter 17 correspondence-boundary figure.
@@ -141,6 +147,32 @@ Generated benchmark/formal outputs used by manuscript evidence notes.
 - `winner-take-all`: eval mean squared error `0.328`, exact-within-tolerance fraction `0.126`, dual-active-region abs error `0.402`
 - `early-stop`: eval mean squared error `0.449`, exact-within-tolerance fraction `0.080`, dual-active-region abs error `0.474`
 
+## Adaptive Witness Snapshot
+
+- Protocol label: `formal-adaptive-supremum-witness-catalog-v1`
+- Witness id: `two-node-adaptive-raw-ceiling`
+- Exported `α`: `(1/4, 11/40)`
+- Exported drift gap: `1/8`
+- Exported spectral radius: `0`
+- Interpretation: the Lean theorem package now emits the same concrete adaptive ceiling/drift witness that the runtime adaptive-supremum artifact checks operationally
+
+## Runtime Adaptive Witness Snapshot
+
+- Protocol label: `adaptive-supremum-witness-v1`
+- Schedules checked: `4`
+- Spectral radius: `0`
+- Drift gap: `0.125`
+- Interpretation: the runtime mirror operationally checks the bounded-state and schedule consequences of the same concrete adaptive ceiling/drift witness exported from Lean
+
+## Adaptive Family Sweep Snapshot
+
+- Protocol label: `adaptive-supremum-family-sweep-v1`
+- Cases checked: `9`
+- Family closure recovered: `yes`
+- Minimum drift gap: `0.026`
+- Tightest case: `tight-right-slack-2x2`
+- Interpretation: the bounded two-node adaptive closure is exercised as a raw-parameter family, not just as one manuscript witness tuple
+
 ## Formal Witness Snapshot
 
 - Protocol label: `formal-fold-boundary-witness-catalog-v1`
@@ -171,7 +203,7 @@ Generated benchmark/formal outputs used by manuscript evidence notes.
 ## External Replication Snapshot
 
 - Protocol label: `ch17-external-replication-v1`
-- Step count: `10`
+- Step count: `11`
 - Manifest stable: `yes`
 - All hashes match: `yes`
 - Interpretation: the outside-rerun command surface rebuilds the learned/formal Chapter 17 evidence chain and then independently verifies the replication-pack hashes

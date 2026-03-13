@@ -2,7 +2,27 @@ import Mathlib
 import ForkRaceFoldTheorems.QueueStability
 
 open Filter MeasureTheory ProbabilityTheory
-open scoped BigOperators ENNReal Topology
+open scoped BigOperators ENNReal Matrix Topology
+
+namespace Matrix
+
+theorem spectrum_transpose_eq
+    {K : Type*} [Field K]
+    {n : Type*} [Fintype n] [DecidableEq n]
+    (A : Matrix n n K) :
+    spectrum K Aᵀ = spectrum K A := by
+  ext r
+  rw [Matrix.mem_spectrum_iff_isRoot_charpoly, Matrix.mem_spectrum_iff_isRoot_charpoly,
+    Matrix.charpoly_transpose]
+
+theorem spectralRadius_transpose_eq
+    {K : Type*} [NormedField K]
+    {n : Type*} [Fintype n] [DecidableEq n]
+    (A : Matrix n n K) :
+    spectralRadius K Aᵀ = spectralRadius K A := by
+  simp [spectralRadius, Matrix.spectrum_transpose_eq]
+
+end Matrix
 
 namespace ForkRaceFoldTheorems
 
@@ -120,6 +140,38 @@ theorem routingMatrix_apply (data : JacksonTrafficData (ι := ι)) (i j : ι) :
     data.routingMatrix i j = data.routing i j :=
   rfl
 
+omit [DecidableEq ι] in
+open scoped Matrix.Norms.Operator in
+omit [DecidableEq ι] in
+theorem routingMatrix_nnnorm_lt_one_of_strict_row_substochastic
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : ∀ i, ∑ j, data.routing i j < 1) :
+    ‖data.routingMatrix‖₊ < 1 := by
+  rw [Matrix.linfty_opNNNorm_def]
+  obtain ⟨i, hi, hmax⟩ := Finset.exists_mem_eq_sup
+    (s := Finset.univ)
+    Finset.univ_nonempty
+    (fun i : ι => ∑ j : ι, ‖data.routingMatrix i j‖₊)
+  rw [hmax]
+  have hRow :
+      (∑ j : ι, Real.toNNReal (data.routing i j)) < 1 := by
+    rw [← Real.toNNReal_sum_of_nonneg (fun j _ => data.routingNonneg i j)]
+    exact (Real.toNNReal_lt_one).2 (hContractive i)
+  simpa [routingMatrix_apply, Real.nnnorm_of_nonneg, Real.toNNReal_of_nonneg, data.routingNonneg] using hRow
+
+open scoped Matrix.Norms.Operator in
+theorem routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : ∀ i, ∑ j, data.routing i j < 1) :
+    spectralRadius ℝ data.routingMatrix < 1 := by
+  have hNorm : (‖data.routingMatrix‖₊ : ℝ≥0∞) < 1 := by
+    exact_mod_cast data.routingMatrix_nnnorm_lt_one_of_strict_row_substochastic hContractive
+  exact lt_of_le_of_lt
+    (spectrum.spectralRadius_le_nnnorm (𝕜 := ℝ) data.routingMatrix)
+    hNorm
+
 theorem routingMatrix_isUnit_of_spectralRadius_lt_one
     (data : JacksonTrafficData (ι := ι))
     (hρ : spectralRadius ℝ data.routingMatrix < 1) :
@@ -176,6 +228,45 @@ theorem spectralThroughput_fixed_point
       data.externalArrival i + (∑ j, data.spectralThroughput hρ j * data.routing j i) := by
   have hMatrix := congrFun (data.spectralThroughput_matrix_fixed_point hρ) i
   simpa [Matrix.vecMul, dotProduct, routingMatrix_apply] using hMatrix
+
+/--
+Under resolvent invertibility, the Jackson traffic equations have a unique real-valued
+fixed point, namely the spectral/resolvent throughput.
+-/
+theorem real_fixed_point_eq_spectralThroughput
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (candidate : ι → ℝ)
+    (hFixed :
+      ∀ i,
+        candidate i =
+          data.externalArrival i + ∑ j, candidate j * data.routing j i) :
+    candidate = data.spectralThroughput hρ := by
+  have hMatrix :
+      candidate =
+        data.externalArrival + Matrix.vecMul candidate data.routingMatrix := by
+    funext i
+    simpa [Matrix.vecMul, dotProduct, routingMatrix_apply] using hFixed i
+  have hResolvent :
+      Matrix.vecMul candidate (1 - data.routingMatrix) = data.externalArrival := by
+    rw [Matrix.vecMul_sub, Matrix.vecMul_one]
+    exact sub_eq_iff_eq_add.mpr hMatrix
+  let hUnit := data.routingMatrix_isUnit_of_spectralRadius_lt_one hρ
+  let u : Units (Matrix ι ι ℝ) := hUnit.unit
+  have hu : (↑u : Matrix ι ι ℝ) = 1 - data.routingMatrix := hUnit.unit_spec
+  calc
+    candidate = Matrix.vecMul candidate 1 := by simp
+    _ = Matrix.vecMul candidate ((1 - data.routingMatrix) * (↑(u⁻¹) : Matrix ι ι ℝ)) := by
+          congr 1
+          calc
+            (1 : Matrix ι ι ℝ) = (↑u : Matrix ι ι ℝ) * (↑(u⁻¹) : Matrix ι ι ℝ) := by simp
+            _ = (1 - data.routingMatrix) * (↑(u⁻¹) : Matrix ι ι ℝ) := by rw [hu]
+    _ = Matrix.vecMul (Matrix.vecMul candidate (1 - data.routingMatrix)) (↑(u⁻¹) : Matrix ι ι ℝ) := by
+          rw [Matrix.vecMul_vecMul]
+    _ = Matrix.vecMul data.externalArrival (↑(u⁻¹) : Matrix ι ι ℝ) := by rw [hResolvent]
+    _ = data.spectralThroughput hρ := by
+          unfold spectralThroughput
+          rfl
 
 end SpectralRadius
 
@@ -289,6 +380,47 @@ theorem constructiveThroughput_le_of_fixed_point
     i
 
 /--
+Any nonnegative real-valued supersolution of the Jackson traffic equations bounds the
+constructive throughput witness from above after embedding into `ℝ≥0∞`.
+-/
+theorem constructiveThroughput_le_of_real_postfixed
+    (data : JacksonTrafficData (ι := ι))
+    (candidate : ι → ℝ)
+    (hNonneg : ∀ i, 0 ≤ candidate i)
+    (hPostfixed :
+      ∀ i, data.externalArrival i + ∑ j, candidate j * data.routing j i ≤ candidate i)
+    (i : ι) :
+    data.constructiveThroughput i ≤ ENNReal.ofReal (candidate i) := by
+  exact data.constructiveThroughput_le_of_postfixed
+    (candidate := fun j => ENNReal.ofReal (candidate j))
+    (hPostfixed := by
+      intro k
+      have hSumNonneg : 0 ≤ ∑ j, candidate j * data.routing j k := by
+        refine Finset.sum_nonneg ?_
+        intro j hj
+        exact mul_nonneg (hNonneg j) (data.routingNonneg j k)
+      rw [trafficStep]
+      calc
+        ENNReal.ofReal (data.externalArrival k) +
+            ∑ j, ENNReal.ofReal (candidate j) * ENNReal.ofReal (data.routing j k)
+          = ENNReal.ofReal (data.externalArrival k) +
+              ∑ j, ENNReal.ofReal (candidate j * data.routing j k) := by
+                congr 1
+                apply Finset.sum_congr rfl
+                intro j hj
+                rw [ENNReal.ofReal_mul (hNonneg j)]
+        _ = ENNReal.ofReal (data.externalArrival k) +
+              ENNReal.ofReal (∑ j, candidate j * data.routing j k) := by
+                rw [← ENNReal.ofReal_sum_of_nonneg
+                  (fun j _ => mul_nonneg (hNonneg j) (data.routingNonneg j k))]
+        _ = ENNReal.ofReal (data.externalArrival k + ∑ j, candidate j * data.routing j k) := by
+                symm
+                rw [ENNReal.ofReal_add (data.arrivalNonneg k) hSumNonneg]
+        _ ≤ ENNReal.ofReal (candidate k) := by
+                exact ENNReal.ofReal_le_ofReal (hPostfixed k))
+    i
+
+/--
 Knaster-Tarski-style dominance bridge: any nonnegative real-valued solution of the
 Jackson traffic equations bounds the monotone constructive witness from above after
 embedding into `ℝ≥0∞`.
@@ -300,32 +432,12 @@ theorem constructiveThroughput_le_of_real_fixed_point
     (hFixed : ∀ i, candidate i = data.externalArrival i + ∑ j, candidate j * data.routing j i)
     (i : ι) :
     data.constructiveThroughput i ≤ ENNReal.ofReal (candidate i) := by
-  exact data.constructiveThroughput_le_of_fixed_point
-    (candidate := fun j => ENNReal.ofReal (candidate j))
-    (hFixed := by
+  exact data.constructiveThroughput_le_of_real_postfixed
+    candidate
+    hNonneg
+    (by
       intro k
-      have hSumNonneg : 0 ≤ ∑ j, candidate j * data.routing j k := by
-        refine Finset.sum_nonneg ?_
-        intro j hj
-        exact mul_nonneg (hNonneg j) (data.routingNonneg j k)
-      calc
-        ENNReal.ofReal (candidate k)
-          = ENNReal.ofReal (data.externalArrival k + ∑ j, candidate j * data.routing j k) := by
-              rw [hFixed k]
-        _ = ENNReal.ofReal (data.externalArrival k) +
-              ENNReal.ofReal (∑ j, candidate j * data.routing j k) := by
-              rw [ENNReal.ofReal_add (data.arrivalNonneg k) hSumNonneg]
-        _ = ENNReal.ofReal (data.externalArrival k) +
-              ∑ j, ENNReal.ofReal (candidate j * data.routing j k) := by
-              rw [ENNReal.ofReal_sum_of_nonneg fun j _ => mul_nonneg (hNonneg j) (data.routingNonneg j k)]
-        _ = ENNReal.ofReal (data.externalArrival k) +
-              ∑ j, ENNReal.ofReal (candidate j) * ENNReal.ofReal (data.routing j k) := by
-              congr 1
-              apply Finset.sum_congr rfl
-              intro j hj
-              rw [ENNReal.ofReal_mul (hNonneg j)]
-        _ = data.trafficStep (fun j => ENNReal.ofReal (candidate j)) k := by
-              simp [trafficStep])
+      rw [hFixed k])
     i
 
 theorem constructiveThroughput_le_spectralThroughput
@@ -341,6 +453,23 @@ theorem constructiveThroughput_le_spectralThroughput
     (data.spectralThroughput_fixed_point hρ)
     i
 
+theorem constructiveThroughput_le_spectralThroughput_of_strict_row_substochastic
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : ∀ i, ∑ j, data.routing i j < 1)
+    (hNonneg :
+      ∀ i, 0 ≤ data.spectralThroughput
+        (data.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hContractive) i)
+    (i : ι) :
+    data.constructiveThroughput i ≤
+      ENNReal.ofReal
+        (data.spectralThroughput
+          (data.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hContractive) i) := by
+  exact data.constructiveThroughput_le_spectralThroughput
+    (data.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hContractive)
+    hNonneg
+    i
+
 theorem constructiveThroughput_finite_of_spectral
     [DecidableEq ι]
     (data : JacksonTrafficData (ι := ι))
@@ -350,6 +479,20 @@ theorem constructiveThroughput_finite_of_spectral
     data.constructiveThroughput i < ∞ := by
   exact lt_of_le_of_lt (data.constructiveThroughput_le_spectralThroughput hρ hNonneg i)
     ENNReal.ofReal_lt_top
+
+theorem constructiveThroughput_finite_of_strict_row_substochastic
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : ∀ i, ∑ j, data.routing i j < 1)
+    (hNonneg :
+      ∀ i, 0 ≤ data.spectralThroughput
+        (data.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hContractive) i)
+    (i : ι) :
+    data.constructiveThroughput i < ∞ := by
+  exact data.constructiveThroughput_finite_of_spectral
+    (data.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hContractive)
+    hNonneg
+    i
 
 theorem constructiveThroughput_stable_of_spectral
     [DecidableEq ι]
@@ -366,6 +509,314 @@ theorem constructiveThroughput_stable_of_spectral
       (data.constructiveThroughput i).toReal ≤ data.spectralThroughput hρ i :=
     ENNReal.toReal_le_of_le_ofReal (hNonneg i) hLe
   exact lt_of_le_of_lt hToRealLe (hStable i)
+
+theorem constructiveThroughput_stable_of_strict_row_substochastic
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : ∀ i, ∑ j, data.routing i j < 1)
+    (hNonneg :
+      ∀ i, 0 ≤ data.spectralThroughput
+        (data.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hContractive) i)
+    (hStable :
+      ∀ i, data.spectralThroughput
+        (data.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hContractive) i <
+        data.serviceRate i)
+    (i : ι) :
+    (data.constructiveThroughput i).toReal < data.serviceRate i := by
+  exact data.constructiveThroughput_stable_of_spectral
+    (data.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hContractive)
+    hNonneg
+    hStable
+    i
+
+noncomputable def incomingRoutingMass
+    (data : JacksonTrafficData (ι := ι))
+    (i : ι) : ℝ :=
+  ∑ j, data.routing j i
+
+theorem incomingRoutingMass_nonneg
+    (data : JacksonTrafficData (ι := ι))
+    (i : ι) :
+    0 ≤ data.incomingRoutingMass i := by
+  exact Finset.sum_nonneg fun j _ => data.routingNonneg j i
+
+noncomputable def maxExternalArrival
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι)) : ℝ :=
+  Finset.univ.sup' Finset.univ_nonempty data.externalArrival
+
+theorem externalArrival_le_maxExternalArrival
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (i : ι) :
+    data.externalArrival i ≤ data.maxExternalArrival := by
+  exact Finset.le_sup' (s := Finset.univ) (f := data.externalArrival) (Finset.mem_univ i)
+
+theorem maxExternalArrival_nonneg
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι)) :
+    0 ≤ data.maxExternalArrival := by
+  let witness : ι := Classical.choice inferInstance
+  exact le_trans (data.arrivalNonneg witness) (data.externalArrival_le_maxExternalArrival witness)
+
+noncomputable def maxIncomingRoutingMass
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι)) : ℝ :=
+  Finset.univ.sup' Finset.univ_nonempty data.incomingRoutingMass
+
+theorem incomingRoutingMass_le_maxIncomingRoutingMass
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (i : ι) :
+    data.incomingRoutingMass i ≤ data.maxIncomingRoutingMass := by
+  exact Finset.le_sup' (s := Finset.univ) (f := data.incomingRoutingMass) (Finset.mem_univ i)
+
+theorem maxIncomingRoutingMass_nonneg
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι)) :
+    0 ≤ data.maxIncomingRoutingMass := by
+  let witness : ι := Classical.choice inferInstance
+  exact le_trans (data.incomingRoutingMass_nonneg witness)
+    (data.incomingRoutingMass_le_maxIncomingRoutingMass witness)
+
+open scoped Matrix.Norms.Operator in
+theorem routingMatrix_transpose_nnnorm_lt_one_of_maxIncomingRoutingMass_lt_one
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : data.maxIncomingRoutingMass < 1) :
+    ‖data.routingMatrixᵀ‖₊ < 1 := by
+  rw [Matrix.linfty_opNNNorm_def]
+  obtain ⟨i, hi, hmax⟩ := Finset.exists_mem_eq_sup
+    (s := Finset.univ)
+    Finset.univ_nonempty
+    (fun i : ι => ∑ j : ι, ‖data.routingMatrixᵀ i j‖₊)
+  rw [hmax]
+  have hRow :
+      (∑ j : ι, Real.toNNReal (data.routing j i)) < 1 := by
+    rw [← Real.toNNReal_sum_of_nonneg (fun j _ => data.routingNonneg j i)]
+    exact (Real.toNNReal_lt_one).2 <|
+      lt_of_le_of_lt (data.incomingRoutingMass_le_maxIncomingRoutingMass i) hContractive
+  simpa [routingMatrix_apply, Matrix.transpose_apply, Real.nnnorm_of_nonneg,
+    Real.toNNReal_of_nonneg, data.routingNonneg] using hRow
+
+open scoped Matrix.Norms.Operator in
+theorem routingMatrix_spectralRadius_lt_one_of_maxIncomingRoutingMass_lt_one
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : data.maxIncomingRoutingMass < 1) :
+    spectralRadius ℝ data.routingMatrix < 1 := by
+  have hNorm : (‖data.routingMatrixᵀ‖₊ : ℝ≥0∞) < 1 := by
+    exact_mod_cast data.routingMatrix_transpose_nnnorm_lt_one_of_maxIncomingRoutingMass_lt_one
+      hContractive
+  have hTranspose :
+      spectralRadius ℝ data.routingMatrixᵀ < 1 := by
+    exact lt_of_le_of_lt
+      (spectrum.spectralRadius_le_nnnorm (𝕜 := ℝ) data.routingMatrixᵀ)
+      hNorm
+  rw [← Matrix.spectralRadius_transpose_eq data.routingMatrix]
+  exact hTranspose
+
+theorem constructiveThroughput_le_of_uniform_column_bound
+    (data : JacksonTrafficData (ι := ι))
+    (arrivalBound contractivity : ℝ)
+    (hArrivalBoundNonneg : 0 ≤ arrivalBound)
+    (hArrivalBound : ∀ i, data.externalArrival i ≤ arrivalBound)
+    (hColumnBound : ∀ i, ∑ j, data.routing j i ≤ contractivity)
+    (hContractivityNonneg : 0 ≤ contractivity)
+    (hContractivityLt : contractivity < 1)
+    (i : ι) :
+    data.constructiveThroughput i ≤ ENNReal.ofReal (arrivalBound / (1 - contractivity)) := by
+  let bound : ℝ := arrivalBound / (1 - contractivity)
+  have hDenPos : 0 < 1 - contractivity := sub_pos.mpr hContractivityLt
+  have hBoundNonneg : 0 ≤ bound := by
+    dsimp [bound]
+    exact div_nonneg hArrivalBoundNonneg hDenPos.le
+  have hBoundEq : arrivalBound + bound * contractivity = bound := by
+    dsimp [bound]
+    field_simp [hDenPos.ne']
+    ring
+  exact data.constructiveThroughput_le_of_postfixed
+    (candidate := fun _ => ENNReal.ofReal bound)
+    (hPostfixed := by
+      intro k
+      have hMulSum :
+          (∑ j, bound * data.routing j k) = bound * ∑ j, data.routing j k := by
+        rw [Finset.mul_sum]
+      rw [trafficStep]
+      calc
+        ENNReal.ofReal (data.externalArrival k) +
+            ∑ j, ENNReal.ofReal bound * ENNReal.ofReal (data.routing j k)
+          = ENNReal.ofReal (data.externalArrival k) +
+              ENNReal.ofReal (∑ j, bound * data.routing j k) := by
+                congr 1
+                calc
+                  ∑ j, ENNReal.ofReal bound * ENNReal.ofReal (data.routing j k)
+                    = ∑ j, ENNReal.ofReal (bound * data.routing j k) := by
+                        apply Finset.sum_congr rfl
+                        intro j hj
+                        rw [ENNReal.ofReal_mul hBoundNonneg]
+                  _ = ENNReal.ofReal (∑ j, bound * data.routing j k) := by
+                        symm
+                        exact ENNReal.ofReal_sum_of_nonneg
+                          (fun j _ => mul_nonneg hBoundNonneg (data.routingNonneg j k))
+        _ ≤ ENNReal.ofReal arrivalBound +
+              ENNReal.ofReal (∑ j, bound * data.routing j k) := by
+                exact add_le_add (ENNReal.ofReal_le_ofReal (hArrivalBound k)) le_rfl
+        _ = ENNReal.ofReal arrivalBound +
+              ENNReal.ofReal (bound * ∑ j, data.routing j k) := by
+                rw [hMulSum]
+        _ ≤ ENNReal.ofReal arrivalBound + ENNReal.ofReal (bound * contractivity) := by
+                refine add_le_add le_rfl ?_
+                exact ENNReal.ofReal_le_ofReal
+                  (mul_le_mul_of_nonneg_left (hColumnBound k) hBoundNonneg)
+        _ = ENNReal.ofReal (arrivalBound + bound * contractivity) := by
+                rw [← ENNReal.ofReal_add hArrivalBoundNonneg
+                  (mul_nonneg hBoundNonneg hContractivityNonneg)]
+        _ = ENNReal.ofReal bound := by rw [hBoundEq])
+    i
+
+theorem constructiveThroughput_finite_of_uniform_column_bound
+    (data : JacksonTrafficData (ι := ι))
+    (arrivalBound contractivity : ℝ)
+    (hArrivalBoundNonneg : 0 ≤ arrivalBound)
+    (hArrivalBound : ∀ i, data.externalArrival i ≤ arrivalBound)
+    (hColumnBound : ∀ i, ∑ j, data.routing j i ≤ contractivity)
+    (hContractivityNonneg : 0 ≤ contractivity)
+    (hContractivityLt : contractivity < 1)
+    (i : ι) :
+    data.constructiveThroughput i < ∞ := by
+  exact lt_of_le_of_lt
+    (data.constructiveThroughput_le_of_uniform_column_bound
+      arrivalBound contractivity
+      hArrivalBoundNonneg hArrivalBound hColumnBound hContractivityNonneg hContractivityLt i)
+    ENNReal.ofReal_lt_top
+
+theorem constructiveThroughput_stable_of_uniform_column_bound
+    (data : JacksonTrafficData (ι := ι))
+    (arrivalBound contractivity : ℝ)
+    (hArrivalBoundNonneg : 0 ≤ arrivalBound)
+    (hArrivalBound : ∀ i, data.externalArrival i ≤ arrivalBound)
+    (hColumnBound : ∀ i, ∑ j, data.routing j i ≤ contractivity)
+    (hContractivityNonneg : 0 ≤ contractivity)
+    (hContractivityLt : contractivity < 1)
+    (hServiceBound : ∀ i, arrivalBound / (1 - contractivity) < data.serviceRate i)
+    (i : ι) :
+    (data.constructiveThroughput i).toReal < data.serviceRate i := by
+  have hDenPos : 0 < 1 - contractivity := sub_pos.mpr hContractivityLt
+  have hBoundNonneg : 0 ≤ arrivalBound / (1 - contractivity) :=
+    div_nonneg hArrivalBoundNonneg hDenPos.le
+  have hLe :
+      data.constructiveThroughput i ≤ ENNReal.ofReal (arrivalBound / (1 - contractivity)) :=
+    data.constructiveThroughput_le_of_uniform_column_bound
+      arrivalBound contractivity
+      hArrivalBoundNonneg hArrivalBound hColumnBound hContractivityNonneg hContractivityLt i
+  have hToRealLe :
+      (data.constructiveThroughput i).toReal ≤ arrivalBound / (1 - contractivity) :=
+    ENNReal.toReal_le_of_le_ofReal hBoundNonneg hLe
+  exact lt_of_le_of_lt hToRealLe (hServiceBound i)
+
+theorem constructiveThroughput_le_of_maxIncomingRoutingMass_lt_one
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (i : ι) :
+    data.constructiveThroughput i ≤
+      ENNReal.ofReal (data.maxExternalArrival / (1 - data.maxIncomingRoutingMass)) := by
+  exact data.constructiveThroughput_le_of_uniform_column_bound
+    data.maxExternalArrival
+    data.maxIncomingRoutingMass
+    data.maxExternalArrival_nonneg
+    data.externalArrival_le_maxExternalArrival
+    data.incomingRoutingMass_le_maxIncomingRoutingMass
+    data.maxIncomingRoutingMass_nonneg
+    hContractive
+    i
+
+theorem constructiveThroughput_finite_of_maxIncomingRoutingMass_lt_one
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (i : ι) :
+    data.constructiveThroughput i < ∞ := by
+  exact lt_of_le_of_lt
+    (data.constructiveThroughput_le_of_maxIncomingRoutingMass_lt_one hContractive i)
+    ENNReal.ofReal_lt_top
+
+theorem constructiveThroughput_stable_of_maxIncomingRoutingMass_lt_one
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (hServiceBound :
+      ∀ i, data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) < data.serviceRate i)
+    (i : ι) :
+    (data.constructiveThroughput i).toReal < data.serviceRate i := by
+  have hDenPos : 0 < 1 - data.maxIncomingRoutingMass := sub_pos.mpr hContractive
+  have hBoundNonneg : 0 ≤ data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) :=
+    div_nonneg data.maxExternalArrival_nonneg hDenPos.le
+  have hLe :
+      data.constructiveThroughput i ≤
+        ENNReal.ofReal (data.maxExternalArrival / (1 - data.maxIncomingRoutingMass)) :=
+    data.constructiveThroughput_le_of_maxIncomingRoutingMass_lt_one hContractive i
+  have hToRealLe :
+      (data.constructiveThroughput i).toReal ≤
+        data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) :=
+    ENNReal.toReal_le_of_le_ofReal hBoundNonneg hLe
+  exact lt_of_le_of_lt hToRealLe (hServiceBound i)
+
+theorem constructiveThroughput_toReal_fixed_point
+    (data : JacksonTrafficData (ι := ι))
+    (hFinite : ∀ i, data.constructiveThroughput i < ∞)
+    (i : ι) :
+    (data.constructiveThroughput i).toReal =
+      data.externalArrival i + ∑ j, (data.constructiveThroughput j).toReal * data.routing j i := by
+  have hFixed := data.constructiveThroughput_fixed_point i
+  have hSumFinite :
+      (∑ j, data.constructiveThroughput j * ENNReal.ofReal (data.routing j i)) < ∞ := by
+    exact ENNReal.sum_lt_top.2 fun j _ =>
+      ENNReal.mul_lt_top (hFinite j) ENNReal.ofReal_lt_top
+  have hFixedReal := congrArg ENNReal.toReal hFixed
+  rw [ENNReal.toReal_add ENNReal.ofReal_ne_top hSumFinite.ne,
+    ENNReal.toReal_ofReal (data.arrivalNonneg i),
+    ENNReal.toReal_sum (fun j _ =>
+      (ENNReal.mul_lt_top (hFinite j) ENNReal.ofReal_lt_top).ne)] at hFixedReal
+  simp_rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal (data.routingNonneg _ _)] at hFixedReal
+  exact hFixedReal
+
+theorem constructiveThroughput_toReal_eq_spectralThroughput
+    [DecidableEq ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (hFinite : ∀ i, data.constructiveThroughput i < ∞) :
+    ∀ i, (data.constructiveThroughput i).toReal = data.spectralThroughput hρ i := by
+  intro i
+  have hEq :
+      (fun j => (data.constructiveThroughput j).toReal) = data.spectralThroughput hρ :=
+    data.real_fixed_point_eq_spectralThroughput
+      hρ
+      (fun j => (data.constructiveThroughput j).toReal)
+      (data.constructiveThroughput_toReal_fixed_point hFinite)
+  exact congrFun hEq i
+
+theorem spectralThroughput_nonneg_of_constructiveFinite
+    [DecidableEq ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (hFinite : ∀ i, data.constructiveThroughput i < ∞) :
+    ∀ i, 0 ≤ data.spectralThroughput hρ i := by
+  intro i
+  rw [← data.constructiveThroughput_toReal_eq_spectralThroughput hρ hFinite i]
+  exact ENNReal.toReal_nonneg
+
+theorem spectralThroughput_stable_of_constructive
+    [DecidableEq ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (hFinite : ∀ i, data.constructiveThroughput i < ∞)
+    (hStable : ∀ i, (data.constructiveThroughput i).toReal < data.serviceRate i) :
+    ∀ i, data.spectralThroughput hρ i < data.serviceRate i := by
+  intro i
+  rw [← data.constructiveThroughput_toReal_eq_spectralThroughput hρ hFinite i]
+  exact hStable i
 
 noncomputable def constructiveNetworkData
     (data : JacksonTrafficData (ι := ι))
@@ -429,6 +880,91 @@ noncomputable def constructiveNetworkDataOfSpectral
   data.constructiveNetworkData
     (data.constructiveThroughput_finite_of_spectral hρ hNonneg)
     (data.constructiveThroughput_stable_of_spectral hρ hNonneg hStable)
+
+noncomputable def spectralNetworkDataOfConstructive
+    [DecidableEq ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (hFinite : ∀ i, data.constructiveThroughput i < ∞)
+    (hStable : ∀ i, (data.constructiveThroughput i).toReal < data.serviceRate i) :
+    JacksonNetworkData (ι := ι) :=
+  data.spectralNetworkData
+    hρ
+    (data.spectralThroughput_nonneg_of_constructiveFinite hρ hFinite)
+    (data.spectralThroughput_stable_of_constructive hρ hFinite hStable)
+
+noncomputable def constructiveNetworkDataOfStrictRowSubstochastic
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : ∀ i, ∑ j, data.routing i j < 1)
+    (hNonneg :
+      ∀ i, 0 ≤ data.spectralThroughput
+        (data.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hContractive) i)
+    (hStable :
+      ∀ i, data.spectralThroughput
+        (data.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hContractive) i <
+        data.serviceRate i) :
+    JacksonNetworkData (ι := ι) :=
+  data.constructiveNetworkData
+    (data.constructiveThroughput_finite_of_strict_row_substochastic hContractive hNonneg)
+    (data.constructiveThroughput_stable_of_strict_row_substochastic hContractive hNonneg hStable)
+
+noncomputable def constructiveNetworkDataOfUniformColumnBound
+    (data : JacksonTrafficData (ι := ι))
+    (arrivalBound contractivity : ℝ)
+    (hArrivalBoundNonneg : 0 ≤ arrivalBound)
+    (hArrivalBound : ∀ i, data.externalArrival i ≤ arrivalBound)
+    (hColumnBound : ∀ i, ∑ j, data.routing j i ≤ contractivity)
+    (hContractivityNonneg : 0 ≤ contractivity)
+    (hContractivityLt : contractivity < 1)
+    (hServiceBound : ∀ i, arrivalBound / (1 - contractivity) < data.serviceRate i) :
+    JacksonNetworkData (ι := ι) :=
+  data.constructiveNetworkData
+    (data.constructiveThroughput_finite_of_uniform_column_bound
+      arrivalBound contractivity
+      hArrivalBoundNonneg hArrivalBound hColumnBound hContractivityNonneg hContractivityLt)
+    (data.constructiveThroughput_stable_of_uniform_column_bound
+      arrivalBound contractivity
+      hArrivalBoundNonneg hArrivalBound hColumnBound hContractivityNonneg hContractivityLt
+      hServiceBound)
+
+noncomputable def constructiveNetworkDataOfMaxIncomingRoutingMass
+    [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (hServiceBound :
+      ∀ i, data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) < data.serviceRate i) :
+    JacksonNetworkData (ι := ι) :=
+  data.constructiveNetworkData
+    (data.constructiveThroughput_finite_of_maxIncomingRoutingMass_lt_one hContractive)
+    (data.constructiveThroughput_stable_of_maxIncomingRoutingMass_lt_one
+      hContractive hServiceBound)
+
+noncomputable def spectralNetworkDataOfMaxIncomingRoutingMass
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (hServiceBound :
+      ∀ i, data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) < data.serviceRate i) :
+    JacksonNetworkData (ι := ι) :=
+  data.spectralNetworkDataOfConstructive
+    hρ
+    (data.constructiveThroughput_finite_of_maxIncomingRoutingMass_lt_one hContractive)
+    (data.constructiveThroughput_stable_of_maxIncomingRoutingMass_lt_one
+      hContractive hServiceBound)
+
+noncomputable def spectralNetworkDataOfMaxIncomingRoutingMassAuto
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (hServiceBound :
+      ∀ i, data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) < data.serviceRate i) :
+    JacksonNetworkData (ι := ι) :=
+  data.spectralNetworkDataOfMaxIncomingRoutingMass
+    (data.routingMatrix_spectralRadius_lt_one_of_maxIncomingRoutingMass_lt_one hContractive)
+    hContractive
+    hServiceBound
 
 end JacksonTrafficData
 
@@ -535,6 +1071,119 @@ theorem constructiveThroughput_le_of_dominated
     le_iSup_of_le n (data.trafficApprox_le_of_dominated schedule dominant hArrivalLe hRoutingLe n i)
 
 omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_le_of_dominating_real_fixed_point
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (candidate : ι → ℝ)
+    (hNonneg : ∀ i, 0 ≤ candidate i)
+    (hFixed : ∀ i, candidate i = dominant.externalArrival i + ∑ j, candidate j * dominant.routing j i)
+    (i : ι) :
+    data.constructiveThroughput schedule i ≤ ENNReal.ofReal (candidate i) := by
+  exact le_trans
+    (data.constructiveThroughput_le_of_dominated schedule dominant hArrivalLe hRoutingLe i)
+    (dominant.constructiveThroughput_le_of_real_fixed_point candidate hNonneg hFixed i)
+
+omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_le_of_dominating_real_postfixed
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (candidate : ι → ℝ)
+    (hNonneg : ∀ i, 0 ≤ candidate i)
+    (hPostfixed :
+      ∀ i, dominant.externalArrival i + ∑ j, candidate j * dominant.routing j i ≤ candidate i)
+    (i : ι) :
+    data.constructiveThroughput schedule i ≤ ENNReal.ofReal (candidate i) := by
+  exact le_trans
+    (data.constructiveThroughput_le_of_dominated schedule dominant hArrivalLe hRoutingLe i)
+    (dominant.constructiveThroughput_le_of_real_postfixed candidate hNonneg hPostfixed i)
+
+omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_finite_of_dominating_real_fixed_point
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (candidate : ι → ℝ)
+    (hNonneg : ∀ i, 0 ≤ candidate i)
+    (hFixed : ∀ i, candidate i = dominant.externalArrival i + ∑ j, candidate j * dominant.routing j i)
+    (i : ι) :
+    data.constructiveThroughput schedule i < ∞ := by
+  exact lt_of_le_of_lt
+    (data.constructiveThroughput_le_of_dominating_real_fixed_point schedule dominant
+      hArrivalLe hRoutingLe candidate hNonneg hFixed i)
+    ENNReal.ofReal_lt_top
+
+omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_finite_of_dominating_real_postfixed
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (candidate : ι → ℝ)
+    (hNonneg : ∀ i, 0 ≤ candidate i)
+    (hPostfixed :
+      ∀ i, dominant.externalArrival i + ∑ j, candidate j * dominant.routing j i ≤ candidate i)
+    (i : ι) :
+    data.constructiveThroughput schedule i < ∞ := by
+  exact lt_of_le_of_lt
+    (data.constructiveThroughput_le_of_dominating_real_postfixed schedule dominant
+      hArrivalLe hRoutingLe candidate hNonneg hPostfixed i)
+    ENNReal.ofReal_lt_top
+
+omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_stable_of_dominating_real_fixed_point
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (candidate : ι → ℝ)
+    (hNonneg : ∀ i, 0 ≤ candidate i)
+    (hFixed : ∀ i, candidate i = dominant.externalArrival i + ∑ j, candidate j * dominant.routing j i)
+    (hStable : ∀ i, candidate i < data.serviceRate i)
+    (i : ι) :
+    (data.constructiveThroughput schedule i).toReal < data.serviceRate i := by
+  have hLe :
+      data.constructiveThroughput schedule i ≤ ENNReal.ofReal (candidate i) :=
+    data.constructiveThroughput_le_of_dominating_real_fixed_point schedule dominant
+      hArrivalLe hRoutingLe candidate hNonneg hFixed i
+  have hToRealLe :
+      (data.constructiveThroughput schedule i).toReal ≤ candidate i :=
+    ENNReal.toReal_le_of_le_ofReal (hNonneg i) hLe
+  exact lt_of_le_of_lt hToRealLe (hStable i)
+
+omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_stable_of_dominating_real_postfixed
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (candidate : ι → ℝ)
+    (hNonneg : ∀ i, 0 ≤ candidate i)
+    (hPostfixed :
+      ∀ i, dominant.externalArrival i + ∑ j, candidate j * dominant.routing j i ≤ candidate i)
+    (hStable : ∀ i, candidate i < data.serviceRate i)
+    (i : ι) :
+    (data.constructiveThroughput schedule i).toReal < data.serviceRate i := by
+  have hLe :
+      data.constructiveThroughput schedule i ≤ ENNReal.ofReal (candidate i) :=
+    data.constructiveThroughput_le_of_dominating_real_postfixed schedule dominant
+      hArrivalLe hRoutingLe candidate hNonneg hPostfixed i
+  have hToRealLe :
+      (data.constructiveThroughput schedule i).toReal ≤ candidate i :=
+    ENNReal.toReal_le_of_le_ofReal (hNonneg i) hLe
+  exact lt_of_le_of_lt hToRealLe (hStable i)
+
+omit [Fintype σ] [Nonempty σ] in
 theorem constructiveThroughput_le_of_dominating_spectral
     [DecidableEq ι]
     (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
@@ -588,6 +1237,150 @@ theorem constructiveThroughput_stable_of_dominating_spectral
       (data.constructiveThroughput schedule i).toReal ≤ dominant.spectralThroughput hρ i :=
     ENNReal.toReal_le_of_le_ofReal (hNonneg i) hLe
   exact lt_of_le_of_lt hToRealLe (hStable i)
+
+omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_le_of_dominating_uniform_column_bound
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (arrivalBound contractivity : ℝ)
+    (hArrivalBoundNonneg : 0 ≤ arrivalBound)
+    (hDominantArrivalBound : ∀ i, dominant.externalArrival i ≤ arrivalBound)
+    (hDominantColumnBound : ∀ i, ∑ j, dominant.routing j i ≤ contractivity)
+    (hContractivityNonneg : 0 ≤ contractivity)
+    (hContractivityLt : contractivity < 1)
+    (i : ι) :
+    data.constructiveThroughput schedule i ≤ ENNReal.ofReal (arrivalBound / (1 - contractivity)) := by
+  exact le_trans
+    (data.constructiveThroughput_le_of_dominated schedule dominant hArrivalLe hRoutingLe i)
+    (dominant.constructiveThroughput_le_of_uniform_column_bound
+      arrivalBound contractivity
+      hArrivalBoundNonneg hDominantArrivalBound hDominantColumnBound
+      hContractivityNonneg hContractivityLt i)
+
+omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_finite_of_dominating_uniform_column_bound
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (arrivalBound contractivity : ℝ)
+    (hArrivalBoundNonneg : 0 ≤ arrivalBound)
+    (hDominantArrivalBound : ∀ i, dominant.externalArrival i ≤ arrivalBound)
+    (hDominantColumnBound : ∀ i, ∑ j, dominant.routing j i ≤ contractivity)
+    (hContractivityNonneg : 0 ≤ contractivity)
+    (hContractivityLt : contractivity < 1)
+    (i : ι) :
+    data.constructiveThroughput schedule i < ∞ := by
+  exact lt_of_le_of_lt
+    (data.constructiveThroughput_le_of_dominating_uniform_column_bound schedule dominant
+      hArrivalLe hRoutingLe
+      arrivalBound contractivity
+      hArrivalBoundNonneg hDominantArrivalBound hDominantColumnBound
+      hContractivityNonneg hContractivityLt i)
+    ENNReal.ofReal_lt_top
+
+omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_stable_of_dominating_uniform_column_bound
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (arrivalBound contractivity : ℝ)
+    (hArrivalBoundNonneg : 0 ≤ arrivalBound)
+    (hDominantArrivalBound : ∀ i, dominant.externalArrival i ≤ arrivalBound)
+    (hDominantColumnBound : ∀ i, ∑ j, dominant.routing j i ≤ contractivity)
+    (hContractivityNonneg : 0 ≤ contractivity)
+    (hContractivityLt : contractivity < 1)
+    (hServiceBound : ∀ i, arrivalBound / (1 - contractivity) < data.serviceRate i)
+    (i : ι) :
+    (data.constructiveThroughput schedule i).toReal < data.serviceRate i := by
+  have hLe :
+      data.constructiveThroughput schedule i ≤ ENNReal.ofReal (arrivalBound / (1 - contractivity)) :=
+    data.constructiveThroughput_le_of_dominating_uniform_column_bound schedule dominant
+      hArrivalLe hRoutingLe
+      arrivalBound contractivity
+      hArrivalBoundNonneg hDominantArrivalBound hDominantColumnBound
+      hContractivityNonneg hContractivityLt i
+  have hDenPos : 0 < 1 - contractivity := sub_pos.mpr hContractivityLt
+  have hBoundNonneg : 0 ≤ arrivalBound / (1 - contractivity) :=
+    div_nonneg hArrivalBoundNonneg hDenPos.le
+  have hToRealLe :
+      (data.constructiveThroughput schedule i).toReal ≤ arrivalBound / (1 - contractivity) :=
+    ENNReal.toReal_le_of_le_ofReal hBoundNonneg hLe
+  exact lt_of_le_of_lt hToRealLe (hServiceBound i)
+
+omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_le_of_dominating_maxIncomingRoutingMass_lt_one
+    [Nonempty ι]
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (hContractive : dominant.maxIncomingRoutingMass < 1)
+    (i : ι) :
+    data.constructiveThroughput schedule i ≤
+      ENNReal.ofReal (dominant.maxExternalArrival / (1 - dominant.maxIncomingRoutingMass)) := by
+  exact data.constructiveThroughput_le_of_dominating_uniform_column_bound schedule
+    dominant
+    hArrivalLe
+    hRoutingLe
+    dominant.maxExternalArrival
+    dominant.maxIncomingRoutingMass
+    dominant.maxExternalArrival_nonneg
+    dominant.externalArrival_le_maxExternalArrival
+    dominant.incomingRoutingMass_le_maxIncomingRoutingMass
+    dominant.maxIncomingRoutingMass_nonneg
+    hContractive
+    i
+
+omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_finite_of_dominating_maxIncomingRoutingMass_lt_one
+    [Nonempty ι]
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (hContractive : dominant.maxIncomingRoutingMass < 1)
+    (i : ι) :
+    data.constructiveThroughput schedule i < ∞ := by
+  exact lt_of_le_of_lt
+    (data.constructiveThroughput_le_of_dominating_maxIncomingRoutingMass_lt_one schedule
+      dominant hArrivalLe hRoutingLe hContractive i)
+    ENNReal.ofReal_lt_top
+
+omit [Fintype σ] [Nonempty σ] in
+theorem constructiveThroughput_stable_of_dominating_maxIncomingRoutingMass_lt_one
+    [Nonempty ι]
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (dominant : JacksonTrafficData (ι := ι))
+    (hArrivalLe : ∀ i, data.externalArrival i ≤ dominant.externalArrival i)
+    (hRoutingLe : ∀ s i j, data.routing s i j ≤ dominant.routing i j)
+    (hContractive : dominant.maxIncomingRoutingMass < 1)
+    (hServiceBound :
+      ∀ i, dominant.maxExternalArrival / (1 - dominant.maxIncomingRoutingMass) < data.serviceRate i)
+    (i : ι) :
+    (data.constructiveThroughput schedule i).toReal < data.serviceRate i := by
+  have hDenPos : 0 < 1 - dominant.maxIncomingRoutingMass := sub_pos.mpr hContractive
+  have hBoundNonneg : 0 ≤ dominant.maxExternalArrival / (1 - dominant.maxIncomingRoutingMass) :=
+    div_nonneg dominant.maxExternalArrival_nonneg hDenPos.le
+  have hLe :
+      data.constructiveThroughput schedule i ≤
+        ENNReal.ofReal (dominant.maxExternalArrival / (1 - dominant.maxIncomingRoutingMass)) :=
+    data.constructiveThroughput_le_of_dominating_maxIncomingRoutingMass_lt_one schedule
+      dominant hArrivalLe hRoutingLe hContractive i
+  have hToRealLe :
+      (data.constructiveThroughput schedule i).toReal ≤
+        dominant.maxExternalArrival / (1 - dominant.maxIncomingRoutingMass) :=
+    ENNReal.toReal_le_of_le_ofReal hBoundNonneg hLe
+  exact lt_of_le_of_lt hToRealLe (hServiceBound i)
 
 noncomputable def supremumKernel
     (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
@@ -651,6 +1444,77 @@ theorem constructiveThroughput_le_supremumSpectralThroughput
     hNonneg
     i
 
+theorem constructiveThroughput_le_supremumRealPostfixed
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (candidate : ι → ℝ)
+    (hNonneg : ∀ i, 0 ≤ candidate i)
+    (hPostfixed :
+      ∀ i,
+        (data.supremumTrafficData hSupSubstochastic).externalArrival i +
+          ∑ j, candidate j * (data.supremumTrafficData hSupSubstochastic).routing j i ≤
+        candidate i)
+    (i : ι) :
+    data.constructiveThroughput schedule i ≤ ENNReal.ofReal (candidate i) := by
+  exact data.constructiveThroughput_le_of_dominating_real_postfixed schedule
+    (data.supremumTrafficData hSupSubstochastic)
+    (fun _ => le_rfl)
+    (fun s i j => data.routing_le_supremumKernel s i j)
+    candidate
+    hNonneg
+    hPostfixed
+    i
+
+theorem constructiveThroughput_le_supremumStrictRowSubstochasticSpectral
+    [DecidableEq ι] [Nonempty ι]
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (hSupContractive : ∀ i, ∑ j, data.supremumKernel i j < 1)
+    (hNonneg : ∀ i, 0 ≤
+      let dominant := data.supremumTrafficData hSupSubstochastic
+      dominant.spectralThroughput
+        (dominant.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hSupContractive) i)
+    (i : ι) :
+    data.constructiveThroughput schedule i ≤ ENNReal.ofReal (
+      let dominant := data.supremumTrafficData hSupSubstochastic
+      dominant.spectralThroughput
+        (dominant.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hSupContractive) i) := by
+  let dominant := data.supremumTrafficData hSupSubstochastic
+  exact data.constructiveThroughput_le_of_dominating_spectral schedule
+    dominant
+    (fun _ => le_rfl)
+    (fun s i j => data.routing_le_supremumKernel s i j)
+    (dominant.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hSupContractive)
+    hNonneg
+    i
+
+theorem constructiveThroughput_le_supremumUniformColumnBound
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (arrivalBound contractivity : ℝ)
+    (hArrivalBoundNonneg : 0 ≤ arrivalBound)
+    (hArrivalBound : ∀ i, data.externalArrival i ≤ arrivalBound)
+    (hSupColumnBound : ∀ i, ∑ j, data.supremumKernel j i ≤ contractivity)
+    (hContractivityNonneg : 0 ≤ contractivity)
+    (hContractivityLt : contractivity < 1)
+    (i : ι) :
+    data.constructiveThroughput schedule i ≤ ENNReal.ofReal (arrivalBound / (1 - contractivity)) := by
+  exact data.constructiveThroughput_le_of_dominating_uniform_column_bound schedule
+    (data.supremumTrafficData hSupSubstochastic)
+    (fun _ => le_rfl)
+    (fun s i j => data.routing_le_supremumKernel s i j)
+    arrivalBound
+    contractivity
+    hArrivalBoundNonneg
+    hArrivalBound
+    hSupColumnBound
+    hContractivityNonneg
+    hContractivityLt
+    i
+
 theorem constructiveThroughput_finite_of_supremumSpectral
     [DecidableEq ι]
     (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
@@ -667,6 +1531,65 @@ theorem constructiveThroughput_finite_of_supremumSpectral
     hρ
     hNonneg
     i
+
+theorem constructiveThroughput_finite_of_supremumRealPostfixed
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (candidate : ι → ℝ)
+    (hNonneg : ∀ i, 0 ≤ candidate i)
+    (hPostfixed :
+      ∀ i,
+        (data.supremumTrafficData hSupSubstochastic).externalArrival i +
+          ∑ j, candidate j * (data.supremumTrafficData hSupSubstochastic).routing j i ≤
+        candidate i)
+    (i : ι) :
+    data.constructiveThroughput schedule i < ∞ := by
+  exact lt_of_le_of_lt
+    (data.constructiveThroughput_le_supremumRealPostfixed
+      schedule hSupSubstochastic candidate hNonneg hPostfixed i)
+    ENNReal.ofReal_lt_top
+
+theorem constructiveThroughput_finite_of_supremumStrictRowSubstochasticSpectral
+    [DecidableEq ι] [Nonempty ι]
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (hSupContractive : ∀ i, ∑ j, data.supremumKernel i j < 1)
+    (hNonneg : ∀ i, 0 ≤
+      let dominant := data.supremumTrafficData hSupSubstochastic
+      dominant.spectralThroughput
+        (dominant.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hSupContractive) i)
+    (i : ι) :
+    data.constructiveThroughput schedule i < ∞ := by
+  let dominant := data.supremumTrafficData hSupSubstochastic
+  exact data.constructiveThroughput_finite_of_dominating_spectral schedule
+    dominant
+    (fun _ => le_rfl)
+    (fun s i j => data.routing_le_supremumKernel s i j)
+    (dominant.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hSupContractive)
+    hNonneg
+    i
+
+theorem constructiveThroughput_finite_of_supremumUniformColumnBound
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (arrivalBound contractivity : ℝ)
+    (hArrivalBoundNonneg : 0 ≤ arrivalBound)
+    (hArrivalBound : ∀ i, data.externalArrival i ≤ arrivalBound)
+    (hSupColumnBound : ∀ i, ∑ j, data.supremumKernel j i ≤ contractivity)
+    (hContractivityNonneg : 0 ≤ contractivity)
+    (hContractivityLt : contractivity < 1)
+    (i : ι) :
+    data.constructiveThroughput schedule i < ∞ := by
+  exact lt_of_le_of_lt
+    (data.constructiveThroughput_le_supremumUniformColumnBound schedule
+      hSupSubstochastic
+      arrivalBound contractivity
+      hArrivalBoundNonneg hArrivalBound hSupColumnBound
+      hContractivityNonneg hContractivityLt i)
+    ENNReal.ofReal_lt_top
 
 theorem constructiveThroughput_stable_of_supremumSpectral
     [DecidableEq ι]
@@ -686,6 +1609,136 @@ theorem constructiveThroughput_stable_of_supremumSpectral
     hρ
     hNonneg
     hStable
+    i
+
+theorem constructiveThroughput_stable_of_supremumRealPostfixed
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (candidate : ι → ℝ)
+    (hNonneg : ∀ i, 0 ≤ candidate i)
+    (hPostfixed :
+      ∀ i,
+        (data.supremumTrafficData hSupSubstochastic).externalArrival i +
+          ∑ j, candidate j * (data.supremumTrafficData hSupSubstochastic).routing j i ≤
+        candidate i)
+    (hStable : ∀ i, candidate i < data.serviceRate i)
+    (i : ι) :
+    (data.constructiveThroughput schedule i).toReal < data.serviceRate i := by
+  exact data.constructiveThroughput_stable_of_dominating_real_postfixed schedule
+    (data.supremumTrafficData hSupSubstochastic)
+    (fun _ => le_rfl)
+    (fun s i j => data.routing_le_supremumKernel s i j)
+    candidate
+    hNonneg
+    hPostfixed
+    hStable
+    i
+
+theorem constructiveThroughput_stable_of_supremumStrictRowSubstochasticSpectral
+    [DecidableEq ι] [Nonempty ι]
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (hSupContractive : ∀ i, ∑ j, data.supremumKernel i j < 1)
+    (hNonneg : ∀ i, 0 ≤
+      let dominant := data.supremumTrafficData hSupSubstochastic
+      dominant.spectralThroughput
+        (dominant.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hSupContractive) i)
+    (hStable : ∀ i,
+      let dominant := data.supremumTrafficData hSupSubstochastic
+      dominant.spectralThroughput
+        (dominant.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hSupContractive) i <
+      data.serviceRate i)
+    (i : ι) :
+    (data.constructiveThroughput schedule i).toReal < data.serviceRate i := by
+  let dominant := data.supremumTrafficData hSupSubstochastic
+  exact data.constructiveThroughput_stable_of_dominating_spectral schedule
+    dominant
+    (fun _ => le_rfl)
+    (fun s i j => data.routing_le_supremumKernel s i j)
+    (dominant.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic hSupContractive)
+    hNonneg
+    hStable
+    i
+
+theorem constructiveThroughput_stable_of_supremumUniformColumnBound
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (arrivalBound contractivity : ℝ)
+    (hArrivalBoundNonneg : 0 ≤ arrivalBound)
+    (hArrivalBound : ∀ i, data.externalArrival i ≤ arrivalBound)
+    (hSupColumnBound : ∀ i, ∑ j, data.supremumKernel j i ≤ contractivity)
+    (hContractivityNonneg : 0 ≤ contractivity)
+    (hContractivityLt : contractivity < 1)
+    (hServiceBound : ∀ i, arrivalBound / (1 - contractivity) < data.serviceRate i)
+    (i : ι) :
+    (data.constructiveThroughput schedule i).toReal < data.serviceRate i := by
+  exact data.constructiveThroughput_stable_of_dominating_uniform_column_bound schedule
+    (data.supremumTrafficData hSupSubstochastic)
+    (fun _ => le_rfl)
+    (fun s i j => data.routing_le_supremumKernel s i j)
+    arrivalBound
+    contractivity
+    hArrivalBoundNonneg
+    hArrivalBound
+    hSupColumnBound
+    hContractivityNonneg
+    hContractivityLt
+    hServiceBound
+    i
+
+theorem constructiveThroughput_le_of_supremumMaxIncomingRoutingMass_lt_one
+    [Nonempty ι]
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (hContractive : (data.supremumTrafficData hSupSubstochastic).maxIncomingRoutingMass < 1)
+    (i : ι) :
+    data.constructiveThroughput schedule i ≤
+      ENNReal.ofReal (
+        let dominant := data.supremumTrafficData hSupSubstochastic
+        dominant.maxExternalArrival / (1 - dominant.maxIncomingRoutingMass)) := by
+  let dominant := data.supremumTrafficData hSupSubstochastic
+  exact data.constructiveThroughput_le_of_dominating_maxIncomingRoutingMass_lt_one schedule
+    dominant
+    (fun _ => le_rfl)
+    (fun s i j => data.routing_le_supremumKernel s i j)
+    hContractive
+    i
+
+theorem constructiveThroughput_finite_of_supremumMaxIncomingRoutingMass_lt_one
+    [Nonempty ι]
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (hContractive : (data.supremumTrafficData hSupSubstochastic).maxIncomingRoutingMass < 1)
+    (i : ι) :
+    data.constructiveThroughput schedule i < ∞ := by
+  exact lt_of_le_of_lt
+    (data.constructiveThroughput_le_of_supremumMaxIncomingRoutingMass_lt_one
+      schedule hSupSubstochastic hContractive i)
+    ENNReal.ofReal_lt_top
+
+theorem constructiveThroughput_stable_of_supremumMaxIncomingRoutingMass_lt_one
+    [Nonempty ι]
+    (data : AdaptiveJacksonTrafficData (ι := ι) (σ := σ))
+    (schedule : ℕ → σ)
+    (hSupSubstochastic : ∀ i, ∑ j, data.supremumKernel i j ≤ 1)
+    (hContractive : (data.supremumTrafficData hSupSubstochastic).maxIncomingRoutingMass < 1)
+    (hServiceBound : ∀ i,
+      let dominant := data.supremumTrafficData hSupSubstochastic
+      dominant.maxExternalArrival / (1 - dominant.maxIncomingRoutingMass) < data.serviceRate i)
+    (i : ι) :
+    (data.constructiveThroughput schedule i).toReal < data.serviceRate i := by
+  let dominant := data.supremumTrafficData hSupSubstochastic
+  exact data.constructiveThroughput_stable_of_dominating_maxIncomingRoutingMass_lt_one schedule
+    dominant
+    (fun _ => le_rfl)
+    (fun s i j => data.routing_le_supremumKernel s i j)
+    hContractive
+    hServiceBound
     i
 
 end AdaptiveJacksonTrafficData
@@ -868,6 +1921,34 @@ noncomputable def JacksonTrafficData.spectralNetworkMeasure
     ProbabilityMeasure (ι → ℕ) :=
   jacksonNetworkMeasure (data.spectralNetworkData hρ hNonneg hStable)
 
+noncomputable def JacksonTrafficData.spectralNetworkMeasureOfConstructive
+    [DecidableEq ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (hFinite : ∀ i, data.constructiveThroughput i < ∞)
+    (hStable : ∀ i, (data.constructiveThroughput i).toReal < data.serviceRate i) :
+    ProbabilityMeasure (ι → ℕ) :=
+  jacksonNetworkMeasure (data.spectralNetworkDataOfConstructive hρ hFinite hStable)
+
+noncomputable def JacksonTrafficData.spectralNetworkMeasureOfMaxIncomingRoutingMass
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (hServiceBound :
+      ∀ i, data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) < data.serviceRate i) :
+    ProbabilityMeasure (ι → ℕ) :=
+  jacksonNetworkMeasure (data.spectralNetworkDataOfMaxIncomingRoutingMass hρ hContractive hServiceBound)
+
+noncomputable def JacksonTrafficData.spectralNetworkMeasureOfMaxIncomingRoutingMassAuto
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (hServiceBound :
+      ∀ i, data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) < data.serviceRate i) :
+    ProbabilityMeasure (ι → ℕ) :=
+  jacksonNetworkMeasure (data.spectralNetworkDataOfMaxIncomingRoutingMassAuto hContractive hServiceBound)
+
 theorem JacksonTrafficData.constructive_network_mean_total_occupancy
     (data : JacksonTrafficData (ι := ι))
     (hFinite : ∀ i, data.constructiveThroughput i < ∞)
@@ -889,6 +1970,53 @@ theorem JacksonTrafficData.spectral_network_mean_total_occupancy
         (data.serviceRate i - data.spectralThroughput hρ i) := by
   simpa [JacksonTrafficData.spectralNetworkMeasure, JacksonTrafficData.spectralNetworkData] using
     jackson_network_mean_total_occupancy (data.spectralNetworkData hρ hNonneg hStable)
+
+theorem JacksonTrafficData.spectral_network_mean_total_occupancy_of_constructive
+    [DecidableEq ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (hFinite : ∀ i, data.constructiveThroughput i < ∞)
+    (hStable : ∀ i, (data.constructiveThroughput i).toReal < data.serviceRate i) :
+    ∫ state : ι → ℕ, ∑ i, (state i : ℝ) ∂ (data.spectralNetworkMeasureOfConstructive hρ hFinite hStable).toMeasure =
+      ∑ i, data.spectralThroughput hρ i /
+        (data.serviceRate i - data.spectralThroughput hρ i) := by
+  simpa [JacksonTrafficData.spectralNetworkMeasureOfConstructive,
+    JacksonTrafficData.spectralNetworkDataOfConstructive] using
+    jackson_network_mean_total_occupancy (data.spectralNetworkDataOfConstructive hρ hFinite hStable)
+
+theorem JacksonTrafficData.spectral_network_mean_total_occupancy_of_maxIncomingRoutingMass
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (hServiceBound :
+      ∀ i, data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) < data.serviceRate i) :
+    ∫ state : ι → ℕ, ∑ i, (state i : ℝ) ∂
+        (data.spectralNetworkMeasureOfMaxIncomingRoutingMass hρ hContractive hServiceBound).toMeasure =
+      ∑ i, data.spectralThroughput hρ i /
+        (data.serviceRate i - data.spectralThroughput hρ i) := by
+  simpa [JacksonTrafficData.spectralNetworkMeasureOfMaxIncomingRoutingMass,
+    JacksonTrafficData.spectralNetworkDataOfMaxIncomingRoutingMass] using
+    jackson_network_mean_total_occupancy
+      (data.spectralNetworkDataOfMaxIncomingRoutingMass hρ hContractive hServiceBound)
+
+theorem JacksonTrafficData.spectral_network_mean_total_occupancy_of_maxIncomingRoutingMassAuto
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (hServiceBound :
+      ∀ i, data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) < data.serviceRate i) :
+    ∫ state : ι → ℕ, ∑ i, (state i : ℝ) ∂
+        (data.spectralNetworkMeasureOfMaxIncomingRoutingMassAuto hContractive hServiceBound).toMeasure =
+      ∑ i, data.spectralThroughput
+          (data.routingMatrix_spectralRadius_lt_one_of_maxIncomingRoutingMass_lt_one hContractive) i /
+        (data.serviceRate i -
+          data.spectralThroughput
+            (data.routingMatrix_spectralRadius_lt_one_of_maxIncomingRoutingMass_lt_one hContractive) i) := by
+  simpa [JacksonTrafficData.spectralNetworkMeasureOfMaxIncomingRoutingMassAuto,
+    JacksonTrafficData.spectralNetworkDataOfMaxIncomingRoutingMassAuto] using
+    jackson_network_mean_total_occupancy
+      (data.spectralNetworkDataOfMaxIncomingRoutingMassAuto hContractive hServiceBound)
 
 theorem JacksonTrafficData.constructive_network_lintegral_balance
     (data : JacksonTrafficData (ι := ι))
@@ -913,6 +2041,60 @@ theorem JacksonTrafficData.spectral_network_lintegral_balance
         ∫⁻ state, law.openAge state ∂ (data.spectralNetworkMeasure hρ hNonneg hStable).toMeasure := by
   simpa [JacksonTrafficData.spectralNetworkMeasure, JacksonTrafficData.spectralNetworkData] using
     jackson_network_lintegral_balance (data.spectralNetworkData hρ hNonneg hStable) law
+
+theorem JacksonTrafficData.spectral_network_lintegral_balance_of_constructive
+    [DecidableEq ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (hFinite : ∀ i, data.constructiveThroughput i < ∞)
+    (hStable : ∀ i, (data.constructiveThroughput i).toReal < data.serviceRate i)
+    (law : MeasureQueueLaw (ι → ℕ)) :
+    ∫⁻ state, law.customerTime state ∂
+        (data.spectralNetworkMeasureOfConstructive hρ hFinite hStable).toMeasure =
+      ∫⁻ state, law.sojournTime state ∂
+          (data.spectralNetworkMeasureOfConstructive hρ hFinite hStable).toMeasure +
+        ∫⁻ state, law.openAge state ∂
+          (data.spectralNetworkMeasureOfConstructive hρ hFinite hStable).toMeasure := by
+  simpa [JacksonTrafficData.spectralNetworkMeasureOfConstructive,
+    JacksonTrafficData.spectralNetworkDataOfConstructive] using
+    jackson_network_lintegral_balance (data.spectralNetworkDataOfConstructive hρ hFinite hStable) law
+
+theorem JacksonTrafficData.spectral_network_lintegral_balance_of_maxIncomingRoutingMass
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hρ : spectralRadius ℝ data.routingMatrix < 1)
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (hServiceBound :
+      ∀ i, data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) < data.serviceRate i)
+    (law : MeasureQueueLaw (ι → ℕ)) :
+    ∫⁻ state, law.customerTime state ∂
+        (data.spectralNetworkMeasureOfMaxIncomingRoutingMass hρ hContractive hServiceBound).toMeasure =
+      ∫⁻ state, law.sojournTime state ∂
+          (data.spectralNetworkMeasureOfMaxIncomingRoutingMass hρ hContractive hServiceBound).toMeasure +
+        ∫⁻ state, law.openAge state ∂
+          (data.spectralNetworkMeasureOfMaxIncomingRoutingMass hρ hContractive hServiceBound).toMeasure := by
+  simpa [JacksonTrafficData.spectralNetworkMeasureOfMaxIncomingRoutingMass,
+    JacksonTrafficData.spectralNetworkDataOfMaxIncomingRoutingMass] using
+    jackson_network_lintegral_balance
+      (data.spectralNetworkDataOfMaxIncomingRoutingMass hρ hContractive hServiceBound) law
+
+theorem JacksonTrafficData.spectral_network_lintegral_balance_of_maxIncomingRoutingMassAuto
+    [DecidableEq ι] [Nonempty ι]
+    (data : JacksonTrafficData (ι := ι))
+    (hContractive : data.maxIncomingRoutingMass < 1)
+    (hServiceBound :
+      ∀ i, data.maxExternalArrival / (1 - data.maxIncomingRoutingMass) < data.serviceRate i)
+    (law : MeasureQueueLaw (ι → ℕ)) :
+    ∫⁻ state, law.customerTime state ∂
+        (data.spectralNetworkMeasureOfMaxIncomingRoutingMassAuto hContractive hServiceBound).toMeasure =
+      ∫⁻ state, law.sojournTime state ∂
+          (data.spectralNetworkMeasureOfMaxIncomingRoutingMassAuto hContractive hServiceBound).toMeasure +
+        ∫⁻ state, law.openAge state ∂
+          (data.spectralNetworkMeasureOfMaxIncomingRoutingMassAuto hContractive hServiceBound).toMeasure := by
+  simpa [JacksonTrafficData.spectralNetworkMeasureOfMaxIncomingRoutingMassAuto,
+    JacksonTrafficData.spectralNetworkDataOfMaxIncomingRoutingMassAuto] using
+    jackson_network_lintegral_balance
+      (data.spectralNetworkDataOfMaxIncomingRoutingMassAuto hContractive hServiceBound) law
 
 end JacksonProduct
 

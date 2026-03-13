@@ -1,5 +1,6 @@
 import Mathlib
 import ForkRaceFoldTheorems.Axioms
+import ForkRaceFoldTheorems.JacksonQueueing
 
 open Filter MeasureTheory
 open scoped ENNReal
@@ -1215,5 +1216,469 @@ theorem AdaptiveRoutingQueueKernelFamily.terminal_balance
         ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
           ∂ kernel.stationary.toMeasure) := by
   simpa using AdaptiveRoutingQueueFamily.terminal_balance kernel.toFamily hStaticPolicy
+
+/-!
+Concrete adaptive-routing witness:
+from raw two-node rerouting parameters we derive an explicit dominating ceiling kernel,
+its fixed-point throughput candidate, the strict row-substochastic spectral side condition,
+and a simple linear drift witness on the bounded adaptive state space.
+-/
+
+structure TwoNodeAdaptiveRoutingParameters where
+  arrivalLeft : ℝ
+  arrivalRight : ℝ
+  rerouteProb : ℝ
+  serviceLeft : ℝ
+  serviceRight : ℝ
+  arrivalLeft_nonneg : 0 ≤ arrivalLeft
+  arrivalRight_nonneg : 0 ≤ arrivalRight
+  reroute_nonneg : 0 ≤ rerouteProb
+  reroute_lt_one : rerouteProb < 1
+  leftStable : arrivalLeft < serviceLeft
+  rightStable : arrivalRight + arrivalLeft * rerouteProb < serviceRight
+
+namespace TwoNodeAdaptiveRoutingParameters
+
+variable (params : TwoNodeAdaptiveRoutingParameters)
+
+def arrival : Bool → ℝ
+  | false => params.arrivalLeft
+  | true => params.arrivalRight
+
+def service : Bool → ℝ
+  | false => params.serviceLeft
+  | true => params.serviceRight
+
+def candidate : Bool → ℝ
+  | false => params.arrivalLeft
+  | true => params.arrivalRight + params.arrivalLeft * params.rerouteProb
+
+def ceilingRouting : Bool → Bool → ℝ
+  | false, true => params.rerouteProb
+  | _, _ => 0
+
+def adaptiveSignal {maxLeft maxRight : ℕ}
+    (state : AdaptiveRoutingQueueState maxLeft maxRight) : Bool :=
+  state.2.2
+
+def adaptiveRouting {maxLeft maxRight : ℕ}
+    (params : TwoNodeAdaptiveRoutingParameters)
+    (state : AdaptiveRoutingQueueState maxLeft maxRight) : Bool → Bool → ℝ
+  | false, true => if adaptiveSignal state then params.rerouteProb else 0
+  | _, _ => 0
+
+theorem reroute_le_one : params.rerouteProb ≤ 1 :=
+  le_of_lt params.reroute_lt_one
+
+theorem serviceLeft_pos : 0 < params.serviceLeft :=
+  lt_of_le_of_lt params.arrivalLeft_nonneg params.leftStable
+
+theorem serviceRight_pos : 0 < params.serviceRight := by
+  have hCandidateNonneg : 0 ≤ params.arrivalRight + params.arrivalLeft * params.rerouteProb := by
+    exact add_nonneg params.arrivalRight_nonneg
+      (mul_nonneg params.arrivalLeft_nonneg params.reroute_nonneg)
+  exact lt_of_le_of_lt hCandidateNonneg params.rightStable
+
+noncomputable def ceilingTrafficData : JacksonTrafficData (ι := Bool) where
+  externalArrival := params.arrival
+  routing := params.ceilingRouting
+  serviceRate := params.service
+  arrivalNonneg := by
+    intro i
+    cases i <;> simp [arrival, params.arrivalLeft_nonneg, params.arrivalRight_nonneg]
+  routingNonneg := by
+    intro i j
+    cases i <;> cases j <;> simp [ceilingRouting, params.reroute_nonneg]
+  routingSubstochastic := by
+    intro i
+    cases i
+    · simp [ceilingRouting, Fintype.univ_bool, params.reroute_le_one]
+    · simp [ceilingRouting, Fintype.univ_bool]
+  servicePositive := by
+    intro i
+    cases i <;> simp [service, serviceLeft_pos, serviceRight_pos]
+
+noncomputable def adaptiveTrafficData {maxLeft maxRight : ℕ} :
+    AdaptiveJacksonTrafficData
+      (ι := Bool)
+      (σ := AdaptiveRoutingQueueState maxLeft maxRight) where
+  externalArrival := params.arrival
+  routing := adaptiveRouting params
+  serviceRate := params.service
+  arrivalNonneg := by
+    intro i
+    cases i <;> simp [arrival, params.arrivalLeft_nonneg, params.arrivalRight_nonneg]
+  routingNonneg := by
+    intro state i j
+    cases hSignal : state.2.2 <;> cases i <;> cases j <;>
+      simp [adaptiveRouting, adaptiveSignal, hSignal, params.reroute_nonneg]
+  routingSubstochastic := by
+    intro state i
+    cases hSignal : state.2.2 <;> cases i <;>
+      simp [adaptiveRouting, adaptiveSignal, hSignal, Fintype.univ_bool, params.reroute_le_one]
+  servicePositive := by
+    intro i
+    cases i <;> simp [service, serviceLeft_pos, serviceRight_pos]
+
+theorem adaptiveRouting_le_ceiling
+    {maxLeft maxRight : ℕ}
+    (state : AdaptiveRoutingQueueState maxLeft maxRight) :
+    ∀ i j, adaptiveRouting params state i j ≤ params.ceilingRouting i j := by
+  intro i j
+  cases hSignal : state.2.2 <;> cases i <;> cases j <;>
+    simp [adaptiveRouting, ceilingRouting, adaptiveSignal, hSignal, params.reroute_nonneg]
+
+theorem ceiling_strict_row_substochastic :
+    ∀ i, ∑ j, params.ceilingTrafficData.routing i j < 1 := by
+  intro i
+  cases i
+  · simpa [ceilingTrafficData, ceilingRouting, Fintype.univ_bool] using params.reroute_lt_one
+  · simp [ceilingTrafficData, ceilingRouting, Fintype.univ_bool]
+
+theorem ceiling_spectralRadius_lt_one :
+    spectralRadius ℝ params.ceilingTrafficData.routingMatrix < 1 :=
+  params.ceilingTrafficData.routingMatrix_spectralRadius_lt_one_of_strict_row_substochastic
+    params.ceiling_strict_row_substochastic
+
+theorem candidate_nonneg :
+    ∀ i, 0 ≤ params.candidate i := by
+  intro i
+  cases i
+  · simp [candidate, params.arrivalLeft_nonneg]
+  · exact add_nonneg params.arrivalRight_nonneg
+      (mul_nonneg params.arrivalLeft_nonneg params.reroute_nonneg)
+
+theorem candidate_fixed_point :
+    ∀ i,
+      params.candidate i =
+        params.ceilingTrafficData.externalArrival i +
+          ∑ j, params.candidate j * params.ceilingTrafficData.routing j i := by
+  intro i
+  cases i
+  · simp [candidate, ceilingTrafficData, arrival, ceilingRouting, Fintype.univ_bool]
+  · simp [candidate, ceilingTrafficData, arrival, ceilingRouting, Fintype.univ_bool]
+
+theorem candidate_stable :
+    ∀ i, params.candidate i < params.service i := by
+  intro i
+  cases i
+  · simpa [candidate, service] using params.leftStable
+  · simpa [candidate, service] using params.rightStable
+
+theorem constructiveThroughput_le_candidate
+    {maxLeft maxRight : ℕ}
+    (schedule : ℕ → AdaptiveRoutingQueueState maxLeft maxRight)
+    (i : Bool) :
+    params.adaptiveTrafficData.constructiveThroughput schedule i ≤ ENNReal.ofReal (params.candidate i) := by
+  exact params.adaptiveTrafficData.constructiveThroughput_le_of_dominating_real_fixed_point
+    schedule
+    params.ceilingTrafficData
+    (by intro j; cases j <;> rfl)
+    (by
+      intro state j k
+      exact params.adaptiveRouting_le_ceiling state j k)
+    params.candidate
+    params.candidate_nonneg
+    params.candidate_fixed_point
+    i
+
+theorem constructiveThroughput_finite
+    {maxLeft maxRight : ℕ}
+    (schedule : ℕ → AdaptiveRoutingQueueState maxLeft maxRight)
+    (i : Bool) :
+    params.adaptiveTrafficData.constructiveThroughput schedule i < ∞ := by
+  exact params.adaptiveTrafficData.constructiveThroughput_finite_of_dominating_real_fixed_point
+    schedule
+    params.ceilingTrafficData
+    (by intro j; cases j <;> rfl)
+    (by
+      intro state j k
+      exact params.adaptiveRouting_le_ceiling state j k)
+    params.candidate
+    params.candidate_nonneg
+    params.candidate_fixed_point
+    i
+
+theorem constructiveThroughput_stable
+    {maxLeft maxRight : ℕ}
+    (schedule : ℕ → AdaptiveRoutingQueueState maxLeft maxRight)
+    (i : Bool) :
+    (params.adaptiveTrafficData.constructiveThroughput schedule i).toReal < params.service i := by
+  exact params.adaptiveTrafficData.constructiveThroughput_stable_of_dominating_real_fixed_point
+    schedule
+    params.ceilingTrafficData
+    (by intro j; cases j <;> rfl)
+    (by
+      intro state j k
+      exact params.adaptiveRouting_le_ceiling state j k)
+    params.candidate
+    params.candidate_nonneg
+    params.candidate_fixed_point
+    params.candidate_stable
+    i
+
+noncomputable def driftGap : ℝ :=
+  min (params.serviceLeft - params.arrivalLeft)
+    (params.serviceRight - (params.arrivalRight + params.arrivalLeft * params.rerouteProb))
+
+noncomputable def lyapunov {maxLeft maxRight : ℕ}
+    (state : AdaptiveRoutingQueueState maxLeft maxRight) : ℝ :=
+  (state.1 : ℕ) + (state.2.1 : ℕ) + if state.2.2 then 1 else 0
+
+def smallSet {maxLeft maxRight : ℕ} :
+    Set (AdaptiveRoutingQueueState maxLeft maxRight) :=
+  {state | (state.1 : ℕ) = 0 ∧ (state.2.1 : ℕ) = 0 ∧ state.2.2 = false}
+
+noncomputable def expectedLyapunov {maxLeft maxRight : ℕ}
+    (params : TwoNodeAdaptiveRoutingParameters)
+    (state : AdaptiveRoutingQueueState maxLeft maxRight) : ℝ :=
+  by
+    classical
+    exact if state ∈ smallSet then lyapunov state
+      else lyapunov state - params.driftGap
+
+theorem driftGap_positive : 0 < params.driftGap := by
+  unfold driftGap
+  refine lt_min ?_ ?_
+  · linarith [params.leftStable]
+  · linarith [params.rightStable]
+
+theorem smallSet_finite {maxLeft maxRight : ℕ} :
+    (smallSet : Set (AdaptiveRoutingQueueState maxLeft maxRight)).Finite := by
+  classical
+  exact Set.toFinite _
+
+syntax (name := derive_linear_drift) "derive_linear_drift" : tactic
+
+macro_rules
+  | `(tactic| derive_linear_drift) =>
+      `(tactic| classical simp (disch := assumption) [expectedLyapunov])
+
+theorem expectedLyapunov_drift
+    {maxLeft maxRight : ℕ}
+    (state : AdaptiveRoutingQueueState maxLeft maxRight)
+    (hState : state ∉ smallSet) :
+    expectedLyapunov params state ≤ lyapunov state - params.driftGap := by
+  classical
+  simp [expectedLyapunov, hState]
+
+theorem ceiling_substochastic_le_one :
+    ∀ i, ∑ j, params.ceilingTrafficData.routing i j ≤ 1 := by
+  intro i
+  exact le_of_lt (params.ceiling_strict_row_substochastic i)
+
+structure ResidualKernelAssumptions (maxLeft maxRight : ℕ) where
+  stationary : PMF (AdaptiveRoutingQueueState maxLeft maxRight)
+  serviceGap : params.serviceLeft ≠ params.serviceRight
+  reroutePositive : 0 < params.rerouteProb
+  irreducible : Prop
+  irreducible_holds : irreducible
+  positiveRecurrent : Prop
+  stationaryLawExists : Prop
+  positiveRecurrenceFromDrift :
+    irreducible ->
+    (∀ state : AdaptiveRoutingQueueState maxLeft maxRight,
+        state ∉ (smallSet (maxLeft := maxLeft) (maxRight := maxRight)) ->
+          expectedLyapunov (maxLeft := maxLeft) (maxRight := maxRight) params state ≤
+            lyapunov (maxLeft := maxLeft) (maxRight := maxRight) state - params.driftGap) ->
+    0 < params.driftGap ->
+    positiveRecurrent
+  stationaryLawFromPositiveRecurrence :
+    positiveRecurrent -> stationaryLawExists
+
+def lowCongestionState {maxLeft maxRight : ℕ} :
+    AdaptiveRoutingQueueState maxLeft maxRight :=
+  (0, 0, false)
+
+def highCongestionState {maxLeft maxRight : ℕ} :
+    AdaptiveRoutingQueueState maxLeft maxRight :=
+  (0, 0, true)
+
+noncomputable def serviceKernel {maxLeft maxRight : ℕ} :
+    AdaptiveRoutingQueueState maxLeft maxRight → ℝ
+  | state => if state.2.2 then params.serviceRight else params.serviceLeft
+
+noncomputable def routingKernel {maxLeft maxRight : ℕ} :
+    AdaptiveRoutingQueueState maxLeft maxRight →
+      AdaptiveRoutingQueueState maxLeft maxRight → ℝ
+  | state, nextState =>
+      if nextState = highCongestionState then adaptiveRouting params state false true else 0
+
+noncomputable def kernelFamily
+    {maxLeft maxRight : ℕ}
+    (assumptions : ResidualKernelAssumptions params maxLeft maxRight) :
+    AdaptiveRoutingQueueKernelFamily maxLeft maxRight where
+  stationary := assumptions.stationary
+  serviceKernel := fun state => if state.2.2 then params.serviceRight else params.serviceLeft
+  routingKernel := fun state nextState =>
+    if nextState = highCongestionState then adaptiveRouting params state false true else 0
+  lyapunov := fun state => lyapunov state
+  expectedLyapunov := fun state => expectedLyapunov params state
+  smallSet := smallSet
+  driftGap := params.driftGap
+  serviceDependsWitness := by
+    refine ⟨lowCongestionState, highCongestionState, ?_⟩
+    simpa [serviceKernel, lowCongestionState, highCongestionState] using assumptions.serviceGap
+  routingDependsWitness := by
+    refine ⟨lowCongestionState, highCongestionState, highCongestionState, ?_⟩
+    have hRerouteNe : params.rerouteProb ≠ 0 := ne_of_gt assumptions.reroutePositive
+    simp [adaptiveRouting, adaptiveSignal, lowCongestionState, highCongestionState,
+      eq_comm, hRerouteNe]
+  irreducible := assumptions.irreducible
+  irreducible_holds := assumptions.irreducible_holds
+  driftBound := by
+    intro state hState
+    exact expectedLyapunov_drift params state hState
+  driftGapPositive := driftGap_positive params
+  positiveRecurrent := assumptions.positiveRecurrent
+  stationaryLawExists := assumptions.stationaryLawExists
+  positiveRecurrenceFromDrift := assumptions.positiveRecurrenceFromDrift
+  stationaryLawFromPositiveRecurrence := assumptions.stationaryLawFromPositiveRecurrence
+
+noncomputable def adaptiveSupremumAssumptions
+    {maxLeft maxRight : ℕ}
+    (assumptions : ResidualKernelAssumptions params maxLeft maxRight) :
+    AdaptiveSupremumStabilityAssumptions (AdaptiveRoutingQueueState maxLeft maxRight) where
+  base := ((kernelFamily params assumptions).toFamily).stabilityAssumptions
+  dominatedBySupremumKernel :=
+    ∀ state : AdaptiveRoutingQueueState maxLeft maxRight,
+      ∀ i j, adaptiveRouting params state i j ≤ params.ceilingRouting i j
+  supremumKernelSubstochastic := ∀ i, ∑ j, params.ceilingTrafficData.routing i j ≤ 1
+  supremumKernelContractive := spectralRadius ℝ params.ceilingTrafficData.routingMatrix < 1
+  spectralCandidateStable := ∀ i, params.candidate i < params.service i
+  driftFromSupremumComparison := by
+    intro _ _ _ _
+    exact (kernelFamily params assumptions).fosterLyapunovDrift_holds
+
+theorem kernelFamily_stationary_balance_from_supremum_schema
+    {maxLeft maxRight : ℕ}
+    (assumptions : ResidualKernelAssumptions params maxLeft maxRight) :
+    assumptions.positiveRecurrent /\
+      assumptions.stationaryLawExists /\
+      (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
+          ∂ assumptions.stationary.toMeasure =
+        ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
+            ∂ assumptions.stationary.toMeasure +
+          ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).openAge state
+            ∂ assumptions.stationary.toMeasure) := by
+  let kernel := kernelFamily params assumptions
+  let adaptiveAssumptions := adaptiveSupremumAssumptions params assumptions
+  have hDominated : adaptiveAssumptions.dominatedBySupremumKernel := by
+    change
+      ∀ state : AdaptiveRoutingQueueState maxLeft maxRight,
+        ∀ i j, adaptiveRouting params state i j ≤ params.ceilingRouting i j
+    intro state i j
+    exact adaptiveRouting_le_ceiling params state i j
+  have hSubstochastic : adaptiveAssumptions.supremumKernelSubstochastic := by
+    change ∀ i, ∑ j, params.ceilingTrafficData.routing i j ≤ 1
+    exact ceiling_substochastic_le_one params
+  have hContractive : adaptiveAssumptions.supremumKernelContractive := by
+    change spectralRadius ℝ params.ceilingTrafficData.routingMatrix < 1
+    exact ceiling_spectralRadius_lt_one params
+  have hStable : adaptiveAssumptions.spectralCandidateStable := by
+    change ∀ i, params.candidate i < params.service i
+    exact candidate_stable params
+  have hService : adaptiveAssumptions.base.stateDependentService := by
+    simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
+      AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
+      kernel.serviceDependsOnCongestion_holds
+  have hRouting : adaptiveAssumptions.base.stateDependentRouting := by
+    simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
+      AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
+      kernel.routingDependsOnCongestion_holds
+  have hIrreducible : adaptiveAssumptions.base.irreducible := by
+    simpa [kernel, kernelFamily] using
+      assumptions.irreducible_holds
+  have hPetite : adaptiveAssumptions.base.petiteSet := by
+    simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
+      AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
+      kernel.petiteSet_holds
+  have hMain :=
+    adaptive_queue_stability_from_supremum_schema adaptiveAssumptions
+      hDominated
+      hSubstochastic
+      hContractive
+      hStable
+      hService
+      hRouting
+      hIrreducible
+      hPetite
+  refine ⟨hMain.1, hMain.2.1, ?_⟩
+  simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
+    kernelFamily, AdaptiveRoutingQueueKernelFamily.toFamily,
+    AdaptiveRoutingQueueFamily.stabilityAssumptions] using hMain.2.2
+
+theorem kernelFamily_terminal_balance_from_supremum_schema
+    {maxLeft maxRight : ℕ}
+    (assumptions : ResidualKernelAssumptions params maxLeft maxRight)
+    (hStaticPolicy :
+      ∀ᵐ state : AdaptiveRoutingQueueState maxLeft maxRight ∂ assumptions.stationary.toMeasure,
+        state.2.2 = false) :
+    assumptions.positiveRecurrent /\
+      assumptions.stationaryLawExists /\
+      (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
+          ∂ assumptions.stationary.toMeasure =
+        ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
+          ∂ assumptions.stationary.toMeasure) := by
+  have hOpenAgeZero :
+      (adaptiveRoutingQueueLaw maxLeft maxRight).openAge =ᵐ[assumptions.stationary.toMeasure] 0 := by
+    filter_upwards [hStaticPolicy] with state hState
+    change adaptiveRoutingOpenAge state = 0
+    simp [adaptiveRoutingOpenAge, boolOpenAge, hState]
+  let kernel := kernelFamily params assumptions
+  let adaptiveAssumptions := adaptiveSupremumAssumptions params assumptions
+  have hOpenAgeZero' :
+      adaptiveAssumptions.base.law.openAge =ᵐ[adaptiveAssumptions.base.stationaryMeasure] 0 := by
+    simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
+      AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
+      hOpenAgeZero
+  have hDominated : adaptiveAssumptions.dominatedBySupremumKernel := by
+    change
+      ∀ state : AdaptiveRoutingQueueState maxLeft maxRight,
+        ∀ i j, adaptiveRouting params state i j ≤ params.ceilingRouting i j
+    intro state i j
+    exact adaptiveRouting_le_ceiling params state i j
+  have hSubstochastic : adaptiveAssumptions.supremumKernelSubstochastic := by
+    change ∀ i, ∑ j, params.ceilingTrafficData.routing i j ≤ 1
+    exact ceiling_substochastic_le_one params
+  have hContractive : adaptiveAssumptions.supremumKernelContractive := by
+    change spectralRadius ℝ params.ceilingTrafficData.routingMatrix < 1
+    exact ceiling_spectralRadius_lt_one params
+  have hStable : adaptiveAssumptions.spectralCandidateStable := by
+    change ∀ i, params.candidate i < params.service i
+    exact candidate_stable params
+  have hService : adaptiveAssumptions.base.stateDependentService := by
+    simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
+      AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
+      kernel.serviceDependsOnCongestion_holds
+  have hRouting : adaptiveAssumptions.base.stateDependentRouting := by
+    simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
+      AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
+      kernel.routingDependsOnCongestion_holds
+  have hIrreducible : adaptiveAssumptions.base.irreducible := by
+    simpa [kernel, kernelFamily] using
+      assumptions.irreducible_holds
+  have hPetite : adaptiveAssumptions.base.petiteSet := by
+    simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
+      AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
+      kernel.petiteSet_holds
+  have hMain :=
+    adaptive_queue_terminal_balance_from_supremum_schema
+      adaptiveAssumptions
+      hOpenAgeZero'
+      hDominated
+      hSubstochastic
+      hContractive
+      hStable
+      hService
+      hRouting
+      hIrreducible
+      hPetite
+  refine ⟨hMain.1, hMain.2.1, ?_⟩
+  simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
+    kernelFamily, AdaptiveRoutingQueueKernelFamily.toFamily,
+    AdaptiveRoutingQueueFamily.stabilityAssumptions] using hMain.2.2
+
+end TwoNodeAdaptiveRoutingParameters
 
 end ForkRaceFoldTheorems

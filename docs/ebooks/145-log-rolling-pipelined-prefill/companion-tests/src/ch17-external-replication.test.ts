@@ -10,7 +10,7 @@ describe('Chapter 17 external replication', () => {
     const report = runCh17ExternalReplication({ executeCommands: false });
 
     expect(report.label).toBe('ch17-external-replication-v1');
-    expect(report.steps).toHaveLength(10);
+    expect(report.steps).toHaveLength(11);
     expect(report.steps.every((step) => step.skipped)).toBe(true);
     expect(report.totalDurationMs).toBe(0);
     expect(report.slowestStepLabel).toBe('n/a');

@@ -67,6 +67,11 @@ const commandPlan = [
   { label: 'Test Gnosis mini-MoE routing', cwd: gnosisRoot, command: 'bun run test:mini-moe-routing' },
   { label: 'Export formal witness catalog', cwd: companionRoot, command: 'bun run test:formal:witnesses' },
   {
+    label: 'Export formal adaptive witness catalog',
+    cwd: companionRoot,
+    command: 'bun run test:formal:adaptive-witnesses',
+  },
+  {
     label: 'Run Chapter 17 reproduction surface',
     cwd: companionRoot,
     command: 'bun run test:ch17-reproduction-surface',
