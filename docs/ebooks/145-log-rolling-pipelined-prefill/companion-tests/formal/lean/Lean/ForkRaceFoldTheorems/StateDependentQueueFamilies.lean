@@ -1414,6 +1414,29 @@ theorem expectedLyapunov_drift
   classical
   simp [expectedLyapunov, hState]
 
+noncomputable def leftSlack : ℝ :=
+  params.serviceLeft - params.arrivalLeft
+
+noncomputable def rightSlack : ℝ :=
+  params.serviceRight - (params.arrivalRight + params.arrivalLeft * params.rerouteProb)
+
+theorem service_sub_candidate :
+    ∀ i, params.service i - params.candidate i =
+      if i then params.rightSlack else params.leftSlack := by
+  intro i
+  cases i <;> simp [service, candidate, leftSlack, rightSlack]
+
+theorem driftGap_le_service_sub_candidate
+    (i : Bool) :
+    params.driftGap ≤ params.service i - params.candidate i := by
+  cases i with
+  | false =>
+      unfold driftGap
+      simp [service_sub_candidate, leftSlack]
+  | true =>
+      unfold driftGap
+      simp [service_sub_candidate, rightSlack]
+
 theorem ceiling_substochastic_le_one :
     ∀ i, ∑ j, params.ceilingTrafficData.routing i j ≤ 1 := by
   intro i
@@ -1506,21 +1529,122 @@ abbrev ResidualKernelAssumptions.stationaryLawExists
 noncomputable def adaptiveSupremumAssumptions
     {maxLeft maxRight : ℕ}
     (assumptions : ResidualKernelAssumptions params maxLeft maxRight) :
-    AdaptiveSupremumStabilityAssumptions (AdaptiveRoutingQueueState maxLeft maxRight) where
-  base := ((kernelFamily params assumptions).toFamily).stabilityAssumptions
-  dominatedBySupremumKernel :=
-    ∀ state : AdaptiveRoutingQueueState maxLeft maxRight,
-      ∀ i j, adaptiveRouting params state i j ≤ params.ceilingRouting i j
-  supremumKernelSubstochastic := ∀ i, ∑ j, params.ceilingTrafficData.routing i j ≤ 1
-  supremumKernelContractive := spectralRadius ℝ params.ceilingTrafficData.routingMatrix < 1
-  spectralCandidateStable := ∀ i, params.candidate i < params.service i
-  ceilingExpectedLyapunov := (kernelFamily params assumptions).expectedLyapunov
-  expectedLyapunovLeCeilingExpected := by
-    intro _ state
-    exact le_rfl
-  ceilingDriftBound := by
-    intro _ _ _ state hState
-    exact (kernelFamily params assumptions).fosterLyapunovDrift_holds state hState
+    AdaptiveSupremumStabilityAssumptions Bool (AdaptiveRoutingQueueState maxLeft maxRight) := by
+  let kernel := kernelFamily params assumptions
+  let base := kernel.toFamily.stabilityAssumptions
+  let comparison :
+      AdaptiveExpectedLyapunovSynthesis
+        (ι := Bool)
+        (Ω := AdaptiveRoutingQueueState maxLeft maxRight)
+        base.expectedLyapunov := {
+    adaptiveTrafficData := params.adaptiveTrafficData
+    ceilingTrafficData := params.ceilingTrafficData
+    arrivalLe := by
+      intro i
+      cases i <;> rfl
+    routingLe := by
+      intro state i j
+      exact adaptiveRouting_le_ceiling params state i j
+    ceilingCandidate := params.candidate
+    candidateNonneg := params.candidate_nonneg
+    candidatePostfixed := by
+      intro i
+      have hFixed := params.candidate_fixed_point i
+      exact le_of_eq hFixed.symm
+    expectedLift := fun state _ => kernel.expectedLyapunov state
+    expectedLyapunovLeLift := by
+      intro _ state
+      exact le_rfl
+    liftMonotone := by
+      intro state lhs rhs hLe
+      exact le_rfl
+  }
+  refine {
+    base := base
+    comparison := comparison
+    drift :=
+      AdaptiveCeilingDriftSynthesis.ofMinimumSlack
+        (ι := Bool)
+        (Ω := AdaptiveRoutingQueueState maxLeft maxRight)
+        (expectedLyapunovSynthesis := comparison)
+        (lyapunov := base.lyapunov)
+        (smallSet := base.smallSet)
+        (driftGap := base.driftGap)
+        ?_
+        ?_
+  }
+  · intro state
+    have hSelectedSlackEqDriftGap :
+        comparison.adaptiveTrafficData.serviceRate (minimumSlackNode comparison) -
+            comparison.ceilingCandidate (minimumSlackNode comparison) =
+          params.driftGap := by
+      have hLower :
+          params.driftGap ≤
+            comparison.adaptiveTrafficData.serviceRate (minimumSlackNode comparison) -
+              comparison.ceilingCandidate (minimumSlackNode comparison) := by
+        change params.driftGap ≤
+          params.service (minimumSlackNode comparison) -
+            params.candidate (minimumSlackNode comparison)
+        simpa using
+          driftGap_le_service_sub_candidate params (minimumSlackNode comparison)
+      have hUpperFalse :
+          comparison.adaptiveTrafficData.serviceRate (minimumSlackNode comparison) -
+              comparison.ceilingCandidate (minimumSlackNode comparison) ≤
+            params.leftSlack := by
+        simpa [service_sub_candidate, leftSlack] using
+          (minimumSlackNode_le (expectedLyapunovSynthesis := comparison) false)
+      have hUpperTrue :
+          comparison.adaptiveTrafficData.serviceRate (minimumSlackNode comparison) -
+              comparison.ceilingCandidate (minimumSlackNode comparison) ≤
+            params.rightSlack := by
+        simpa [service_sub_candidate, rightSlack] using
+          (minimumSlackNode_le (expectedLyapunovSynthesis := comparison) true)
+      have hUpper :
+          comparison.adaptiveTrafficData.serviceRate (minimumSlackNode comparison) -
+              comparison.ceilingCandidate (minimumSlackNode comparison) ≤
+            params.driftGap := by
+        unfold driftGap
+        exact le_min hUpperFalse hUpperTrue
+      exact le_antisymm hUpper hLower
+    by_cases hState : state ∈ smallSet
+    · have hReserve :
+          selectedSlackReserve
+            (expectedLyapunovSynthesis := comparison)
+            base.smallSet
+            (minimumSlackSelector comparison)
+            state = 0 := by
+        have hSmallSet : base.smallSet = smallSet := by
+          rfl
+        rw [hSmallSet]
+        simp [selectedSlackReserve, hState]
+      rw [hReserve]
+      have hExpected : comparison.ceilingExpectedLyapunov state = expectedLyapunov params state := by
+        rfl
+      have hLyapunov : base.lyapunov state = lyapunov state := by
+        rfl
+      rw [hExpected, hLyapunov]
+      simp [expectedLyapunov, hState]
+    · have hReserve :
+          selectedSlackReserve
+            (expectedLyapunovSynthesis := comparison)
+            base.smallSet
+            (minimumSlackSelector comparison)
+            state =
+              params.driftGap := by
+        have hSmallSet : base.smallSet = smallSet := by
+          rfl
+        rw [hSmallSet]
+        simp [selectedSlackReserve, minimumSlackSelector, hState, hSelectedSlackEqDriftGap]
+      rw [hReserve]
+      have hExpected : comparison.ceilingExpectedLyapunov state = expectedLyapunov params state := by
+        rfl
+      have hLyapunov : base.lyapunov state = lyapunov state := by
+        rfl
+      rw [hExpected, hLyapunov]
+      simp [expectedLyapunov, hState]
+  · intro state hState i
+    change params.driftGap ≤ params.service i - params.candidate i
+    simpa using driftGap_le_service_sub_candidate params i
 
 theorem kernelFamily_stationary_balance_from_supremum_schema
     {maxLeft maxRight : ℕ}
@@ -1533,21 +1657,6 @@ theorem kernelFamily_stationary_balance_from_supremum_schema
           ∂ assumptions.stationary.toMeasure) := by
   let kernel := kernelFamily params assumptions
   let adaptiveAssumptions := adaptiveSupremumAssumptions params assumptions
-  have hDominated : adaptiveAssumptions.dominatedBySupremumKernel := by
-    change
-      ∀ state : AdaptiveRoutingQueueState maxLeft maxRight,
-        ∀ i j, adaptiveRouting params state i j ≤ params.ceilingRouting i j
-    intro state i j
-    exact adaptiveRouting_le_ceiling params state i j
-  have hSubstochastic : adaptiveAssumptions.supremumKernelSubstochastic := by
-    change ∀ i, ∑ j, params.ceilingTrafficData.routing i j ≤ 1
-    exact ceiling_substochastic_le_one params
-  have hContractive : adaptiveAssumptions.supremumKernelContractive := by
-    change spectralRadius ℝ params.ceilingTrafficData.routingMatrix < 1
-    exact ceiling_spectralRadius_lt_one params
-  have hStable : adaptiveAssumptions.spectralCandidateStable := by
-    change ∀ i, params.candidate i < params.service i
-    exact candidate_stable params
   have hService : adaptiveAssumptions.base.stateDependentService := by
     simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
       AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
@@ -1566,10 +1675,6 @@ theorem kernelFamily_stationary_balance_from_supremum_schema
       kernel.petiteSet_holds
   have hMain :=
     adaptive_queue_balance_from_supremum_schema adaptiveAssumptions
-      hDominated
-      hSubstochastic
-      hContractive
-      hStable
       hService
       hRouting
       hIrreducible
@@ -1600,21 +1705,6 @@ theorem kernelFamily_terminal_balance_from_supremum_schema
     simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
       AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
       hOpenAgeZero
-  have hDominated : adaptiveAssumptions.dominatedBySupremumKernel := by
-    change
-      ∀ state : AdaptiveRoutingQueueState maxLeft maxRight,
-        ∀ i j, adaptiveRouting params state i j ≤ params.ceilingRouting i j
-    intro state i j
-    exact adaptiveRouting_le_ceiling params state i j
-  have hSubstochastic : adaptiveAssumptions.supremumKernelSubstochastic := by
-    change ∀ i, ∑ j, params.ceilingTrafficData.routing i j ≤ 1
-    exact ceiling_substochastic_le_one params
-  have hContractive : adaptiveAssumptions.supremumKernelContractive := by
-    change spectralRadius ℝ params.ceilingTrafficData.routingMatrix < 1
-    exact ceiling_spectralRadius_lt_one params
-  have hStable : adaptiveAssumptions.spectralCandidateStable := by
-    change ∀ i, params.candidate i < params.service i
-    exact candidate_stable params
   have hService : adaptiveAssumptions.base.stateDependentService := by
     simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
       AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
@@ -1635,10 +1725,6 @@ theorem kernelFamily_terminal_balance_from_supremum_schema
     adaptive_queue_terminal_balance_from_supremum_balance_schema
       adaptiveAssumptions
       hOpenAgeZero'
-      hDominated
-      hSubstochastic
-      hContractive
-      hStable
       hService
       hRouting
       hIrreducible
