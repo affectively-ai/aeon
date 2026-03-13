@@ -8,8 +8,8 @@
 
 | Label | Category | Path | Bytes | SHA-256 |
 | --- | --- | --- | ---: | --- |
-| Manuscript draft | `document` | `open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/ch17-arxiv-manuscript.md` | 187956 | `97b7e3d28506fdc3329add40a5bc177a16ff8234d87e261bc025f7a845782d4a` |
-| Companion README | `document` | `open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/README.md` | 22467 | `0cd05355d4d9a121f139858fc5e1c9b1d096bdb187cce201a427e2f990cb8791` |
+| Manuscript draft | `document` | `open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/ch17-arxiv-manuscript.md` | 187993 | `58cff8a6c454cb7317dec96b008d3592add649984f997f24e0ec64fa315dbddf` |
+| Companion README | `document` | `open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/README.md` | 22481 | `70cc43b8b58a4a56dfcdd78f6cd8bec3dc6414c62da644aef3361954a8009d92` |
 | Evidence workflow | `workflow` | `.github/workflows/ch17-evidence.yml` | 1903 | `703bafe452d44ee4678900b53f3e81c62011f904ab34e646e121aabad3bf22ff` |
 | Quantum ablation artifact | `artifact` | `open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/quantum-recombination-ablation.json` | 1396 | `6920d51512b943fc9a5e1aa1292dcce92ef1a30f83be89392f929e2e8b336181` |
 | Toy attention artifact | `artifact` | `open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/toy-attention-fold-ablation.json` | 2152 | `589310d63767500cc0cde8d707da02889173f9943b220c886d8ae40ab92ae8d3` |
@@ -37,7 +37,7 @@
 | Lean claims | `formal` | `open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/lean/Lean/ForkRaceFoldTheorems/Claims.lean` | 15006 | `6c426f5736691e81f4d199321d7d86b04240f45b9391cfe447c06763b441f3b1` |
 | Lean witness catalog | `formal` | `open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/lean/Lean/ForkRaceFoldTheorems/Witnesses.lean` | 4748 | `3a10680a28eaab8ae9cba391848341bb1c167c41d9267a25ba65e26e9637f7d1` |
 | Lean adaptive witness catalog | `formal` | `open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/lean/Lean/ForkRaceFoldTheorems/AdaptiveWitnesses.lean` | 4125 | `6eafe2bb1078c82152b3c5010832eb20ba45de8522050c59a2eb586ad63668aa` |
-| Theorem ledger | `formal` | `open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/THEOREM_LEDGER.md` | 39268 | `94f612a1fe7306a782262ec6bfbbf4bf4f6b1bc616bacbb96bedbaa4f99f4e98` |
+| Theorem ledger | `formal` | `open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/THEOREM_LEDGER.md` | 39562 | `b49547f54d8462ea5e252dbebbce5a55de1ec691dca4ce0e9980819ee504c0b4` |
 | Affine benchmark topology suite | `topology` | `open-source/gnosis/examples/benchmarks/fold-training.test.gg` | 773 | `cd0734e4dc96534ed442a0a38456af68005aeb72c40f853438eda8d21d93e43b` |
 | Routed benchmark topology suite | `topology` | `open-source/gnosis/examples/benchmarks/moe-routing.test.gg` | 472 | `282621a787b783cfde5dceaba5cad909de0824ac9f5989b51a50a13e88671a2d` |
 
