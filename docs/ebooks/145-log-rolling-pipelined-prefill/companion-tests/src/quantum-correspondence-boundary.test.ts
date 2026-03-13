@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { loadCheckedInFormalWitnessCatalog } from './formal-witness-catalog';
+
 interface Complex {
   readonly re: number;
   readonly im: number;
@@ -98,6 +100,33 @@ function winnerTakeAllFold(amplitudes: readonly Complex[]): Complex {
   return best;
 }
 
+function witnessInputs(id: string): readonly number[] {
+  const report = loadCheckedInFormalWitnessCatalog();
+  const witness = report.witnesses.find((entry) => entry.id === id);
+  if (!witness) {
+    throw new Error(`Missing formal witness ${id}`);
+  }
+  return witness.inputs;
+}
+
+function witnessObserved(id: string): number {
+  const report = loadCheckedInFormalWitnessCatalog();
+  const witness = report.witnesses.find((entry) => entry.id === id);
+  if (!witness) {
+    throw new Error(`Missing formal witness ${id}`);
+  }
+  return witness.observed;
+}
+
+function witnessAlternate(id: string): number {
+  const report = loadCheckedInFormalWitnessCatalog();
+  const witness = report.witnesses.find((entry) => entry.id === id);
+  if (!witness || witness.alternate === null) {
+    throw new Error(`Missing alternate witness value for ${id}`);
+  }
+  return witness.alternate;
+}
+
 describe('Quantum correspondence boundary (§6.12)', () => {
   it('discrete path sums are exactly recovered by linear fold in the finite kernel model', () => {
     const invSqrt2 = 1 / Math.sqrt(2);
@@ -140,19 +169,31 @@ describe('Quantum correspondence boundary (§6.12)', () => {
   });
 
   it('cancellation requires full aggregation; early-stop race returns a different result', () => {
-    const amplitudes: readonly Complex[] = [{ re: 1, im: 0 }, { re: -1, im: 0 }];
+    const [firstInput, secondInput] = witnessInputs('linear-cancellation');
+    const amplitudes: readonly Complex[] = [
+      { re: firstInput ?? 0, im: 0 },
+      { re: secondInput ?? 0, im: 0 },
+    ];
 
     const quantumLikeFullFold = linearFold(amplitudes);
     expect(cMag2(quantumLikeFullFold)).toBeCloseTo(0, 12);
 
     const [earlyStopRaceResult] = amplitudes;
+    expect(earlyStopRaceResult.re).toBe(witnessObserved('early-stop-cancellation-counterexample'));
     expect(cMag2(earlyStopRaceResult)).toBeCloseTo(1, 12);
     expect(cMag2(earlyStopRaceResult)).toBeGreaterThan(cMag2(quantumLikeFullFold));
   });
 
   it('linear fold is permutation invariant on the cancellation witness; early-stop race is not', () => {
-    const forward: readonly Complex[] = [{ re: 1, im: 0 }, { re: -1, im: 0 }];
-    const reversed: readonly Complex[] = [{ re: -1, im: 0 }, { re: 1, im: 0 }];
+    const [firstInput, secondInput] = witnessInputs('early-stop-order-counterexample');
+    const forward: readonly Complex[] = [
+      { re: firstInput ?? 0, im: 0 },
+      { re: secondInput ?? 0, im: 0 },
+    ];
+    const reversed: readonly Complex[] = [
+      { re: secondInput ?? 0, im: 0 },
+      { re: firstInput ?? 0, im: 0 },
+    ];
 
     const linearForward = linearFold(forward);
     const linearReversed = linearFold(reversed);
@@ -163,8 +204,21 @@ describe('Quantum correspondence boundary (§6.12)', () => {
     const [forwardEarlyStop] = forward;
     const [reversedEarlyStop] = reversed;
 
-    expect(forwardEarlyStop.re).toBe(1);
-    expect(reversedEarlyStop.re).toBe(-1);
+    expect(forwardEarlyStop.re).toBe(witnessObserved('early-stop-order-counterexample'));
+    expect(reversedEarlyStop.re).toBe(witnessAlternate('early-stop-order-counterexample'));
     expect(forwardEarlyStop).not.toEqual(reversedEarlyStop);
+  });
+
+  it('formal witness export supplies the integer partition and order counterexamples used by runtime checks', () => {
+    const winnerPartitionInputs = witnessInputs('winner-partition-counterexample');
+    const earlyPartitionInputs = witnessInputs('early-stop-partition-counterexample');
+
+    expect(winnerPartitionInputs).toEqual([2, 1, -2]);
+    expect(witnessObserved('winner-partition-counterexample')).toBe(2);
+    expect(witnessAlternate('winner-partition-counterexample')).toBe(0);
+
+    expect(earlyPartitionInputs).toEqual([1, 0, -1]);
+    expect(witnessObserved('early-stop-partition-counterexample')).toBe(1);
+    expect(witnessAlternate('early-stop-partition-counterexample')).toBe(0);
   });
 });

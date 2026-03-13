@@ -172,6 +172,64 @@ interface GnosisMiniMoeRoutingBenchmarkReport {
   };
 }
 
+interface GnosisNegativeControlsTaskReport {
+  readonly maxEvalMeanSquaredErrorGap: number;
+  readonly minExactWithinToleranceFraction: number;
+  readonly parityRecovered: boolean;
+}
+
+interface GnosisNegativeControlsBenchmarkReport {
+  readonly label: string;
+  readonly tasks: Record<string, GnosisNegativeControlsTaskReport>;
+  readonly allControlsPass: boolean;
+}
+
+interface RegimeSweepPointReport {
+  readonly linearAdvantageEvalMeanSquaredError: number;
+}
+
+interface GnosisFoldBoundaryRegimeSweepReport {
+  readonly label: string;
+  readonly affine: {
+    readonly firstSeparatedRegimeValue: number | null;
+    readonly points: readonly RegimeSweepPointReport[];
+  };
+  readonly routed: {
+    readonly firstSeparatedRegimeValue: number | null;
+    readonly points: readonly RegimeSweepPointReport[];
+  };
+}
+
+interface AdversarialStrategySummary {
+  readonly meanFinalEvalMeanSquaredError: number;
+  readonly meanLearningCurveArea: number;
+}
+
+interface GnosisAdversarialControlsBenchmarkReport {
+  readonly label: string;
+  readonly tasks: Record<
+    string,
+    {
+      readonly strategies: Record<string, AdversarialStrategySummary>;
+    }
+  >;
+}
+
+interface FormalWitnessCatalogReport {
+  readonly label: string;
+  readonly witnesses: readonly {
+    readonly id: string;
+  }[];
+}
+
+interface Ch17ReplicationPackReport {
+  readonly label: string;
+  readonly rootCommand: string;
+  readonly entryCount: number;
+  readonly artifactCount: number;
+  readonly complete: boolean;
+}
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..', '..');
 const MANUSCRIPT_PATH = join(ROOT, 'ch17-arxiv-manuscript.md');
@@ -222,8 +280,23 @@ describe('Manuscript artifact consistency', () => {
     const gnosisTrainingBenchmark = loadJson<GnosisFoldTrainingBenchmarkReport>(
       join(ARTIFACTS_DIR, 'gnosis-fold-training-benchmark.json'),
     );
+    const gnosisNegativeControls = loadJson<GnosisNegativeControlsBenchmarkReport>(
+      join(ARTIFACTS_DIR, 'gnosis-negative-controls.json'),
+    );
+    const gnosisRegimeSweep = loadJson<GnosisFoldBoundaryRegimeSweepReport>(
+      join(ARTIFACTS_DIR, 'gnosis-fold-boundary-regime-sweep.json'),
+    );
+    const gnosisAdversarialControls = loadJson<GnosisAdversarialControlsBenchmarkReport>(
+      join(ARTIFACTS_DIR, 'gnosis-adversarial-controls-benchmark.json'),
+    );
     const gnosisMiniMoeBenchmark = loadJson<GnosisMiniMoeRoutingBenchmarkReport>(
       join(ARTIFACTS_DIR, 'gnosis-moe-routing-benchmark.json'),
+    );
+    const formalWitnessCatalog = loadJson<FormalWitnessCatalogReport>(
+      join(ARTIFACTS_DIR, 'formal-witness-catalog.json'),
+    );
+    const replicationPack = loadJson<Ch17ReplicationPackReport>(
+      join(ARTIFACTS_DIR, 'ch17-replication-pack.json'),
     );
 
     const gate1SpeedupRange = `${min(gate1.cells.map((cell) => cell.speedupMedian)).toFixed(3)}x-${max(
@@ -420,6 +493,90 @@ describe('Manuscript artifact consistency', () => {
         3,
       ),
     );
+    const negativeControlTasks = Object.values(gnosisNegativeControls.tasks);
+    mustContain(manuscript, gnosisNegativeControls.allControlsPass ? 'all three fold rules' : 'some fold rules');
+    mustContain(
+      manuscript,
+      max(negativeControlTasks.map((task) => task.maxEvalMeanSquaredErrorGap)).toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      min(negativeControlTasks.map((task) => task.minExactWithinToleranceFraction)).toFixed(3),
+    );
+    mustContain(manuscript, 'affine-left-only');
+    mustContain(manuscript, 'positive-x single-expert');
+    mustContain(
+      manuscript,
+      gnosisRegimeSweep.affine.firstSeparatedRegimeValue?.toFixed(3) ?? 'none',
+    );
+    mustContain(
+      manuscript,
+      (gnosisRegimeSweep.affine.points.at(-1)?.linearAdvantageEvalMeanSquaredError ?? 0).toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      gnosisRegimeSweep.routed.firstSeparatedRegimeValue?.toFixed(3) ?? 'none',
+    );
+    mustContain(
+      manuscript,
+      (gnosisRegimeSweep.routed.points.at(-1)?.linearAdvantageEvalMeanSquaredError ?? 0).toFixed(3),
+    );
+    const winnerAffine = gnosisAdversarialControls.tasks['winner-affine-maxabs'];
+    const earlyStopRouted =
+      gnosisAdversarialControls.tasks['early-stop-routing-first-expert-short-budget'];
+    const earlyStopAffine =
+      gnosisAdversarialControls.tasks['early-stop-left-priority-short-budget'];
+    expect(winnerAffine).toBeDefined();
+    expect(earlyStopRouted).toBeDefined();
+    expect(earlyStopAffine).toBeDefined();
+    mustContain(
+      manuscript,
+      winnerAffine!.strategies['winner-take-all'].meanFinalEvalMeanSquaredError.toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      winnerAffine!.strategies.linear.meanFinalEvalMeanSquaredError.toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      winnerAffine!.strategies['early-stop'].meanFinalEvalMeanSquaredError.toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      winnerAffine!.strategies['winner-take-all'].meanLearningCurveArea.toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      winnerAffine!.strategies.linear.meanLearningCurveArea.toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      winnerAffine!.strategies['early-stop'].meanLearningCurveArea.toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      earlyStopRouted!.strategies['early-stop'].meanLearningCurveArea.toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      earlyStopRouted!.strategies.linear.meanLearningCurveArea.toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      earlyStopRouted!.strategies['winner-take-all'].meanLearningCurveArea.toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      earlyStopAffine!.strategies['early-stop'].meanLearningCurveArea.toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      earlyStopAffine!.strategies.linear.meanLearningCurveArea.toFixed(3),
+    );
+    mustContain(
+      manuscript,
+      earlyStopAffine!.strategies['winner-take-all'].meanLearningCurveArea.toFixed(3),
+    );
     mustContain(
       manuscript,
       gnosisMiniMoeBenchmark.strategies.linear.meanEvalMeanSquaredError.toFixed(3),
@@ -461,6 +618,14 @@ describe('Manuscript artifact consistency', () => {
       ),
     );
     mustContain(manuscript, 'ch17-correspondence-boundary-figure.svg');
+    mustContain(manuscript, 'ch17-boundary-expansion-figure.svg');
+    mustContain(manuscript, String(formalWitnessCatalog.witnesses.length));
+    mustContain(manuscript, 'formal-witness-catalog.{json,md}');
+    mustContain(manuscript, 'ch17-replication-pack.{json,md}');
+    mustContain(manuscript, 'bun run test:ch17-external-replication');
+    mustContain(manuscript, String(replicationPack.entryCount));
+    mustContain(manuscript, String(replicationPack.artifactCount));
+    mustContain(manuscript, replicationPack.complete ? 'generated artifacts' : 'missing artifacts');
 
     // Guardrail text for §7 step-count claims: keep A1/A2 assumptions explicit.
     mustContain(manuscript, 'per-chunk stage service times are homogeneous across stages');

@@ -73,6 +73,7 @@ export function frontierFill(frontierByLayer) {
     const peakFrontier = normalizedFrontier.reduce((peak, width) => Math.max(peak, width), 0);
     const envelopeArea = layerCount * peakFrontier;
     const fill = envelopeArea === 0 ? 1 : frontierArea / envelopeArea;
+    const wallaceNumber = 1 - fill;
     return {
         frontierByLayer: [...normalizedFrontier],
         layerCount,
@@ -80,7 +81,9 @@ export function frontierFill(frontierByLayer) {
         peakFrontier,
         envelopeArea,
         frontierFill: fill,
-        frontierDeficit: 1 - fill,
+        wallaceNumber,
+        wally: wallaceNumber,
+        frontierDeficit: wallaceNumber,
     };
 }
 export function pipelineOccupancy(stageCount, chunkCount) {

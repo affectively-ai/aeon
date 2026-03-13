@@ -215,22 +215,24 @@ theorem additive_fold_iff_cancellation_difference_family
   · intro hAdditive
     intro value mirror
     rw [hAdditive value (-mirror)]
-    simp [linearFoldInt, sub_eq_add_neg]
+    simp [linearFoldInt, Int.sub_eq_add_neg]
   · intro hDifference
     intro first second
     have hWitness := hDifference first (-second)
-    simpa [sub_eq_add_neg, linearFoldInt] using hWitness
+    simpa [linearFoldInt, Int.sub_eq_add_neg] using hWitness
 
 theorem nonadditive_fold_misses_cancellation_difference_family
     {fold2 : Int -> Int -> Int}
     (hNonAdditive : ¬ AdditiveFold fold2) :
     ∃ value mirror, fold2 value (-mirror) ≠ value - mirror := by
-  by_contra hNoWitness
-  apply hNonAdditive
-  rw [additive_fold_iff_cancellation_difference_family]
-  intro value mirror
-  by_contra hCounterexample
-  exact hNoWitness ⟨value, mirror, hCounterexample⟩
+  classical
+  by_cases hExists : ∃ value mirror, fold2 value (-mirror) ≠ value - mirror
+  · exact hExists
+  · apply False.elim
+    apply hNonAdditive
+    rw [additive_fold_iff_cancellation_difference_family]
+    simp [not_exists] at hExists
+    exact hExists
 
 theorem winner_selection_partition_counterexample :
     winnerByMagnitudeFold (winnerByMagnitudeFold 1 2) 3 ≠

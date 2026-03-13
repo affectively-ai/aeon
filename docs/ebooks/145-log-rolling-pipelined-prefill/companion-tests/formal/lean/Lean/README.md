@@ -8,4 +8,4 @@ Lean source modules for the formal theorem package.
 Primary entrypoint:
 
 - `ForkRaceFoldTheorems.lean`
-- `ForkRaceFoldTheorems/README.md`: constructive claims, failure-topology entropy theorems, multiplexing/Wallace/staged-expansion/warm-up-efficiency theorems, queueing measure-limit and stability theorems, and higher-level theorem schemas, including the §6.12 correspondence-boundary and cancellation-family theorems.
+- `ForkRaceFoldTheorems/README.md`: constructive claims, failure-topology entropy, failure-family-split, failure-trilemma, failure-composition, failure-universality, minimum-collapse-cost, and exact-floor-attainability theorems, multiplexing/Wallace/staged-expansion/warm-up-efficiency/controller theorems, queueing measure-limit and stability theorems, the Lean-originated §6.12 witness catalog/export bridge, and higher-level theorem schemas, including the correspondence-boundary and cancellation-family theorems.

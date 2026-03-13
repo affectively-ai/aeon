@@ -1,0 +1,274 @@
+{
+  "label": "ch17-external-replication-v1",
+  "rootCommand": "cd open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests && bun run test:ch17-external-replication",
+  "steps": [
+    {
+      "label": "Install workspace dependencies",
+      "cwd": "/Users/buley/Documents/Code/emotions",
+      "command": "bun install --frozen-lockfile",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 26367,
+      "stdoutTail": "bun install v1.3.10 (30e609e0)\n\n4 packages installed [26.20s]",
+      "stderrTail": "[0.36ms] \".env.local\"\nResolving dependencies\nResolved, downloaded and extracted [10]\n\n$ husky || true",
+      "skipped": false
+    },
+    {
+      "label": "Build Gnosis",
+      "cwd": "/Users/buley/Documents/Code/emotions/open-source/gnosis",
+      "command": "bun run build",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 2650,
+      "stdoutTail": "",
+      "stderrTail": "$ tsc",
+      "skipped": false
+    },
+    {
+      "label": "Test Gnosis fold training",
+      "cwd": "/Users/buley/Documents/Code/emotions/open-source/gnosis",
+      "command": "bun run test:fold-training",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 323,
+      "stdoutTail": "\n  PASS  ./fold-training-linear.gg  (nodes=5 edges=3 states=5 b1=1)\n  PASS  ./fold-training-winner-take-all.gg  (nodes=5 edges=3 states=5 b1=1)\n  PASS  ./fold-training-early-stop.gg  (nodes=5 edges=3 states=5 b1=1)\n\n  PASS  test-topology  (nodes=12 edges=5 states=7 b1=0)\n\n  4/4 passed  5ms",
+      "stderrTail": "(pass) gnosis fold training benchmark > ships a .test.gg suite for the three benchmark modules [3.15ms]\n(pass) gnosis fold training benchmark > points at the checked-in topology modules [0.05ms]\n(pass) gnosis fold training benchmark > renders a markdown report with learned intervals [44.42ms]\n\n 4 pass\n 0 fail\n 21 expect() calls\nRan 4 tests across 1 file. [139.00ms]",
+      "skipped": false
+    },
+    {
+      "label": "Test Gnosis negative controls",
+      "cwd": "/Users/buley/Documents/Code/emotions/open-source/gnosis",
+      "command": "bun run test:negative-controls",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 147,
+      "stdoutTail": "bun test v1.3.10 (30e609e0)",
+      "stderrTail": "src/benchmarks/negative-controls-benchmark.test.ts:\n(pass) gnosis negative controls benchmark > shows parity on one-path control tasks where additive recombination is unnecessary [66.24ms]\n(pass) gnosis negative controls benchmark > renders a markdown report with both control tasks [45.20ms]\n\n 2 pass\n 0 fail\n 12 expect() calls\nRan 2 tests across 1 file. [134.00ms]",
+      "skipped": false
+    },
+    {
+      "label": "Test Gnosis regime sweep",
+      "cwd": "/Users/buley/Documents/Code/emotions/open-source/gnosis",
+      "command": "bun run test:regime-sweep",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 1586,
+      "stdoutTail": "bun test v1.3.10 (30e609e0)",
+      "stderrTail": "src/benchmarks/regime-sweep-benchmark.test.ts:\n(pass) gnosis fold boundary regime sweep > maps the parity-to-separation transition in both affine and routed families [774.34ms]\n(pass) gnosis fold boundary regime sweep > renders a markdown report with both regime families [775.63ms]\n\n 2 pass\n 0 fail\n 17 expect() calls\nRan 2 tests across 1 file. [1.57s]",
+      "skipped": false
+    },
+    {
+      "label": "Test Gnosis adversarial controls",
+      "cwd": "/Users/buley/Documents/Code/emotions/open-source/gnosis",
+      "command": "bun run test:adversarial-controls",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 256,
+      "stdoutTail": "bun test v1.3.10 (30e609e0)",
+      "stderrTail": "src/benchmarks/adversarial-controls-benchmark.test.ts:\n(pass) gnosis adversarial controls benchmark > recovers winner-aligned and early-stop-aligned control behavior [118.50ms]\n(pass) gnosis adversarial controls benchmark > renders a markdown report with all adversarial tasks [97.34ms]\n\n 2 pass\n 0 fail\n 16 expect() calls\nRan 2 tests across 1 file. [242.00ms]",
+      "skipped": false
+    },
+    {
+      "label": "Test Gnosis mini-MoE routing",
+      "cwd": "/Users/buley/Documents/Code/emotions/open-source/gnosis",
+      "command": "bun run test:mini-moe-routing",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 3083,
+      "stdoutTail": "\n  PASS  ./moe-routing-linear.gg  (nodes=8 edges=4 states=8 b1=3)\n  PASS  ./moe-routing-winner-take-all.gg  (nodes=8 edges=4 states=8 b1=3)\n  PASS  ./moe-routing-early-stop.gg  (nodes=8 edges=4 states=8 b1=3)\n\n  PASS  test-topology  (nodes=4 edges=1 states=4 b1=0)\n\n  4/4 passed  4ms",
+      "stderrTail": "(pass) gnosis mini-moe routing benchmark > ships a .test.gg suite for the routed expert modules [3.57ms]\n(pass) gnosis mini-moe routing benchmark > points at the checked-in routed expert topology modules [0.02ms]\n(pass) gnosis mini-moe routing benchmark > renders a markdown report with uncertainty intervals and routed metrics [1433.95ms]\n\n 4 pass\n 0 fail\n 21 expect() calls\nRan 4 tests across 1 file. [2.89s]",
+      "skipped": false
+    },
+    {
+      "label": "Export formal witness catalog",
+      "cwd": "/Users/buley/Documents/Code/emotions/open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests",
+      "command": "bun run test:formal:witnesses",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 5242,
+      "stdoutTail": "formal-witness-catalog: READY\njson: /Users/buley/Documents/Code/emotions/open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/formal-witness-catalog.json\nmarkdown: /Users/buley/Documents/Code/emotions/open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/formal-witness-catalog.md\nwitnesses: 7",
+      "stderrTail": "$ bun ./scripts/formal-witness-catalog.ts --assert",
+      "skipped": false
+    },
+    {
+      "label": "Run Chapter 17 reproduction surface",
+      "cwd": "/Users/buley/Documents/Code/emotions/open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests",
+      "command": "bun run test:ch17-reproduction-surface",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 12010,
+      "stdoutTail": " ✓ src/ch17-correspondence-boundary-figure.test.ts (2 tests) 5518ms\n   ✓ Chapter 17 correspondence boundary figure > combines the invariant and behavioral artifacts into a single report 3316ms\n   ✓ Chapter 17 correspondence boundary figure > renders markdown and svg outputs with all three panels 2201ms\n\n Test Files  13 passed (13)\n      Tests  30 passed (30)\n   Start at  03:37:21\n   Duration  6.29s (transform 655ms, setup 0ms, collect 1.76s, tests 20.49s, environment 2ms, prepare 973ms)",
+      "stderrTail": "$ bun ./scripts/gnosis-fold-training-benchmark.ts --assert\n$ bun ./scripts/gnosis-negative-controls-benchmark.ts --assert\n$ bun ./scripts/gnosis-regime-sweep-benchmark.ts --assert\n$ bun ./scripts/gnosis-adversarial-controls-benchmark.ts --assert\n$ bun ./scripts/gnosis-moe-routing-benchmark.ts --assert\n$ bun ./scripts/formal-witness-catalog.ts --assert\n$ bun ./scripts/ch17-correspondence-boundary-figure.ts --assert\n$ bun ./scripts/ch17-boundary-expansion-figure.ts --assert",
+      "skipped": false
+    },
+    {
+      "label": "Refresh replication manifest",
+      "cwd": "/Users/buley/Documents/Code/emotions/open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests",
+      "command": "bun run test:ch17-replication-pack",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 31,
+      "stdoutTail": "ch17-replication-pack: READY\njson: /Users/buley/Documents/Code/emotions/open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/ch17-replication-pack.json\nmarkdown: /Users/buley/Documents/Code/emotions/open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/ch17-replication-pack.md\nentries: 25",
+      "stderrTail": "$ bun ./scripts/ch17-replication-pack.ts --assert",
+      "skipped": false
+    }
+  ],
+  "totalDurationMs": 51695,
+  "slowestStepLabel": "Install workspace dependencies",
+  "slowestStepDurationMs": 26367,
+  "manifestStable": true,
+  "hashChecks": [
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/ch17-arxiv-manuscript.md",
+      "expectedSha256": "aca5d15f58145c69cad9814f01afa0ce78b90153e3d0eb0c948041293689689d",
+      "actualSha256": "aca5d15f58145c69cad9814f01afa0ce78b90153e3d0eb0c948041293689689d",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/README.md",
+      "expectedSha256": "3fa87bd319d9e1d2a0b559d47bbcc4b18c755ed8bdf5c82d64aa6e88b92b10b8",
+      "actualSha256": "3fa87bd319d9e1d2a0b559d47bbcc4b18c755ed8bdf5c82d64aa6e88b92b10b8",
+      "matches": true
+    },
+    {
+      "path": ".github/workflows/ch17-evidence.yml",
+      "expectedSha256": "703bafe452d44ee4678900b53f3e81c62011f904ab34e646e121aabad3bf22ff",
+      "actualSha256": "703bafe452d44ee4678900b53f3e81c62011f904ab34e646e121aabad3bf22ff",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/quantum-recombination-ablation.json",
+      "expectedSha256": "6920d51512b943fc9a5e1aa1292dcce92ef1a30f83be89392f929e2e8b336181",
+      "actualSha256": "6920d51512b943fc9a5e1aa1292dcce92ef1a30f83be89392f929e2e8b336181",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/toy-attention-fold-ablation.json",
+      "expectedSha256": "589310d63767500cc0cde8d707da02889173f9943b220c886d8ae40ab92ae8d3",
+      "actualSha256": "589310d63767500cc0cde8d707da02889173f9943b220c886d8ae40ab92ae8d3",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/gnosis-fold-training-benchmark.json",
+      "expectedSha256": "b63ba10a3805b1f2cad3d632983a3b12124a48bc2ce9765abb7d259bc353fb29",
+      "actualSha256": "b63ba10a3805b1f2cad3d632983a3b12124a48bc2ce9765abb7d259bc353fb29",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/gnosis-negative-controls.json",
+      "expectedSha256": "1462b8d8588b534b4eac6fa655684a8aee903402f377f0f8aa6b1eaeef423071",
+      "actualSha256": "1462b8d8588b534b4eac6fa655684a8aee903402f377f0f8aa6b1eaeef423071",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/gnosis-fold-boundary-regime-sweep.json",
+      "expectedSha256": "9a65c3d14dcfa47381b2e8a395c2e7a3a89342d0ea88d3ba481884eb164b40ae",
+      "actualSha256": "9a65c3d14dcfa47381b2e8a395c2e7a3a89342d0ea88d3ba481884eb164b40ae",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/gnosis-adversarial-controls-benchmark.json",
+      "expectedSha256": "1331f43bc78e2e20b2d2cc34b83342f81e1a780b69e4a2f6ab0f5946db68a227",
+      "actualSha256": "1331f43bc78e2e20b2d2cc34b83342f81e1a780b69e4a2f6ab0f5946db68a227",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/gnosis-moe-routing-benchmark.json",
+      "expectedSha256": "81887e82d84566e6792443a8dcda8c6d18e5c21ed396c15439750108502ba42e",
+      "actualSha256": "81887e82d84566e6792443a8dcda8c6d18e5c21ed396c15439750108502ba42e",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/formal-witness-catalog.json",
+      "expectedSha256": "bed334cb6a13a0d27a9831f93b45a3d97299eee9d744bf4c9f0c5808fe093c2f",
+      "actualSha256": "bed334cb6a13a0d27a9831f93b45a3d97299eee9d744bf4c9f0c5808fe093c2f",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/ch17-correspondence-boundary-figure.svg",
+      "expectedSha256": "360d4b9a0db0d9a6da13874703e0007f1412a984d90b248b679b42bfe1d4a679",
+      "actualSha256": "360d4b9a0db0d9a6da13874703e0007f1412a984d90b248b679b42bfe1d4a679",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/ch17-boundary-expansion-figure.svg",
+      "expectedSha256": "7c3479085e73718621b2c12ae6d1b88f8367539631013bcb04dbb784a64940e7",
+      "actualSha256": "7c3479085e73718621b2c12ae6d1b88f8367539631013bcb04dbb784a64940e7",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/ch17-replication-pack.ts",
+      "expectedSha256": "6f4a7adaa41f29430d08851aab7410fc63abe51502cc6b153734a45513030e58",
+      "actualSha256": "6f4a7adaa41f29430d08851aab7410fc63abe51502cc6b153734a45513030e58",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/gnosis-negative-controls-benchmark.ts",
+      "expectedSha256": "db7d2326aece58a6ddb0444d6551d02e64eb1e88a57a705cefdc48a34ea62fe8",
+      "actualSha256": "db7d2326aece58a6ddb0444d6551d02e64eb1e88a57a705cefdc48a34ea62fe8",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/gnosis-regime-sweep-benchmark.ts",
+      "expectedSha256": "bcc288289201aba15c407610c72da75337557752134a0167d620b0f4858e40e6",
+      "actualSha256": "bcc288289201aba15c407610c72da75337557752134a0167d620b0f4858e40e6",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/gnosis-adversarial-controls-benchmark.ts",
+      "expectedSha256": "019884b3ccf6a92e0daddec7fd2c5561bdf9feeee32cd42a3601b2f369902fac",
+      "actualSha256": "019884b3ccf6a92e0daddec7fd2c5561bdf9feeee32cd42a3601b2f369902fac",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/formal-witness-catalog.ts",
+      "expectedSha256": "d323f121a5d082d8afc2c2193bea1ab5ff7283d52b8dc82b0fc821f075522b02",
+      "actualSha256": "d323f121a5d082d8afc2c2193bea1ab5ff7283d52b8dc82b0fc821f075522b02",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/ch17-boundary-expansion-figure.ts",
+      "expectedSha256": "0906d94aed9ce0d4073cbf905b1513e8c70abf1279d67a77a0f3d9ac2316079c",
+      "actualSha256": "0906d94aed9ce0d4073cbf905b1513e8c70abf1279d67a77a0f3d9ac2316079c",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/ch17-external-replication.ts",
+      "expectedSha256": "7bb8fb22fce5b3754a0021a356baec0416a81a240d1bc936d45e59dc81ebf690",
+      "actualSha256": "7bb8fb22fce5b3754a0021a356baec0416a81a240d1bc936d45e59dc81ebf690",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/lean/Lean/ForkRaceFoldTheorems/Claims.lean",
+      "expectedSha256": "6c426f5736691e81f4d199321d7d86b04240f45b9391cfe447c06763b441f3b1",
+      "actualSha256": "6c426f5736691e81f4d199321d7d86b04240f45b9391cfe447c06763b441f3b1",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/lean/Lean/ForkRaceFoldTheorems/Witnesses.lean",
+      "expectedSha256": "3a10680a28eaab8ae9cba391848341bb1c167c41d9267a25ba65e26e9637f7d1",
+      "actualSha256": "3a10680a28eaab8ae9cba391848341bb1c167c41d9267a25ba65e26e9637f7d1",
+      "matches": true
+    },
+    {
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/THEOREM_LEDGER.md",
+      "expectedSha256": "8350ab53c766fc7eaee75ca712734826cfd0c366f6ee0377ce51f44383288009",
+      "actualSha256": "8350ab53c766fc7eaee75ca712734826cfd0c366f6ee0377ce51f44383288009",
+      "matches": true
+    },
+    {
+      "path": "open-source/gnosis/examples/benchmarks/fold-training.test.gg",
+      "expectedSha256": "cd0734e4dc96534ed442a0a38456af68005aeb72c40f853438eda8d21d93e43b",
+      "actualSha256": "cd0734e4dc96534ed442a0a38456af68005aeb72c40f853438eda8d21d93e43b",
+      "matches": true
+    },
+    {
+      "path": "open-source/gnosis/examples/benchmarks/moe-routing.test.gg",
+      "expectedSha256": "282621a787b783cfde5dceaba5cad909de0824ac9f5989b51a50a13e88671a2d",
+      "actualSha256": "282621a787b783cfde5dceaba5cad909de0824ac9f5989b51a50a13e88671a2d",
+      "matches": true
+    }
+  ],
+  "allHashesMatch": true,
+  "ok": true
+}

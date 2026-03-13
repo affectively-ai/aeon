@@ -27,6 +27,7 @@ export interface FrontierFillResult {
   readonly peakFrontier: number;
   readonly envelopeArea: number;
   readonly frontierFill: number;
+  readonly wallaceNumber: number;
   readonly wally: number;
   readonly frontierDeficit: number;
 }
@@ -182,7 +183,7 @@ export function frontierFill(
   );
   const envelopeArea = layerCount * peakFrontier;
   const fill = envelopeArea === 0 ? 1 : frontierArea / envelopeArea;
-  const wally = 1 - fill;
+  const wallaceNumber = 1 - fill;
 
   return {
     frontierByLayer: [...normalizedFrontier],
@@ -191,8 +192,9 @@ export function frontierFill(
     peakFrontier,
     envelopeArea,
     frontierFill: fill,
-    wally,
-    frontierDeficit: wally,
+    wallaceNumber,
+    wally: wallaceNumber,
+    frontierDeficit: wallaceNumber,
   };
 }
 

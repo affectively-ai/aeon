@@ -24,6 +24,7 @@ export interface FrontierFillResult {
     readonly peakFrontier: number;
     readonly envelopeArea: number;
     readonly frontierFill: number;
+    readonly wallaceNumber: number;
     readonly wally: number;
     readonly frontierDeficit: number;
 }

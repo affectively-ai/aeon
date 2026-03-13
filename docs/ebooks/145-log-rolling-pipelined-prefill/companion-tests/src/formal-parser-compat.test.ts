@@ -88,8 +88,12 @@ describe('Formal parser compatibility (aeon-logic)', () => {
     expect(result.report.project.toolchain).not.toBeNull();
     expect(result.report.project.moduleCount).toBeGreaterThan(0);
     expect(result.report.project.moduleNames).toContain('ForkRaceFoldTheorems');
+    expect(result.report.project.moduleNames).toContain('ForkRaceFoldTheorems.FailureComposition');
     expect(result.report.project.moduleNames).toContain('ForkRaceFoldTheorems.FailureEntropy');
     expect(result.report.project.moduleNames).toContain('ForkRaceFoldTheorems.FailureFamilies');
+    expect(result.report.project.moduleNames).toContain('ForkRaceFoldTheorems.FailureTrilemma');
+    expect(result.report.project.moduleNames).toContain('ForkRaceFoldTheorems.FailureUniversality');
+    expect(result.report.project.moduleNames).toContain('ForkRaceFoldTheorems.JacksonQueueing');
     expect(result.report.project.moduleNames).toContain('ForkRaceFoldTheorems.MeasureQueueing');
     expect(result.report.project.moduleNames).toContain('ForkRaceFoldTheorems.QueueStability');
     expect(result.report.build.attempted).toBe(false);

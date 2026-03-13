@@ -17,9 +17,18 @@ Vitest suites that provide executable claim coverage for the manuscript.
 - `quantum-topology.test.ts`: quantum deficit identity, band-gap, convergence simulation.
 - `quantum-correspondence-boundary.test.ts`: finite path-sum linear-fold equivalence checks, partition/permutation invariants, and nonlinear winner/early-stop counterexamples that bound the quantum correspondence claim.
 - `quantum-recombination-ablation.test.ts`: same-path-family ablation harness showing which invariants survive when linear recombination is replaced by winner-take-all or early-stop selection.
-- `toy-attention-fold-ablation.test.ts`: fixed-parameter toy attention ablation showing the behavioral cost of swapping only the fold rule while holding keys, values, scores, and query grid constant.
-- `gnosis-fold-training-benchmark.ts` / `.test.ts`: wrapper plus tests for the seeded parameter-matched Gnosis training benchmark built from three `.gg` modules that differ only in `FOLD` strategy.
-- `ch17-correspondence-boundary-figure.ts` / `.test.ts`: figure manifest/SVG renderer and tests for the artifact-generated Chapter 17 correspondence-boundary chart.
+- `statistics.ts`: local bootstrap-interval helpers used by the artifact-backed ablation reports.
+- `toy-attention-fold-ablation.test.ts`: fixed-parameter toy attention ablation showing the behavioral cost of swapping only the fold rule while holding keys, values, scores, and query grid constant, now with bootstrap intervals over the query grid.
+- `gnosis-fold-training-benchmark.ts` / `.test.ts`: wrapper plus tests for the seeded parameter-matched Gnosis cancellation benchmark built from three `.gg` modules that differ only in `FOLD` strategy.
+- `gnosis-negative-controls-benchmark.ts` / `.test.ts`: wrapper plus tests for the one-path negative-control benchmark that reuses the existing affine and routed Gnosis topologies on tasks where nonlinear selection should not be penalized.
+- `gnosis-regime-sweep-benchmark.ts` / `.test.ts`: wrapper plus tests for the continuous learned boundary sweep that identifies where affine cancellation and routed dual-activation begin to require additive recombination.
+- `gnosis-adversarial-controls-benchmark.ts` / `.test.ts`: wrapper plus tests for the symmetric learned control suite where winner-selection or early-stop folds are the correct inductive bias.
+- `gnosis-moe-routing-benchmark.ts` / `.test.ts`: wrapper plus tests for the harder seeded Gnosis mini-MoE routing benchmark built from three routed-expert `.gg` modules that differ only in `FOLD` strategy.
+- `formal-witness-catalog.ts` / `.test.ts`: Lean-originated witness loader plus tests that check the runtime boundary suite against the exported constructive counterexamples.
+- `ch17-replication-pack.ts` / `.test.ts`: replication-bundle manifest builder and tests that hash the current Chapter 17 evidence surface for outside reruns.
+- `ch17-correspondence-boundary-figure.ts` / `.test.ts`: figure manifest/SVG renderer and tests for the four-panel artifact-generated Chapter 17 correspondence-boundary chart.
+- `ch17-boundary-expansion-figure.ts` / `.test.ts`: figure manifest/SVG renderer and tests for the regime-sweep/adversarial/witness expansion chart.
+- `ch17-external-replication.ts` / `.test.ts`: outside-rerun executor and tests that verify the command plan plus manifest/hash stability checks.
 - `deficit-evidence.test.ts`: protocol/settlement/healthcare deficit evidence checks.
 - `map-reduce-readiness.test.ts`: §6.14 readiness diagnostic equations and screening-boundary counterexamples.
 - `map-reduce-readiness.ts`: shared §6.14 readiness/simulator math used by tests and Gate 4 artifacts.

@@ -6,6 +6,10 @@ import { runLeanSandbox } from '@affectively/aeon-logic';
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(scriptDir, '..');
 const leanDir = join(rootDir, 'formal', 'lean');
+const buildTargets = (process.env.AEON_LEAN_BUILD_TARGETS ?? 'ForkRaceFoldTheorems')
+  .split(',')
+  .map((target) => target.trim())
+  .filter((target) => target.length > 0);
 
 function fail(message: string, details?: readonly string[]): never {
   process.stderr.write(`${message}\n`);
@@ -21,7 +25,7 @@ function main(): void {
   const result = runLeanSandbox({
     path: leanDir,
     build: true,
-    buildTargets: ['ForkRaceFoldTheorems'],
+    buildTargets,
   });
 
   for (const logLine of result.logs) {

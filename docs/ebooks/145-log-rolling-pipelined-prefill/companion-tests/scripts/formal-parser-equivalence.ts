@@ -1,4 +1,12 @@
-import { mkdtempSync, readdirSync, readFileSync, existsSync, writeFileSync, rmSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  existsSync,
+  writeFileSync,
+  rmSync,
+} from 'node:fs';
 import { dirname, extname, join, resolve, basename } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -80,6 +88,11 @@ function loadFormalPairs(): readonly FormalPair[] {
     });
   }
   return pairs;
+}
+
+function equivalenceFilter(): string | null {
+  const value = process.env.FORMAL_EQUIVALENCE_FILTER?.trim();
+  return value && value.length > 0 ? value : null;
 }
 
 function tryAeonParseTla(source: string): ParseOutcome {
@@ -210,7 +223,10 @@ function printRatio(label: string, numerator: number, denominator: number): void
 }
 
 function main(): void {
-  const formalPairs = loadFormalPairs();
+  const filter = equivalenceFilter();
+  const formalPairs = loadFormalPairs().filter(
+    (pair) => filter === null || pair.baseName.includes(filter),
+  );
   if (formalPairs.length === 0) {
     throw new Error('No formal .tla/.cfg pairs found for equivalence benchmark');
   }
@@ -274,7 +290,8 @@ function main(): void {
       continue;
     }
 
-    const moduleTmpDir = mkdtempSync(join(tmpRoot, `${pair.baseName}-`));
+    const moduleTmpDir = join(tmpRoot, pair.baseName);
+    mkdirSync(moduleTmpDir, { recursive: true });
     const renderedTlaPath = join(moduleTmpDir, `${pair.baseName}.tla`);
     writeFileSync(renderedTlaPath, tlaRoundTrip.length > 0 ? tlaRoundTrip : pair.tlaSource, 'utf8');
 

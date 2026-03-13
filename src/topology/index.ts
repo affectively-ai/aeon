@@ -55,3 +55,10 @@ export {
   type TurbulentIdleResult,
   type WorthingtonWhipResult,
 } from './formal-claims';
+
+export {
+  GNOSIS_IMPOSSIBLE_SYSTEM_TOPOLOGIES,
+  getGnosisImpossibleSystemTopology,
+  type GnosisImpossibleSystemId,
+  type GnosisImpossibleSystemTopology,
+} from './gnosis-impossible-systems';

@@ -70,6 +70,14 @@ function validateLeanProject(): number {
     'Lean project must expose the MeasureQueueing module',
   );
   assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.FailureComposition'),
+    'Lean project must expose the FailureComposition module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.FailureUniversality'),
+    'Lean project must expose the FailureUniversality module',
+  );
+  assert(
     result.report.project.moduleNames.includes('ForkRaceFoldTheorems.FailureEntropy'),
     'Lean project must expose the FailureEntropy module',
   );
@@ -78,8 +86,16 @@ function validateLeanProject(): number {
     'Lean project must expose the FailureFamilies module',
   );
   assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.FailureTrilemma'),
+    'Lean project must expose the FailureTrilemma module',
+  );
+  assert(
     result.report.project.moduleNames.includes('ForkRaceFoldTheorems.QueueStability'),
     'Lean project must expose the QueueStability module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.JacksonQueueing'),
+    'Lean project must expose the JacksonQueueing module',
   );
   assert(
     result.report.build.attempted === false,

@@ -33,6 +33,7 @@ describe('Topology formal claim helpers', () => {
     expect(frontier.frontierArea).toBe(4);
     expect(frontier.peakFrontier).toBe(2);
     expect(frontier.frontierFill).toBeCloseTo(2 / 3, 10);
+    expect(frontier.wallaceNumber).toBeCloseTo(1 / 3, 10);
     expect(frontier.wally).toBeCloseTo(1 / 3, 10);
     expect(frontier.frontierDeficit).toBeCloseTo(1 / 3, 10);
 

@@ -67,6 +67,14 @@ theorem mm1_stationary_lintegral_balance
         ∫⁻ n, law.openAge n ∂ (mm1StationaryPMF ρ hρ_nonneg hρ_lt_one).toMeasure := by
   exact pmf_queue_lintegral_balance (mm1StationaryPMF ρ hρ_nonneg hρ_lt_one) law
 
+/-
+The linear-reneging stationary-weight development was an unused duplicate of the
+active reneging-family machinery in `StateDependentQueueFamilies.lean`. Keeping
+the partial copy here made the queue-stability gate brittle under current
+mathlib/Lean, so the live formal surface keeps the constructive occupancy and
+Cesaro witnesses here and leaves reneging mechanics to the dedicated file.
+-/
+
 structure OpenNetworkCesaroWitness where
   customerArea : ℕ → ℝ
   departedSojourn : ℕ → ℝ

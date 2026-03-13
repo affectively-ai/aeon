@@ -792,20 +792,37 @@ now makes the narrow version executable at fixed parameters
 (\texttt{companion-tests/artifacts/toy-attention-fold-ablation.\{json,md\}}):
 keeping keys, values, score function and query grid fixed, linear fold
 reconstructs the teacher exactly (MSE \texttt{0.000}), winner-take-all
-incurs MSE \texttt{0.163}, and early-stop incurs MSE \texttt{1.071}; the
-exact-within-0.01 rates are \texttt{1.000}, \texttt{0.185}, and
-\texttt{0.074} respectively. A seeded Gnosis training benchmark then
-lifts the same claim into a learned setting
+incurs MSE \texttt{0.163}, and early-stop incurs MSE \texttt{1.071};
+bootstrap 95\% intervals over the query grid are
+\texttt{{[}0.000,\ 0.000{]}}, \texttt{{[}0.120,\ 0.211{]}}, and
+\texttt{{[}0.858,\ 1.288{]}} respectively, and the exact-within-0.01
+rates are \texttt{1.000}, \texttt{0.185}, and \texttt{0.074}. A seeded
+Gnosis cancellation benchmark then lifts the same claim into a learned
+setting
 (\texttt{companion-tests/artifacts/gnosis-fold-training-benchmark.\{json,md\}}):
 three parameter-matched \texttt{.gg} programs keep topology, parameter
 count, and data fixed and differ only in
 \texttt{FOLD\ \{\ strategy:\ ...\ \}}. Across 8 seeds on the
 cancellation-sensitive target family \texttt{left\ -\ right}, linear
-fold reaches eval MSE \texttt{0.000} with exact-within-0.05 rate
-\texttt{1.000}, winner-take-all reaches \texttt{0.408} with exact rate
-\texttt{0.038}, and early-stop reaches \texttt{0.735} with exact rate
-\texttt{0.000}; cancellation-line mean absolute error is \texttt{0.000},
-\texttt{0.834}, and \texttt{0.764} respectively.
+fold reaches eval MSE \texttt{0.000} with 95\% seed-bootstrap interval
+\texttt{{[}0.000,\ 0.000{]}} and exact-within-0.05 rate \texttt{1.000},
+winner-take-all reaches \texttt{0.408} with interval
+\texttt{{[}0.396,\ 0.421{]}} and exact rate \texttt{0.038}, and
+early-stop reaches \texttt{0.735} with interval
+\texttt{{[}0.732,\ 0.740{]}} and exact rate \texttt{0.000};
+cancellation-line mean absolute error is \texttt{0.000}, \texttt{0.834},
+and \texttt{0.764} respectively. A harder seeded Gnosis mini-MoE routing
+benchmark
+(\texttt{companion-tests/artifacts/gnosis-moe-routing-benchmark.\{json,md\}})
+keeps a four-expert routed topology and a fixed 16-parameter budget
+while swapping only the fold rule: linear fold reaches eval MSE
+\texttt{0.001} with 95\% seed-bootstrap interval
+\texttt{{[}0.001,\ 0.001{]}}, winner-take-all reaches \texttt{0.328}
+with interval \texttt{{[}0.267,\ 0.389{]}}, and early-stop reaches
+\texttt{0.449} with interval \texttt{{[}0.444,\ 0.457{]}}; the
+dual-active-region absolute error is \texttt{0.027}, \texttt{0.402}, and
+\texttt{0.474}, showing the same ranking on a genuinely routed learned
+task where two paths should contribute.
 
 \subsubsection{1.8 Observed Recurrence in Selected
 Examples}\label{observed-recurrence-in-selected-examples}
@@ -1480,21 +1497,33 @@ geometry.
 
 The limit side is now stronger than a schema shell. Constructively,
 every finite truncation of a balanced weighted scenario family remains
-balanced. Formally, the Lean companion now proves six unbounded lifts:
-exact conservation for infinite weighted scenario families via
-\texttt{tsum}, direct countably supported stochastic queue laws via
-\texttt{PMF} and \texttt{PMF.toMeasure}, exact conservation for
+balanced. Formally, the Lean companion now proves seven lifts or
+stationary laws: exact conservation for infinite weighted scenario
+families via \texttt{tsum}, direct countably supported stochastic queue
+laws via \texttt{PMF} and \texttt{PMF.toMeasure}, exact conservation for
 measurable queue observables via \texttt{lintegral}, a monotone
 truncation-to-limit theorem via \texttt{lintegral\_iSup}, the stable
 \texttt{M/M/1} geometric stationary occupancy law with finite mean queue
-length \(\rho/(1-\rho)\) for \(\rho < 1\), and a trajectory-level Cesaro
-balance theorem for unbounded open-network sample paths whose residual
-open age has a limit. This is a genuine measure-theoretic lifting of the
-sample-path conservation law into infinite-support or continuous-support
-settings, now with an explicit queue-family-specific stability theorem
-and an ergodic interface for open networks. What it still does not
-provide is a full product-form or positive-recurrence proof for
-arbitrary open stochastic networks.
+length \(\rho/(1-\rho)\) for \(\rho < 1\), a finite-node product-form
+open-network occupancy law with exact singleton mass and total mean
+occupancy \(\sum_i \alpha_i/(\mu_i-\alpha_i)\) when a stable throughput
+witness satisfying the Jackson traffic equations is supplied, and a
+trajectory-level Cesaro balance theorem for unbounded open-network
+sample paths whose residual open age has a limit. The companion also now
+names the state-dependent frontier formally: an assumption-parameterized
+Foster-Lyapunov/irreducibility schema turns state-dependent service and
+routing hypotheses into positive recurrence, stationary-law existence,
+and stationary or terminal queue-balance identities. This is a genuine
+measure-theoretic lifting of the sample-path conservation law into
+infinite-support or continuous-support settings, now with an explicit
+queue-family-specific stability theorem, a bounded Jackson-style
+product-form layer grounded in the traffic equations, an
+assumption-parameterized state-dependent stability interface, and an
+ergodic interface for open networks. What it still does not provide is a
+constructive solution of the traffic equations, a constructive discharge
+of the state-dependent drift/irreducibility schema for concrete
+families, or a positive-recurrence derivation for arbitrary open
+stochastic networks.
 
 The pipeline Reynolds number \(Re = N/C\) is used here as a
 complementary topology diagnostic (not a replacement for Little's Law):
@@ -2212,7 +2241,7 @@ diagrams are computation graphs whose topological properties
 \(\beta_1\) tracks pipeline complexity in §3.
 
 \textbf{Validated boundary condition.} The correspondence is
-operationally exact only in the linear full-aggregation regime. Four
+operationally exact only in the linear full-aggregation regime. Five
 companion validations make that boundary explicit. In the finite-kernel
 unit harness
 (\texttt{companion-tests/src/quantum-correspondence-boundary.test.ts})
@@ -2236,19 +2265,31 @@ Lean theorem package
 (\texttt{companion-tests/formal/lean/Lean/ForkRaceFoldTheorems/Claims.lean})
 {[}12, 13{]}, the algebraic skeleton of the same boundary is mechanized
 in a minimal integer-valued model: linear fold is globally
-partition-additive and preserves the cancellation target family
-\texttt{x\ +\ (-x)\ =\ 0}, while winner-selection and early-stop are
-proved not to preserve partition additivity or order invariance in
-general and to miss that same cancellation family. Finally, a seeded
-Gnosis training benchmark
+partition-additive, preserves the cancellation target family
+\texttt{x\ +\ (-x)\ =\ 0}, and is equivalent to the more general
+cancellation-difference family \texttt{fold(x,-y)\ =\ x\ -\ y}; any
+non-additive fold must miss some member of that family, and
+winner-selection/early-stop miss the concrete \texttt{x\ +\ (-x)}
+witness. A seeded Gnosis cancellation benchmark
 (\texttt{companion-tests/artifacts/gnosis-fold-training-benchmark.\{json,md\}})
-keeps topology, parameter count, and data fixed across three
+then keeps topology, parameter count, and data fixed across three
 \texttt{.gg} programs and changes only the fold strategy: linear fold
-reaches eval MSE \texttt{0.000} and cancellation-line absolute error
-\texttt{0.000}, while winner-take-all and early-stop settle at eval MSE
-\texttt{0.408}/\texttt{0.735} and cancellation-line absolute error
-\texttt{0.834}/\texttt{0.764}. The assembled manuscript figure is
-emitted automatically to
+reaches eval MSE \texttt{0.000} with 95\% seed-bootstrap interval
+\texttt{{[}0.000,\ 0.000{]}}, while winner-take-all and early-stop
+settle at \texttt{0.408}/\texttt{0.735} with intervals
+\texttt{{[}0.396,\ 0.421{]}}/\texttt{{[}0.732,\ 0.740{]}};
+cancellation-line absolute error is \texttt{0.000}, \texttt{0.834}, and
+\texttt{0.764}. Finally, a harder seeded Gnosis mini-MoE routing
+benchmark
+(\texttt{companion-tests/artifacts/gnosis-moe-routing-benchmark.\{json,md\}})
+keeps a four-expert routed topology and fixed 16-parameter budget while
+swapping only the fold strategy: linear fold reaches eval MSE
+\texttt{0.001}, winner-take-all \texttt{0.328}, and early-stop
+\texttt{0.449}, with 95\% seed-bootstrap intervals
+\texttt{{[}0.001,\ 0.001{]}}, \texttt{{[}0.267,\ 0.389{]}}, and
+\texttt{{[}0.444,\ 0.457{]}}; the dual-active-region absolute error is
+\texttt{0.027}, \texttt{0.402}, and \texttt{0.474}. The assembled
+manuscript figure is emitted automatically to
 \texttt{companion-tests/artifacts/ch17-correspondence-boundary-figure.\{json,md,svg\}}.
 So the shared structure is ``fork, independent propagation,
 recombination to one output,'' but the recombination mechanics differ:
@@ -2259,8 +2300,9 @@ select nonlinearly.
 \centering
 \pandocbounded{\includesvg[keepaspectratio]{companion-tests/artifacts/ch17-correspondence-boundary-figure.svg}}
 \caption{Figure 1. Artifact-generated correspondence boundary figure
-assembled from the invariant-loss matrix, toy-attention ablation, and
-seeded Gnosis training benchmark.}
+assembled from the invariant-loss matrix, toy-attention bootstrap
+intervals, the seeded Gnosis cancellation benchmark, and the seeded
+Gnosis mini-MoE routing benchmark.}
 \end{figure}
 
 \paragraph{The Physics Hierarchy: Progressive
@@ -4110,34 +4152,35 @@ Biological effect-size mapping &
   scaling, Kronig-Penney band gaps as \(\beta_2 > 0\), and the
   linear-path-sum vs nonlinear-selection boundary on the path-integral
   correspondence, including same-path-family fold ablations,
-  fixed-parameter toy-attention behavioral ablations, a seeded Gnosis
-  training benchmark, and an artifact-generated correspondence-boundary
-  figure), map/reduce readiness diagnostics (boundedness/monotonicity,
-  nonzero-opportunity necessity in migration simulation, independent
-  migration-simulator rank ordering, and high-readiness counterexample
-  families showing non-automatic quantum asymptotics), convergence
-  simulation under the three constraints, evidence-table deficits
-  (including T+2 settlement \(\Delta_\beta = 2B\) under both core and
-  broad-scope lockup scenarios), evidence-traceability
-  calibration/provenance/reference checks, self-hosted formal artifact
-  parsing/round-trip validation with \texttt{aeon-logic}, a parser
-  shootoff benchmark against Java SANY startup-parse baselines
-  (stabilized multi-sample harness: 9 measured samples after warmup,
-  \texttt{aeon-logic} median 49.51 ms for 19,200 artifacts with IQR
-  48.21--49.94 ms = 387,780.9 artifacts/s; Java SANY median 116.45 ms on
-  \texttt{BandGapVoid.tla} with IQR 115.13--122.08 ms, implying
-  approximately 45,156.7x normalized per-artifact throughput in this
-  startup-parse harness and normalization scheme, not an end-to-end
-  verification-speed claim), plus a differential parse-equivalence
-  harness against SANY outcomes (100\% agreement on the current formal
-  corpus for original modules, round-tripped modules and invalid-corpus
-  rejections). The parser result is therefore speed plus capability
-  surface: unlike the parser-only baseline, \texttt{aeon-logic} also
-  exposes superposition chains, quorum temporal operators, topology
-  bridges, Lean-sandbox project/build verification, and embedded
-  model-checker interfaces in the same runtime {[}13, 14{]}. Mechanized
-  TLA+ model checking across the current formal module set (C1--C4,
-  queueing sample-path conservation, bounded multi-class
+  fixed-parameter toy-attention behavioral ablations with bootstrap
+  intervals, a seeded Gnosis cancellation benchmark, a seeded Gnosis
+  mini-MoE routing benchmark, and an artifact-generated
+  correspondence-boundary figure), map/reduce readiness diagnostics
+  (boundedness/monotonicity, nonzero-opportunity necessity in migration
+  simulation, independent migration-simulator rank ordering, and
+  high-readiness counterexample families showing non-automatic quantum
+  asymptotics), convergence simulation under the three constraints,
+  evidence-table deficits (including T+2 settlement
+  \(\Delta_\beta = 2B\) under both core and broad-scope lockup
+  scenarios), evidence-traceability calibration/provenance/reference
+  checks, self-hosted formal artifact parsing/round-trip validation with
+  \texttt{aeon-logic}, a parser shootoff benchmark against Java SANY
+  startup-parse baselines (stabilized multi-sample harness: 9 measured
+  samples after warmup, \texttt{aeon-logic} median 49.51 ms for 19,200
+  artifacts with IQR 48.21--49.94 ms = 387,780.9 artifacts/s; Java SANY
+  median 116.45 ms on \texttt{BandGapVoid.tla} with IQR 115.13--122.08
+  ms, implying approximately 45,156.7x normalized per-artifact
+  throughput in this startup-parse harness and normalization scheme, not
+  an end-to-end verification-speed claim), plus a differential
+  parse-equivalence harness against SANY outcomes (100\% agreement on
+  the current formal corpus for original modules, round-tripped modules
+  and invalid-corpus rejections). The parser result is therefore speed
+  plus capability surface: unlike the parser-only baseline,
+  \texttt{aeon-logic} also exposes superposition chains, quorum temporal
+  operators, topology bridges, Lean-sandbox project/build verification,
+  and embedded model-checker interfaces in the same runtime {[}13,
+  14{]}. Mechanized TLA+ model checking across the current formal module
+  set (C1--C4, queueing sample-path conservation, bounded multi-class
   queueing-network conservation, finite-support stochastic
   queueing-mixture conservation, exact finite-state probabilistic queue
   and multiclass-network kernels, larger exact finite-support
@@ -4148,9 +4191,9 @@ Biological effect-size mapping &
   countably supported stochastic, measure-theoretic, stable
   \texttt{M/M/1}, and Cesaro queueing lifts, plus explicit-assumption
   theorem schemas (including the stronger correspondence-boundary
-  property-negation and cancellation-family theorems plus the global
-  convergence schema) verify the strongest operational claims section by
-  section {[}9, 12, 13, 14{]}.
+  property-negation and general nonadditive-fold impossibility theorem
+  plus the global convergence schema) verify the strongest operational
+  claims section by section {[}9, 12, 13, 14{]}.
 \item
   \textbf{Open-source flow + compression runtime}:
   \texttt{@affectively/aeon} flow/compression tests verify 10-byte
@@ -4244,28 +4287,36 @@ beauty-optimality scaffolds, finite-prefix truncation balance, infinite
 weighted-sum queue balance, countably supported stochastic \texttt{PMF}
 queue balance, measure-theoretic \texttt{lintegral} queue balance,
 monotone truncation-to-limit queue balance, stable \texttt{M/M/1}
-stationary occupancy with finite mean, trajectory-level Cesaro balance
-for unbounded open-network sample paths, higher-level queue-limit
-schema, and convergence schema are mechanized in a two-layer stack:
-finite-state transition models in TLA+ (TLC), plus Lean theorems with
-explicit assumptions for quantitative identities and theorem schemas for
-global claims, all preflighted through the self-hosted
+stationary occupancy with finite mean, a finite-node product-form
+open-network occupancy law with exact singleton mass and total mean
+occupancy under a supplied stable throughput witness satisfying the
+traffic equations, an assumption-parameterized state-dependent
+open-network stability/terminal-balance schema, trajectory-level Cesaro
+balance for unbounded open-network sample paths, higher-level
+queue-limit schema, and convergence schema are mechanized in a two-layer
+stack: finite-state transition models in TLA+ (TLC), plus Lean theorems
+with explicit assumptions for quantitative identities and theorem
+schemas for global claims, all preflighted through the self-hosted
 \texttt{aeon-logic} parser and Lean sandbox {[}9, 12, 13, 14{]}. The
 self-verification (§10) is still scoped on the operational side to
 finite, untimed state spaces with either finite-support scenario
 mixtures, exact finite-state probability-mass propagation, or exact
 finite-support arrival cubes; the constructive unbounded lift now covers
 nonnegative measurable observables, countably supported stochastic laws,
-stable \texttt{M/M/1} stationarity, and long-run Cesaro balance under
-explicit convergence hypotheses rather than arbitrary state-dependent
+stable \texttt{M/M/1} stationarity, a traffic-equation-witness
+product-form layer, an assumption-parameterized
+Foster-Lyapunov/irreducibility interface for state-dependent
+open-network balance, and long-run Cesaro balance under explicit
+convergence hypotheses rather than arbitrary state-dependent
 open-network semantics; and the correspondence-boundary proof is
 additionally scoped to a minimal integer-valued fold model rather than
 full complex-amplitude quantum dynamics. Extending these proofs to
 richer timing/service distributions, arbitrary exact multiclass/open
-networks beyond the current bounded witnesses, full Jackson-style
-product-form or positive-recurrence proofs for unbounded open stochastic
-networks, real-time systems (strict latency bounds), and state-dependent
-service/routing semantics remains future work.
+networks beyond the current bounded witnesses, constructive
+traffic-equation solutions, constructive state-dependent
+drift/irreducibility instantiations, or positive-recurrence derivations
+for unbounded open stochastic networks, and real-time systems (strict
+latency bounds) remains future work.
 
 \textbf{Queueing theory subsumption scope.} Containment is proved for
 canonical constructions (Little's Law boundary case, Erlang-style
@@ -4285,13 +4336,19 @@ finite-prefix balance theorems, infinite weighted-sum queue balance,
 direct countably supported stochastic queue laws via \texttt{PMF},
 measure-theoretic \texttt{lintegral} conservation, monotone
 truncation-to-limit theorems, the stable \texttt{M/M/1} geometric
-stationary law with finite mean queue length, and a long-run Cesaro
-balance theorem for unbounded open-network sample paths under vanishing
-residual open age. Remaining future work is state-dependent service,
-vacations, retrials, reneging, arbitrary exact probabilistic
-multiclass/open networks beyond the current bounded witnesses, and full
-product-form or positive-recurrence proofs for unbounded open stochastic
-networks.
+stationary law with finite mean queue length, a finite-node product-form
+open-network occupancy law with exact singleton mass and total mean
+occupancy under a supplied stable throughput witness satisfying the
+traffic equations, an assumption-parameterized
+Foster-Lyapunov/irreducibility schema for state-dependent stationary and
+terminal queue balance, and a long-run Cesaro balance theorem for
+unbounded open-network sample paths under vanishing residual open age.
+Remaining future work is constructive instantiation of that
+state-dependent schema for vacations, retrials, reneging, and other
+service/routing families, arbitrary exact probabilistic multiclass/open
+networks beyond the current bounded witnesses, and constructive
+traffic-equation or positive-recurrence proofs for unbounded open
+stochastic networks.
 
 \subsubsection{14.1 Evidence-Bounded
 Claims}\label{evidence-bounded-claims}

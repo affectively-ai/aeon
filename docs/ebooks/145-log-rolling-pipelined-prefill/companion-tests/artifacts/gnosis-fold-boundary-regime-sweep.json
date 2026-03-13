@@ -1,0 +1,2021 @@
+{
+  "label": "gnosis-fold-boundary-regime-sweep-v1",
+  "config": {
+    "affineSeedCount": 6,
+    "affineEpochs": 420,
+    "affineLearningRate": 0.035,
+    "affineExactPredictionTolerance": 0.05,
+    "affineTrainSampleCount": 49,
+    "affineEvalSampleCount": 36,
+    "routedSeedCount": 8,
+    "routedEpochs": 720,
+    "routedLearningRate": 0.025,
+    "routedExactPredictionTolerance": 0.08,
+    "routedTrainSampleCount": 49,
+    "routedEvalSampleCount": 36,
+    "regimeValues": [
+      0,
+      0.25,
+      0.5,
+      0.75,
+      1
+    ]
+  },
+  "affine": {
+    "title": "Affine cancellation regime sweep",
+    "description": "Reuses the two-branch affine topology while increasing the right-branch cancellation weight from one-path parity to full left-minus-right cancellation.",
+    "topologyFamily": "fold-training",
+    "targetFamily": "weighted-cancellation",
+    "sweepDimension": "cancellation weight on the right branch",
+    "topology": {
+      "nodeCount": 5,
+      "edgeCount": 3,
+      "structuralBeta1": 1,
+      "unitCount": 2,
+      "parameterCount": 4
+    },
+    "regimeValues": [
+      0,
+      0.25,
+      0.5,
+      0.75,
+      1
+    ],
+    "separationThreshold": 0.08,
+    "monotonicSlack": 0.03,
+    "points": [
+      {
+        "regimeValue": 0,
+        "strategies": {
+          "linear": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 1.0876394575731344e-31,
+                "evalMeanSquaredError": 8.551128953079327e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 1.1523349818274487e-31,
+                "evalMeanSquaredError": 1.0569075550365065e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 8.81682867601928e-32,
+                "evalMeanSquaredError": 8.465532066662116e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 1.0466053583498636e-31,
+                "evalMeanSquaredError": 9.030471517015706e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 8.844341960939098e-32,
+                "evalMeanSquaredError": 8.474091755303838e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 8.577315704619082e-32,
+                "evalMeanSquaredError": 8.433433234255663e-32,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 9.850714053180321e-32,
+            "stdevTrainMeanSquaredError": 1.1497551036237343e-32,
+            "meanEvalMeanSquaredError": 8.920622179446953e-32,
+            "evalMeanSquaredErrorCi95": {
+              "low": 8.472789969322909e-32,
+              "high": 9.611460383572521e-32
+            },
+            "stdevEvalMeanSquaredError": 7.648355091285626e-33,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "winner-take-all": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 1.8488947812099233e-32,
+                "evalMeanSquaredError": 2.0800043399382147e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 1.8489022169139015e-32,
+                "evalMeanSquaredError": 2.0800043399382147e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 2.5467975140080947e-65,
+                "evalMeanSquaredError": 0,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 1.736741594325397e-77,
+                "evalMeanSquaredError": 0,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 1.0384793379463629e-76,
+                "evalMeanSquaredError": 0,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 2.656202463789672e-65,
+                "evalMeanSquaredError": 0,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 6.162994996873041e-33,
+            "stdevTrainMeanSquaredError": 8.715791109441818e-33,
+            "meanEvalMeanSquaredError": 6.933347799794049e-33,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0,
+              "high": 1.3866695599588098e-32
+            },
+            "stdevEvalMeanSquaredError": 9.805234491118403e-33,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "early-stop": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 1.9725011615585487e-31,
+                "evalMeanSquaredError": 1.0708170490793031e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 1.9721523007806396e-31,
+                "evalMeanSquaredError": 1.0682491424867867e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 1.972271688667479e-31,
+                "evalMeanSquaredError": 1.0682491424867867e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 1.9730107379154356e-31,
+                "evalMeanSquaredError": 1.0708170490793031e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 1.9827470756561334e-31,
+                "evalMeanSquaredError": 1.0708170490793031e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 1.9728555161493462e-31,
+                "evalMeanSquaredError": 1.0708170490793031e-31,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 1.9742564134545973e-31,
+            "stdevTrainMeanSquaredError": 3.8090440023977056e-34,
+            "meanEvalMeanSquaredError": 1.069961080215131e-31,
+            "evalMeanSquaredErrorCi95": {
+              "low": 1.0691051113509587e-31,
+              "high": 1.0708170490793031e-31
+            },
+            "stdevEvalMeanSquaredError": 1.2105227766813186e-34,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          }
+        },
+        "rankingByEvalMeanSquaredError": [
+          "winner-take-all",
+          "linear",
+          "early-stop"
+        ],
+        "bestNonlinearStrategy": "winner-take-all",
+        "bestNonlinearMeanEvalMeanSquaredError": 6.933347799794049e-33,
+        "linearAdvantageEvalMeanSquaredError": -8.227287399467548e-32,
+        "linearAdvantageExactWithinToleranceFraction": 0
+      },
+      {
+        "regimeValue": 0.25,
+        "strategies": {
+          "linear": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 9.502695564377592e-32,
+                "evalMeanSquaredError": 8.923475408994192e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 9.904782571134357e-32,
+                "evalMeanSquaredError": 8.615861598432342e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 1.0164193543235495e-31,
+                "evalMeanSquaredError": 8.846438211218703e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 1.0183452842679367e-31,
+                "evalMeanSquaredError": 9.020306886753662e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 1.0310407000237954e-31,
+                "evalMeanSquaredError": 8.546849108758467e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 9.191107612660657e-32,
+                "evalMeanSquaredError": 8.298618138148557e-32,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 9.87610652238757e-32,
+            "stdevTrainMeanSquaredError": 4.0322747155497914e-33,
+            "meanEvalMeanSquaredError": 8.708591558717654e-32,
+            "evalMeanSquaredErrorCi95": {
+              "low": 8.501643253119379e-32,
+              "high": 8.89494311352179e-32
+            },
+            "stdevEvalMeanSquaredError": 2.4670525115153515e-33,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "winner-take-all": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.054462932973204176,
+                "evalMeanSquaredError": 0.0424634295587977,
+                "exactWithinToleranceFraction": 0.1111111111111111
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.05358241971594086,
+                "evalMeanSquaredError": 0.0416746341110342,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.05529598852890097,
+                "evalMeanSquaredError": 0.04291242697954645,
+                "exactWithinToleranceFraction": 0.1111111111111111
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.053675884154848225,
+                "evalMeanSquaredError": 0.0417443623238397,
+                "exactWithinToleranceFraction": 0.027777777777777776
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.053738571825549176,
+                "evalMeanSquaredError": 0.04178813313270883,
+                "exactWithinToleranceFraction": 0.05555555555555555
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.05377351937587027,
+                "evalMeanSquaredError": 0.041812708502683454,
+                "exactWithinToleranceFraction": 0.05555555555555555
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.05408821942905228,
+            "stdevTrainMeanSquaredError": 0.0006118632386632566,
+            "meanEvalMeanSquaredError": 0.04206594910143505,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.04174316190532894,
+              "high": 0.04245553432566426
+            },
+            "stdevEvalMeanSquaredError": 0.00046050217203417033,
+            "meanExactWithinToleranceFraction": 0.060185185185185196,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.027777777777777776,
+              "high": 0.09259259259259259
+            },
+            "stdevExactWithinToleranceFraction": 0.04062483512681537
+          },
+          "early-stop": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.06256728011292412,
+                "evalMeanSquaredError": 0.045639200352428404,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.06344117799583271,
+                "evalMeanSquaredError": 0.04648903704098102,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.06261731501133325,
+                "evalMeanSquaredError": 0.0456775136557182,
+                "exactWithinToleranceFraction": 0.05555555555555555
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.06356591736706396,
+                "evalMeanSquaredError": 0.046395565822465484,
+                "exactWithinToleranceFraction": 0.1111111111111111
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.06346861410401963,
+                "evalMeanSquaredError": 0.046426065740601506,
+                "exactWithinToleranceFraction": 0.1111111111111111
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.06306378233284951,
+                "evalMeanSquaredError": 0.04599351943486474,
+                "exactWithinToleranceFraction": 0.08333333333333333
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.06312068115400386,
+            "stdevTrainMeanSquaredError": 0.00040514987153995153,
+            "meanEvalMeanSquaredError": 0.04610348367450989,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.045835563229945836,
+              "high": 0.046368992222470234
+            },
+            "stdevEvalMeanSquaredError": 0.0003528748982733739,
+            "meanExactWithinToleranceFraction": 0.08796296296296297,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.0462962962962963,
+              "high": 0.12962962962962962
+            },
+            "stdevExactWithinToleranceFraction": 0.051760832812495126
+          }
+        },
+        "rankingByEvalMeanSquaredError": [
+          "linear",
+          "winner-take-all",
+          "early-stop"
+        ],
+        "bestNonlinearStrategy": "winner-take-all",
+        "bestNonlinearMeanEvalMeanSquaredError": 0.04206594910143505,
+        "linearAdvantageEvalMeanSquaredError": 0.04206594910143505,
+        "linearAdvantageExactWithinToleranceFraction": 0.9398148148148148
+      },
+      {
+        "regimeValue": 0.5,
+        "strategies": {
+          "linear": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 9.684676291775814e-32,
+                "evalMeanSquaredError": 8.598207240608793e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 2.4596876718316983e-31,
+                "evalMeanSquaredError": 1.2938504362501472e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 9.348228121899188e-32,
+                "evalMeanSquaredError": 8.461252222341256e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 2.433117699537703e-31,
+                "evalMeanSquaredError": 1.3047105412143308e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 1.1907749713297082e-31,
+                "evalMeanSquaredError": 8.589647551967072e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 2.1598026923788715e-31,
+                "evalMeanSquaredError": 1.0916277920894874e-31,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 1.691112246074247e-31,
+            "stdevTrainMeanSquaredError": 6.715004779271795e-32,
+            "meanEvalMeanSquaredError": 1.042516578507613e-31,
+            "evalMeanSquaredErrorCi95": {
+              "low": 8.93604745168672e-32,
+              "high": 1.194549131663848e-31
+            },
+            "stdevEvalMeanSquaredError": 1.999853766815633e-32,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "winner-take-all": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.19229578395765956,
+                "evalMeanSquaredError": 0.13958897777245705,
+                "exactWithinToleranceFraction": 0.027777777777777776
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.18894767485816774,
+                "evalMeanSquaredError": 0.13724502852071754,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.19326428068896262,
+                "evalMeanSquaredError": 0.14077876672168366,
+                "exactWithinToleranceFraction": 0.027777777777777776
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.18906709983273373,
+                "evalMeanSquaredError": 0.1382239558089653,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.18954031523513673,
+                "evalMeanSquaredError": 0.13764476404988243,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.18888829780706362,
+                "evalMeanSquaredError": 0.13781698100143133,
+                "exactWithinToleranceFraction": 0
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.190333908729954,
+            "stdevTrainMeanSquaredError": 0.0017645615570630652,
+            "meanEvalMeanSquaredError": 0.13854974564585623,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.13763675365859943,
+              "high": 0.13956571037786514
+            },
+            "stdevEvalMeanSquaredError": 0.0012391462031754042,
+            "meanExactWithinToleranceFraction": 0.009259259259259259,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0,
+              "high": 0.018518518518518517
+            },
+            "stdevExactWithinToleranceFraction": 0.013094570021973102
+          },
+          "early-stop": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.2502691204516964,
+                "evalMeanSquaredError": 0.1825568014097136,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.2537647119833307,
+                "evalMeanSquaredError": 0.18595614816392397,
+                "exactWithinToleranceFraction": 0.027777777777777776
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.250469260045333,
+                "evalMeanSquaredError": 0.18271005462287282,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.25426366946825585,
+                "evalMeanSquaredError": 0.18558226328986202,
+                "exactWithinToleranceFraction": 0.027777777777777776
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.2538744564160785,
+                "evalMeanSquaredError": 0.18570426296240605,
+                "exactWithinToleranceFraction": 0.05555555555555555
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.25225512933139804,
+                "evalMeanSquaredError": 0.18397407773945895,
+                "exactWithinToleranceFraction": 0
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.25248272461601534,
+            "stdevTrainMeanSquaredError": 0.0016205994861597964,
+            "meanEvalMeanSquaredError": 0.18441393469803957,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.18334225291978334,
+              "high": 0.18547596888988094
+            },
+            "stdevEvalMeanSquaredError": 0.0014114995930934915,
+            "meanExactWithinToleranceFraction": 0.018518518518518517,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.004629629629629629,
+              "high": 0.037037037037037035
+            },
+            "stdevExactWithinToleranceFraction": 0.020704333124998052
+          }
+        },
+        "rankingByEvalMeanSquaredError": [
+          "linear",
+          "winner-take-all",
+          "early-stop"
+        ],
+        "bestNonlinearStrategy": "winner-take-all",
+        "bestNonlinearMeanEvalMeanSquaredError": 0.13854974564585623,
+        "linearAdvantageEvalMeanSquaredError": 0.13854974564585623,
+        "linearAdvantageExactWithinToleranceFraction": 0.9907407407407407
+      },
+      {
+        "regimeValue": 0.75,
+        "strategies": {
+          "linear": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 1.408680187894664e-31,
+                "evalMeanSquaredError": 1.1957885032484305e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 1.5157461709254972e-31,
+                "evalMeanSquaredError": 1.1865868379585803e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 1.3861979036458988e-31,
+                "evalMeanSquaredError": 1.0764343447504325e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 2.480008197979621e-31,
+                "evalMeanSquaredError": 1.3109698135335893e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 1.1917182839555305e-31,
+                "evalMeanSquaredError": 9.167426535283243e-32,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 1.1503697471903188e-31,
+                "evalMeanSquaredError": 9.167426535283243e-32,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 1.5221200819319215e-31,
+            "stdevTrainMeanSquaredError": 4.4652311944673444e-32,
+            "meanEvalMeanSquaredError": 1.1005441344246134e-31,
+            "evalMeanSquaredErrorCi95": {
+              "low": 9.883319661370517e-32,
+              "high": 1.2127563027121753e-31
+            },
+            "stdevEvalMeanSquaredError": 1.465725382248361e-32,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "winner-take-all": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.3628452808019878,
+                "evalMeanSquaredError": 0.2639346311962535,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.35464037557885564,
+                "evalMeanSquaredError": 0.25833808125887003,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.36073886734490995,
+                "evalMeanSquaredError": 0.2648201329628396,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.355315797423827,
+                "evalMeanSquaredError": 0.2607672322262661,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.38538880571477463,
+                "evalMeanSquaredError": 0.29848391069797353,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.3539986834183025,
+                "evalMeanSquaredError": 0.25781352661346846,
+                "exactWithinToleranceFraction": 0
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.3621546350471096,
+            "stdevTrainMeanSquaredError": 0.010893892927728056,
+            "meanEvalMeanSquaredError": 0.2673595858259452,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.25946523096833446,
+              "high": 0.28027651262421627
+            },
+            "stdevEvalMeanSquaredError": 0.014159076305348075,
+            "meanExactWithinToleranceFraction": 0,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0,
+              "high": 0
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "early-stop": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.5631055210163171,
+                "evalMeanSquaredError": 0.41075280317185564,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.570970601962494,
+                "evalMeanSquaredError": 0.418401333368829,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.5635558351019992,
+                "evalMeanSquaredError": 0.41109762290146384,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.5720932563035755,
+                "evalMeanSquaredError": 0.41756009240218944,
+                "exactWithinToleranceFraction": 0.027777777777777776
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.5712175269361767,
+                "evalMeanSquaredError": 0.4178345916654136,
+                "exactWithinToleranceFraction": 0.027777777777777776
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.5675740409956457,
+                "evalMeanSquaredError": 0.41394167491378264,
+                "exactWithinToleranceFraction": 0
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.5680861303860346,
+            "stdevTrainMeanSquaredError": 0.0036463488438594873,
+            "meanEvalMeanSquaredError": 0.414931353070589,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.4125200690695125,
+              "high": 0.41732093000223214
+            },
+            "stdevEvalMeanSquaredError": 0.003175874084460335,
+            "meanExactWithinToleranceFraction": 0.009259259259259259,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0,
+              "high": 0.018518518518518517
+            },
+            "stdevExactWithinToleranceFraction": 0.013094570021973102
+          }
+        },
+        "rankingByEvalMeanSquaredError": [
+          "linear",
+          "winner-take-all",
+          "early-stop"
+        ],
+        "bestNonlinearStrategy": "winner-take-all",
+        "bestNonlinearMeanEvalMeanSquaredError": 0.2673595858259452,
+        "linearAdvantageEvalMeanSquaredError": 0.2673595858259452,
+        "linearAdvantageExactWithinToleranceFraction": 1
+      },
+      {
+        "regimeValue": 1,
+        "strategies": {
+          "linear": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 1.4306908158305181e-31,
+                "evalMeanSquaredError": 1.2360190398645195e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 2.2532594255475808e-31,
+                "evalMeanSquaredError": 1.4793281895054401e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 2.028908239372839e-31,
+                "evalMeanSquaredError": 1.454291100228406e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 1.947154478468238e-31,
+                "evalMeanSquaredError": 1.4063568438347681e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 2.352150032487954e-31,
+                "evalMeanSquaredError": 1.600661776001836e-31,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 1.740765536876863e-31,
+                "evalMeanSquaredError": 6.464704846659822e-32,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 1.9588214214306654e-31,
+            "stdevTrainMeanSquaredError": 3.0900909358573785e-32,
+            "meanEvalMeanSquaredError": 1.3038545723501585e-31,
+            "evalMeanSquaredErrorCi95": {
+              "low": 1.023758377502975e-31,
+              "high": 1.5034379791796212e-31
+            },
+            "stdevEvalMeanSquaredError": 3.13256782114562e-32,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "winner-take-all": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.5302321370975468,
+                "evalMeanSquaredError": 0.39310793947345735,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.5275414315072471,
+                "evalMeanSquaredError": 0.39213049711299763,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.5273122674316132,
+                "evalMeanSquaredError": 0.38788252288381486,
+                "exactWithinToleranceFraction": 0.08333333333333333
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.5359995998445171,
+                "evalMeanSquaredError": 0.3969517453219312,
+                "exactWithinToleranceFraction": 0.027777777777777776
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.5410779324816422,
+                "evalMeanSquaredError": 0.40069175753831493,
+                "exactWithinToleranceFraction": 0.08333333333333333
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.522497791372057,
+                "evalMeanSquaredError": 0.38605669272180293,
+                "exactWithinToleranceFraction": 0
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.5307768599557705,
+            "stdevTrainMeanSquaredError": 0.0061196433084894355,
+            "meanEvalMeanSquaredError": 0.3928035258420532,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.3888528112996151,
+              "high": 0.39691714744456785
+            },
+            "stdevEvalMeanSquaredError": 0.0049952241648692644,
+            "meanExactWithinToleranceFraction": 0.032407407407407406,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.004629629629629629,
+              "high": 0.060185185185185175
+            },
+            "stdevExactWithinToleranceFraction": 0.03732526735323403
+          },
+          "early-stop": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 1.001076481806786,
+                "evalMeanSquaredError": 0.7302272056388543,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 1.0150588479333233,
+                "evalMeanSquaredError": 0.7438245926556959,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 1.001877040181332,
+                "evalMeanSquaredError": 0.7308402184914913,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 1.0170546778730232,
+                "evalMeanSquaredError": 0.7423290531594477,
+                "exactWithinToleranceFraction": 0.027777777777777776
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 1.015497825664314,
+                "evalMeanSquaredError": 0.7428170518496243,
+                "exactWithinToleranceFraction": 0
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 1.0090205173255922,
+                "evalMeanSquaredError": 0.7358963109578358,
+                "exactWithinToleranceFraction": 0
+              }
+            ],
+            "meanTrainMeanSquaredError": 1.0099308984640618,
+            "stdevTrainMeanSquaredError": 0.006482397944639101,
+            "meanEvalMeanSquaredError": 0.7376557387921583,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.7333690116791334,
+              "high": 0.7419038755595238
+            },
+            "stdevEvalMeanSquaredError": 0.005645998372373937,
+            "meanExactWithinToleranceFraction": 0.004629629629629629,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0,
+              "high": 0.013888888888888888
+            },
+            "stdevExactWithinToleranceFraction": 0.010352166562499026
+          }
+        },
+        "rankingByEvalMeanSquaredError": [
+          "linear",
+          "winner-take-all",
+          "early-stop"
+        ],
+        "bestNonlinearStrategy": "winner-take-all",
+        "bestNonlinearMeanEvalMeanSquaredError": 0.3928035258420532,
+        "linearAdvantageEvalMeanSquaredError": 0.3928035258420532,
+        "linearAdvantageExactWithinToleranceFraction": 0.9675925925925926
+      }
+    ],
+    "firstSeparatedRegimeValue": 0.5,
+    "monotonicAdvantageRecovered": true,
+    "phaseBoundaryRecovered": true
+  },
+  "routed": {
+    "title": "Routed dual-activation regime sweep",
+    "description": "Reuses the four-expert routed topology while increasing the y-axis contribution weight from single-expert parity to full dual-axis dependence.",
+    "topologyFamily": "moe-routing",
+    "targetFamily": "weighted-dual-activation",
+    "sweepDimension": "dual-activation weight on the y-axis contribution",
+    "topology": {
+      "nodeCount": 8,
+      "edgeCount": 4,
+      "structuralBeta1": 3,
+      "unitCount": 4,
+      "parameterCount": 16
+    },
+    "regimeValues": [
+      0,
+      0.25,
+      0.5,
+      0.75,
+      1
+    ],
+    "separationThreshold": 0.05,
+    "monotonicSlack": 0.03,
+    "points": [
+      {
+        "regimeValue": 0,
+        "strategies": {
+          "linear": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.00011088999458396773,
+                "evalMeanSquaredError": 0.00009605213375382878,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.00000509311715357398,
+                "evalMeanSquaredError": 0.000004259342768964969,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.0000266590501801432,
+                "evalMeanSquaredError": 0.000019320101842736397,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.00004378611329699656,
+                "evalMeanSquaredError": 0.000033380559852536816,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.000010106032949022665,
+                "evalMeanSquaredError": 0.00000784927038308435,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.00000868252324714327,
+                "evalMeanSquaredError": 0.000005859045576253452,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.00005551087313630208,
+                "evalMeanSquaredError": 0.000035255283063315375,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.000011155581942303105,
+                "evalMeanSquaredError": 0.000007931721742843858,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.000033985410811181575,
+            "stdevTrainMeanSquaredError": 0.00003371538296540059,
+            "meanEvalMeanSquaredError": 0.000026238432372945497,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.000010127107296697816,
+              "high": 0.00005005083674639326
+            },
+            "stdevEvalMeanSquaredError": 0.000028778956065900274,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "winner-take-all": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.00005693397523124672,
+                "evalMeanSquaredError": 0.00003708942005176016,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.00008586026062175797,
+                "evalMeanSquaredError": 0.00006123960344489109,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.00039330520744497693,
+                "evalMeanSquaredError": 0.0002840963037919428,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.16005214736692333,
+                "evalMeanSquaredError": 0.11984891132708708,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.1600039325826529,
+                "evalMeanSquaredError": 0.11935774457102605,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.16006761933509125,
+                "evalMeanSquaredError": 0.12002050699811918,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.00010893190906080662,
+                "evalMeanSquaredError": 0.00007230621987686163,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.00027213994805854233,
+                "evalMeanSquaredError": 0.00018793478666113614,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.0601301088231356,
+            "stdevTrainMeanSquaredError": 0.07739089288345266,
+            "meanEvalMeanSquaredError": 0.04498372865375736,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.0028105492437154943,
+              "high": 0.08982046517904917
+            },
+            "stdevEvalMeanSquaredError": 0.05790811090749108,
+            "meanExactWithinToleranceFraction": 0.6875,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.375,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0.4034357652299393
+          },
+          "early-stop": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.00011741149127295365,
+                "evalMeanSquaredError": 0.00008031560953694608,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.0001515266723821491,
+                "evalMeanSquaredError": 0.00010219604906345087,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.00006104432273155538,
+                "evalMeanSquaredError": 0.00004312005624907674,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.00008747498392849534,
+                "evalMeanSquaredError": 0.00005970845650507702,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.00011470651906653725,
+                "evalMeanSquaredError": 0.00007555821857905066,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.00004392122515886114,
+                "evalMeanSquaredError": 0.00003121658301768373,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.00017459099996905252,
+                "evalMeanSquaredError": 0.00012574692333181756,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.00022625831109376337,
+                "evalMeanSquaredError": 0.00015522749324306997,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.00012211681570042097,
+            "stdevTrainMeanSquaredError": 0.00005655245309414009,
+            "meanEvalMeanSquaredError": 0.00008413617369077159,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.000057727935367750605,
+              "high": 0.00011156218664532951
+            },
+            "stdevEvalMeanSquaredError": 0.00003917793648552088,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          }
+        },
+        "rankingByEvalMeanSquaredError": [
+          "linear",
+          "early-stop",
+          "winner-take-all"
+        ],
+        "bestNonlinearStrategy": "early-stop",
+        "bestNonlinearMeanEvalMeanSquaredError": 0.00008413617369077159,
+        "linearAdvantageEvalMeanSquaredError": 0.000057897741317826086,
+        "linearAdvantageExactWithinToleranceFraction": 0
+      },
+      {
+        "regimeValue": 0.25,
+        "strategies": {
+          "linear": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.00011219547816268942,
+                "evalMeanSquaredError": 0.00008995055164895715,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.000006604588293108665,
+                "evalMeanSquaredError": 0.000005261823487583931,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.000013935099046872315,
+                "evalMeanSquaredError": 0.000010123985031060987,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.00004654237036060794,
+                "evalMeanSquaredError": 0.00003675561845765412,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.000006211363734657301,
+                "evalMeanSquaredError": 0.000004986554007164137,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.000011426143415633595,
+                "evalMeanSquaredError": 0.000007834426846504082,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.00006971392686967357,
+                "evalMeanSquaredError": 0.00004339062292102205,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.00001566492608615376,
+                "evalMeanSquaredError": 0.0000134377848322774,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.00003528673699617457,
+            "stdevTrainMeanSquaredError": 0.000035890726465694204,
+            "meanEvalMeanSquaredError": 0.00002646767090402798,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.000010618487998612959,
+              "high": 0.00004858007307045655
+            },
+            "stdevEvalMeanSquaredError": 0.000027653034300870698,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "winner-take-all": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.010061542464875109,
+                "evalMeanSquaredError": 0.007385599416169334,
+                "exactWithinToleranceFraction": 0.5833333333333334
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.010083997282484082,
+                "evalMeanSquaredError": 0.007438542327517323,
+                "exactWithinToleranceFraction": 0.5555555555555556
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.010307038642788056,
+                "evalMeanSquaredError": 0.007543239950147721,
+                "exactWithinToleranceFraction": 0.5277777777777778
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.16007124611332094,
+                "evalMeanSquaredError": 0.12007593580143412,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.16000469238078863,
+                "evalMeanSquaredError": 0.11931102901036618,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.1600967201830804,
+                "evalMeanSquaredError": 0.12025889557593976,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.010114798639659524,
+                "evalMeanSquaredError": 0.007446956729705887,
+                "exactWithinToleranceFraction": 0.5833333333333334
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.01025913947880108,
+                "evalMeanSquaredError": 0.0075007506020991705,
+                "exactWithinToleranceFraction": 0.5555555555555556
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.06637489689822472,
+            "stdevTrainMeanSquaredError": 0.07256631923750674,
+            "meanEvalMeanSquaredError": 0.04962011867667244,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.00994927782849726,
+              "high": 0.09175393604169788
+            },
+            "stdevEvalMeanSquaredError": 0.05442518078876701,
+            "meanExactWithinToleranceFraction": 0.4131944444444444,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.2673611111111111,
+              "high": 0.548611111111111
+            },
+            "stdevExactWithinToleranceFraction": 0.19166540861100811
+          },
+          "early-stop": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.01012629270760156,
+                "evalMeanSquaredError": 0.007421947655460042,
+                "exactWithinToleranceFraction": 0.5833333333333334
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.010156949844906105,
+                "evalMeanSquaredError": 0.007482022484779741,
+                "exactWithinToleranceFraction": 0.5833333333333334
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.01006936310601436,
+                "evalMeanSquaredError": 0.007387549466848222,
+                "exactWithinToleranceFraction": 0.5833333333333334
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.010106253615864338,
+                "evalMeanSquaredError": 0.007532660233754705,
+                "exactWithinToleranceFraction": 0.5
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.010119486306326477,
+                "evalMeanSquaredError": 0.0074465748313415825,
+                "exactWithinToleranceFraction": 0.5833333333333334
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.010078084057937402,
+                "evalMeanSquaredError": 0.007351563517145594,
+                "exactWithinToleranceFraction": 0.5833333333333334
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.010173705921725364,
+                "evalMeanSquaredError": 0.007487862876716526,
+                "exactWithinToleranceFraction": 0.5833333333333334
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.010248620038279265,
+                "evalMeanSquaredError": 0.007463889440100666,
+                "exactWithinToleranceFraction": 0.5277777777777778
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.01013484444983186,
+            "stdevTrainMeanSquaredError": 0.00005429057946123494,
+            "meanEvalMeanSquaredError": 0.007446758813268385,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.007408171299287673,
+              "high": 0.007482060500017416
+            },
+            "stdevEvalMeanSquaredError": 0.00005453107082915289,
+            "meanExactWithinToleranceFraction": 0.5659722222222222,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.5451388888888888,
+              "high": 0.5833333333333334
+            },
+            "stdevExactWithinToleranceFraction": 0.030861786171234695
+          }
+        },
+        "rankingByEvalMeanSquaredError": [
+          "linear",
+          "early-stop",
+          "winner-take-all"
+        ],
+        "bestNonlinearStrategy": "early-stop",
+        "bestNonlinearMeanEvalMeanSquaredError": 0.007446758813268385,
+        "linearAdvantageEvalMeanSquaredError": 0.007420291142364357,
+        "linearAdvantageExactWithinToleranceFraction": 0.4340277777777778
+      },
+      {
+        "regimeValue": 0.5,
+        "strategies": {
+          "linear": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.00011348295035939037,
+                "evalMeanSquaredError": 0.00009463390877051048,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.000010856122964515351,
+                "evalMeanSquaredError": 0.000009842724020458785,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.000015723577918451916,
+                "evalMeanSquaredError": 0.000011472598748572774,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.00005241869134405532,
+                "evalMeanSquaredError": 0.00004688619389504523,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.000009483446115978459,
+                "evalMeanSquaredError": 0.000007668539124535462,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.00002247171258247131,
+                "evalMeanSquaredError": 0.000015000356216659255,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.00005717200818214108,
+                "evalMeanSquaredError": 0.000037152253305196554,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.00003297571800700254,
+                "evalMeanSquaredError": 0.00002995342039226309,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.00003932302843425079,
+            "stdevTrainMeanSquaredError": 0.000032733261228501124,
+            "meanEvalMeanSquaredError": 0.0000315762493091552,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.00001580201744906842,
+              "high": 0.00005343191020287962
+            },
+            "stdevEvalMeanSquaredError": 0.00002731123839110623,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "winner-take-all": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.040104076046870385,
+                "evalMeanSquaredError": 0.02945861500459314,
+                "exactWithinToleranceFraction": 0.3333333333333333
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.04007559703693402,
+                "evalMeanSquaredError": 0.02970693852625918,
+                "exactWithinToleranceFraction": 0.3055555555555556
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.040218028085671285,
+                "evalMeanSquaredError": 0.029739067907208205,
+                "exactWithinToleranceFraction": 0.3055555555555556
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.16009880075318303,
+                "evalMeanSquaredError": 0.12019728221207705,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.16002115188270308,
+                "evalMeanSquaredError": 0.11922519593314711,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.16012585214672556,
+                "evalMeanSquaredError": 0.1203630686148461,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.04010819756071432,
+                "evalMeanSquaredError": 0.029660505197337515,
+                "exactWithinToleranceFraction": 0.3055555555555556
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.040238617589950586,
+                "evalMeanSquaredError": 0.02960406176049473,
+                "exactWithinToleranceFraction": 0.3055555555555556
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.08512379013784403,
+            "stdevTrainMeanSquaredError": 0.05806235918432346,
+            "meanEvalMeanSquaredError": 0.06349434189449538,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.03163620714988952,
+              "high": 0.09733436869697674
+            },
+            "stdevEvalMeanSquaredError": 0.043714873123729854,
+            "meanExactWithinToleranceFraction": 0.2569444444444445,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.20138888888888892,
+              "high": 0.3055555555555556
+            },
+            "stdevExactWithinToleranceFraction": 0.07047841364647375
+          },
+          "early-stop": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.04015150595467471,
+                "evalMeanSquaredError": 0.029516264223566752,
+                "exactWithinToleranceFraction": 0.3055555555555556
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.040144944832674126,
+                "evalMeanSquaredError": 0.02975335757700451,
+                "exactWithinToleranceFraction": 0.3055555555555556
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.04011637928929931,
+                "evalMeanSquaredError": 0.029462111455824693,
+                "exactWithinToleranceFraction": 0.3333333333333333
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.0401667833454322,
+                "evalMeanSquaredError": 0.030165796088410173,
+                "exactWithinToleranceFraction": 0.2777777777777778
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.04011846869373674,
+                "evalMeanSquaredError": 0.029632581217262692,
+                "exactWithinToleranceFraction": 0.3055555555555556
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.040204965474955744,
+                "evalMeanSquaredError": 0.029341068253458773,
+                "exactWithinToleranceFraction": 0.3333333333333333
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.04015965679671619,
+                "evalMeanSquaredError": 0.0298031067156952,
+                "exactWithinToleranceFraction": 0.2777777777777778
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.040332525276654374,
+                "evalMeanSquaredError": 0.029436343396212032,
+                "exactWithinToleranceFraction": 0.3055555555555556
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.040174403708017926,
+            "stdevTrainMeanSquaredError": 0.00006528752256389625,
+            "meanEvalMeanSquaredError": 0.029638828615929355,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.029485517951480765,
+              "high": 0.029813457587263593
+            },
+            "stdevEvalMeanSquaredError": 0.0002484326887317291,
+            "meanExactWithinToleranceFraction": 0.3055555555555556,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.29166666666666663,
+              "high": 0.3194444444444445
+            },
+            "stdevExactWithinToleranceFraction": 0.01964185503295964
+          }
+        },
+        "rankingByEvalMeanSquaredError": [
+          "linear",
+          "early-stop",
+          "winner-take-all"
+        ],
+        "bestNonlinearStrategy": "early-stop",
+        "bestNonlinearMeanEvalMeanSquaredError": 0.029638828615929355,
+        "linearAdvantageEvalMeanSquaredError": 0.0296072523666202,
+        "linearAdvantageExactWithinToleranceFraction": 0.6944444444444444
+      },
+      {
+        "regimeValue": 0.75,
+        "strategies": {
+          "linear": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.00011646532586924942,
+                "evalMeanSquaredError": 0.00010350304901216511,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.000024320339375395287,
+                "evalMeanSquaredError": 0.0000222465290598412,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.00002244815171534564,
+                "evalMeanSquaredError": 0.00001659141826628524,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.00006833879164687694,
+                "evalMeanSquaredError": 0.00006779988223582502,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.000017764408191980072,
+                "evalMeanSquaredError": 0.000014181967007772685,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.000045984230953433385,
+                "evalMeanSquaredError": 0.000029829527725785236,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.00004537162455755024,
+                "evalMeanSquaredError": 0.00003094831062054257,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.0000647532030472003,
+                "evalMeanSquaredError": 0.00005865268712795484,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.000050680759419628916,
+            "stdevTrainMeanSquaredError": 0.00003054327116609748,
+            "meanEvalMeanSquaredError": 0.00004296917138202149,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.000025286812871530962,
+              "high": 0.0000645747700933235
+            },
+            "stdevEvalMeanSquaredError": 0.000029150376149784914,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "winner-take-all": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.16186231045165092,
+                "evalMeanSquaredError": 0.1168785512697424,
+                "exactWithinToleranceFraction": 0.027777777777777776
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.09007069675069135,
+                "evalMeanSquaredError": 0.06685042187675394,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.09014098849420987,
+                "evalMeanSquaredError": 0.06687097809252006,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.16016136036362164,
+                "evalMeanSquaredError": 0.12027508155126679,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.16006360842482442,
+                "evalMeanSquaredError": 0.11916463248221801,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.160180932414407,
+                "evalMeanSquaredError": 0.12040327140152327,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.16072934220512705,
+                "evalMeanSquaredError": 0.117295698751198,
+                "exactWithinToleranceFraction": 0.08333333333333333
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.09024361719014942,
+                "evalMeanSquaredError": 0.06645458224174908,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.1341816070368352,
+            "stdevTrainMeanSquaredError": 0.034109546908854704,
+            "meanEvalMeanSquaredError": 0.09927415220837144,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.07975672253523025,
+              "high": 0.1182810597977179
+            },
+            "stdevEvalMeanSquaredError": 0.025239327142796655,
+            "meanExactWithinToleranceFraction": 0.13888888888888887,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.10069444444444445,
+              "high": 0.16666666666666666
+            },
+            "stdevExactWithinToleranceFraction": 0.05007710104811096
+          },
+          "early-stop": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.09021824513855506,
+                "evalMeanSquaredError": 0.066331069257449,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.09012687633119718,
+                "evalMeanSquaredError": 0.06690652178617237,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.09024799918186066,
+                "evalMeanSquaredError": 0.0662014930093649,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.09030064750894368,
+                "evalMeanSquaredError": 0.0680399125715757,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.09012776959383426,
+                "evalMeanSquaredError": 0.06660329355004138,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.09047179108256242,
+                "evalMeanSquaredError": 0.06596299633658098,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.090149182822135,
+                "evalMeanSquaredError": 0.06710100717790086,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.09058646089539893,
+                "evalMeanSquaredError": 0.06600658096985672,
+                "exactWithinToleranceFraction": 0.19444444444444445
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.0902786215693109,
+            "stdevTrainMeanSquaredError": 0.0001579893282087047,
+            "meanEvalMeanSquaredError": 0.06664410933236774,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.06625491279636099,
+              "high": 0.06710621950202278
+            },
+            "stdevEvalMeanSquaredError": 0.0006511345072030245,
+            "meanExactWithinToleranceFraction": 0.17013888888888887,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.16666666666666666,
+              "high": 0.17708333333333334
+            },
+            "stdevExactWithinToleranceFraction": 0.009186636496752054
+          }
+        },
+        "rankingByEvalMeanSquaredError": [
+          "linear",
+          "early-stop",
+          "winner-take-all"
+        ],
+        "bestNonlinearStrategy": "early-stop",
+        "bestNonlinearMeanEvalMeanSquaredError": 0.06664410933236774,
+        "linearAdvantageEvalMeanSquaredError": 0.06660114016098571,
+        "linearAdvantageExactWithinToleranceFraction": 0.8298611111111112
+      },
+      {
+        "regimeValue": 1,
+        "strategies": {
+          "linear": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.0001247139891733889,
+                "evalMeanSquaredError": 0.00011698622861745452,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.00004635449682473128,
+                "evalMeanSquaredError": 0.00004154598176588313,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.00003415211073247719,
+                "evalMeanSquaredError": 0.000025314451906311317,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.00009242209339428325,
+                "evalMeanSquaredError": 0.00009628177010247954,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.00003146019401450513,
+                "evalMeanSquaredError": 0.00002468988799556829,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.00007921123532944537,
+                "evalMeanSquaredError": 0.000050532125008293366,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.000044478440210245775,
+                "evalMeanSquaredError": 0.000030395110810443313,
+                "exactWithinToleranceFraction": 1
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.00010489018174643968,
+                "evalMeanSquaredError": 0.0000946622582942833,
+                "exactWithinToleranceFraction": 1
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.00006971034267818957,
+            "stdevTrainMeanSquaredError": 0.00003312612065270183,
+            "meanEvalMeanSquaredError": 0.0000600509768125896,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.00003782045966228211,
+              "high": 0.0000842264847747055
+            },
+            "stdevEvalMeanSquaredError": 0.00003449960257177056,
+            "meanExactWithinToleranceFraction": 1,
+            "exactWithinToleranceFractionCi95": {
+              "low": 1,
+              "high": 1
+            },
+            "stdevExactWithinToleranceFraction": 0
+          },
+          "winner-take-all": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.16224862910598267,
+                "evalMeanSquaredError": 0.11687319218720223,
+                "exactWithinToleranceFraction": 0.027777777777777776
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.16006843347390504,
+                "evalMeanSquaredError": 0.11883471115674052,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.1600811489484813,
+                "evalMeanSquaredError": 0.11893336419991403,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.16025995304309057,
+                "evalMeanSquaredError": 0.12033476797271923,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.16011747961103895,
+                "evalMeanSquaredError": 0.11914327503334844,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.16026723026970038,
+                "evalMeanSquaredError": 0.12041899144717713,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.16089457133136775,
+                "evalMeanSquaredError": 0.1172049027628368,
+                "exactWithinToleranceFraction": 0.05555555555555555
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.08063368488990993,
+                "evalMeanSquaredError": 0.060075253315192007,
+                "exactWithinToleranceFraction": 0.25
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.15057139133418457,
+            "stdevTrainMeanSquaredError": 0.026442965348191915,
+            "meanEvalMeanSquaredError": 0.11147730725939131,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.09648358274021374,
+              "high": 0.11949385370711307
+            },
+            "stdevEvalMeanSquaredError": 0.019464684815102593,
+            "meanExactWithinToleranceFraction": 0.14583333333333331,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.09722222222222222,
+              "high": 0.1875
+            },
+            "stdevExactWithinToleranceFraction": 0.06624577787617679
+          },
+          "early-stop": {
+            "seedMetrics": [
+              {
+                "seed": 1,
+                "trainMeanSquaredError": 0.16033153497277072,
+                "evalMeanSquaredError": 0.11785593287665869,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 2,
+                "trainMeanSquaredError": 0.16010484572577618,
+                "evalMeanSquaredError": 0.11893371750091049,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 3,
+                "trainMeanSquaredError": 0.16048881254075006,
+                "evalMeanSquaredError": 0.11757624057537039,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 4,
+                "trainMeanSquaredError": 0.1605161749036113,
+                "evalMeanSquaredError": 0.1211880545748931,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 5,
+                "trainMeanSquaredError": 0.16015363445612696,
+                "evalMeanSquaredError": 0.11834197767790962,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 6,
+                "trainMeanSquaredError": 0.16090600280853828,
+                "evalMeanSquaredError": 0.11719355089043954,
+                "exactWithinToleranceFraction": 0.05555555555555555
+              },
+              {
+                "seed": 7,
+                "trainMeanSquaredError": 0.16014195021973412,
+                "evalMeanSquaredError": 0.11938544470791333,
+                "exactWithinToleranceFraction": 0.16666666666666666
+              },
+              {
+                "seed": 8,
+                "trainMeanSquaredError": 0.16109273498729595,
+                "evalMeanSquaredError": 0.1171428484343473,
+                "exactWithinToleranceFraction": 0.05555555555555555
+              }
+            ],
+            "meanTrainMeanSquaredError": 0.16046696132682545,
+            "stdevTrainMeanSquaredError": 0.00034287816750698,
+            "meanEvalMeanSquaredError": 0.11845222090480532,
+            "evalMeanSquaredErrorCi95": {
+              "low": 0.11768758574263655,
+              "high": 0.11936583078021507
+            },
+            "stdevEvalMeanSquaredError": 0.0012757984019691059,
+            "meanExactWithinToleranceFraction": 0.1388888888888889,
+            "exactWithinToleranceFractionCi95": {
+              "low": 0.09722222222222222,
+              "high": 0.16666666666666666
+            },
+            "stdevExactWithinToleranceFraction": 0.048112522432468816
+          }
+        },
+        "rankingByEvalMeanSquaredError": [
+          "linear",
+          "winner-take-all",
+          "early-stop"
+        ],
+        "bestNonlinearStrategy": "winner-take-all",
+        "bestNonlinearMeanEvalMeanSquaredError": 0.11147730725939131,
+        "linearAdvantageEvalMeanSquaredError": 0.11141725628257872,
+        "linearAdvantageExactWithinToleranceFraction": 0.8541666666666667
+      }
+    ],
+    "firstSeparatedRegimeValue": 0.75,
+    "monotonicAdvantageRecovered": true,
+    "phaseBoundaryRecovered": true
+  },
+  "predictedBoundaryRecovered": true
+}
