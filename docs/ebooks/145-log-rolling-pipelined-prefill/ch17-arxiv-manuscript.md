@@ -95,9 +95,11 @@ This is not only a visualization choice. In this model, the triangle is the cano
 
 The triangle is also a **covering space** (§3.3). The diagonal -- the moment when all children are busy -- is the base space: one ordered sequence, 1-2-3-4. But each chunk arrived at the diagonal via a different path through the triangle. Chunk 1 took the longest path (entered first, fell through all four stages). Chunk 4 took the shortest (entered last, only at stage 1). Many paths, one output. That is the covering-map intuition, and in this model it preserves order.
 
-And the triangle is **fractal**. Zoom into any sub-triangle and you see the same pattern. It's turtles all the way down: if you bundle chunks into mega-chunks, each mega-chunk moves through a larger triangle the same way a single chunk moves through a small one. A polysome with 40 ribosomes on an mRNA looks the same as one ribosome on a short mRNA -- same triangle, different scale. *Physarum* (slime mold) tendril networks are the same triangle projected onto geography instead of time × stage.
+And the triangle is **fractal**. Zoom into any sub-triangle and you see the same pattern. If you bundle chunks into mega-chunks, each mega-chunk moves through a larger triangle the same way a single chunk moves through a small one. A polysome with 40 ribosomes on an mRNA looks the same as one ribosome on a short mRNA -- same triangle, different scale. *Physarum* (slime mold) tendril networks are the same triangle projected onto geography instead of time × stage.
 
 The top of the triangle has $\beta_1 = 0$ -- one chunk, one path, no parallelism. As you descend, $\beta_1$ increases -- more chunks in flight, more independent paths through the system. At the diagonal, $\beta_1$ is maximum. Then the ramp-down triangle on the other side collapses $\beta_1$ back to zero.
+
+It's turtles all the way down!
 
 **Fork is entering the triangle. Race is the diagonal. Fold is exiting.**
 
