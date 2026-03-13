@@ -41,30 +41,6 @@ noncomputable def vacationQueueLaw (maxQueue : ℕ) : MeasureQueueLaw (VacationQ
     intro state
     rfl
 
-structure VacationQueueFamily (maxQueue : ℕ) where
-  stationary : PMF (VacationQueueState maxQueue)
-  serviceDependsOnVacation : Prop
-  routingDependsOnVacation : Prop
-  irreducible : Prop
-  fosterLyapunovDrift : Prop
-  petiteSet : Prop
-  serviceDependsOnVacation_holds : serviceDependsOnVacation
-  routingDependsOnVacation_holds : routingDependsOnVacation
-  irreducible_holds : irreducible
-  fosterLyapunovDrift_holds : fosterLyapunovDrift
-  petiteSet_holds : petiteSet
-  positiveRecurrent : Prop
-  stationaryLawExists : Prop
-  positiveRecurrenceFromDrift :
-    serviceDependsOnVacation ->
-    routingDependsOnVacation ->
-    irreducible ->
-    fosterLyapunovDrift ->
-    petiteSet ->
-    positiveRecurrent
-  stationaryLawFromPositiveRecurrence :
-    positiveRecurrent -> stationaryLawExists
-
 structure VacationQueueKernelFamily (maxQueue : ℕ) where
   stationary : PMF (VacationQueueState maxQueue)
   serviceKernel : VacationQueueState maxQueue → ℝ
@@ -79,20 +55,14 @@ structure VacationQueueKernelFamily (maxQueue : ℕ) where
   routingDependsWitness :
     ∃ (queueLevel : Fin (maxQueue + 1)) (nextState : VacationQueueState maxQueue),
       routingKernel (queueLevel, true) nextState ≠ routingKernel (queueLevel, false) nextState
-  irreducible : Prop
-  irreducible_holds : irreducible
+  bridgeState : VacationQueueState maxQueue
+  toBridgePositive : ∀ state, 0 < routingKernel state bridgeState
+  fromBridgePositive : ∀ state, 0 < routingKernel bridgeState state
   driftBound :
     ∀ state ∉ smallSet, expectedLyapunov state ≤ lyapunov state - driftGap
   driftGapPositive : 0 < driftGap
-  positiveRecurrent : Prop
-  stationaryLawExists : Prop
-  positiveRecurrenceFromDrift :
-    irreducible ->
-    (∀ state ∉ smallSet, expectedLyapunov state ≤ lyapunov state - driftGap) ->
-    0 < driftGap ->
-    positiveRecurrent
-  stationaryLawFromPositiveRecurrence :
-    positiveRecurrent -> stationaryLawExists
+
+abbrev VacationQueueFamily (maxQueue : ℕ) := VacationQueueKernelFamily maxQueue
 
 def VacationQueueKernelFamily.serviceDependsOnVacation
     {maxQueue : ℕ}
@@ -117,6 +87,31 @@ def VacationQueueKernelFamily.petiteSet
     (kernel : VacationQueueKernelFamily maxQueue) : Prop :=
   kernel.smallSet.Finite
 
+def VacationQueueKernelFamily.irreducible
+    {maxQueue : ℕ}
+    (kernel : VacationQueueKernelFamily maxQueue) : Prop :=
+  KernelIrreducible kernel.routingKernel
+
+def VacationQueueKernelFamily.positiveRecurrent
+    {maxQueue : ℕ}
+    (kernel : VacationQueueKernelFamily maxQueue) : Prop :=
+  KernelPositiveRecurrent
+    kernel.routingKernel
+    kernel.expectedLyapunov
+    kernel.lyapunov
+    kernel.smallSet
+    kernel.driftGap
+
+abbrev VacationQueueKernelFamily.stationaryLawExists
+    {maxQueue : ℕ}
+    (kernel : VacationQueueKernelFamily maxQueue) : Prop :=
+  KernelStationaryLawExists
+    kernel.routingKernel
+    kernel.expectedLyapunov
+    kernel.lyapunov
+    kernel.smallSet
+    kernel.driftGap
+
 theorem VacationQueueKernelFamily.serviceDependsOnVacation_holds
     {maxQueue : ℕ}
     (kernel : VacationQueueKernelFamily maxQueue) :
@@ -135,6 +130,16 @@ theorem VacationQueueKernelFamily.fosterLyapunovDrift_holds
     kernel.fosterLyapunovDrift :=
   kernel.driftBound
 
+theorem VacationQueueKernelFamily.irreducible_holds
+    {maxQueue : ℕ}
+    (kernel : VacationQueueKernelFamily maxQueue) :
+    kernel.irreducible :=
+  kernelIrreducible_of_bridge
+    kernel.routingKernel
+    kernel.bridgeState
+    kernel.toBridgePositive
+    kernel.fromBridgePositive
+
 theorem VacationQueueKernelFamily.petiteSet_holds
     {maxQueue : ℕ}
     (kernel : VacationQueueKernelFamily maxQueue) :
@@ -142,27 +147,26 @@ theorem VacationQueueKernelFamily.petiteSet_holds
   classical
   exact Set.toFinite kernel.smallSet
 
-noncomputable def VacationQueueKernelFamily.toFamily
+theorem VacationQueueKernelFamily.positiveRecurrent_holds
     {maxQueue : ℕ}
     (kernel : VacationQueueKernelFamily maxQueue) :
-    VacationQueueFamily maxQueue where
-  stationary := kernel.stationary
-  serviceDependsOnVacation := kernel.serviceDependsOnVacation
-  routingDependsOnVacation := kernel.routingDependsOnVacation
-  irreducible := kernel.irreducible
-  fosterLyapunovDrift := kernel.fosterLyapunovDrift
-  petiteSet := kernel.petiteSet
-  serviceDependsOnVacation_holds := kernel.serviceDependsOnVacation_holds
-  routingDependsOnVacation_holds := kernel.routingDependsOnVacation_holds
-  irreducible_holds := kernel.irreducible_holds
-  fosterLyapunovDrift_holds := kernel.fosterLyapunovDrift_holds
-  petiteSet_holds := kernel.petiteSet_holds
-  positiveRecurrent := kernel.positiveRecurrent
-  stationaryLawExists := kernel.stationaryLawExists
-  positiveRecurrenceFromDrift := by
-    intro _ _ hIrreducible hDrift _
-    exact kernel.positiveRecurrenceFromDrift hIrreducible hDrift kernel.driftGapPositive
-  stationaryLawFromPositiveRecurrence := kernel.stationaryLawFromPositiveRecurrence
+    kernel.positiveRecurrent :=
+  kernelPositiveRecurrent_of_drift
+    kernel.irreducible_holds
+    kernel.driftBound
+    kernel.driftGapPositive
+
+theorem VacationQueueKernelFamily.stationaryLawExists_holds
+    {maxQueue : ℕ}
+    (kernel : VacationQueueKernelFamily maxQueue) :
+    kernel.stationaryLawExists :=
+  kernelStationaryLawExists_of_positiveRecurrence kernel.positiveRecurrent_holds
+
+abbrev VacationQueueKernelFamily.toFamily
+    {maxQueue : ℕ}
+    (kernel : VacationQueueKernelFamily maxQueue) :
+    VacationQueueFamily maxQueue :=
+  kernel
 
 noncomputable def VacationQueueFamily.stabilityAssumptions
     {maxQueue : ℕ}
@@ -170,15 +174,19 @@ noncomputable def VacationQueueFamily.stabilityAssumptions
     StateDependentQueueStabilityAssumptions (VacationQueueState maxQueue) where
   law := vacationQueueLaw maxQueue
   stationaryMeasure := family.stationary.toMeasure
+  routingKernel := family.routingKernel
+  lyapunov := family.lyapunov
+  expectedLyapunov := family.expectedLyapunov
+  smallSet := family.smallSet
+  driftGap := family.driftGap
   stateDependentService := family.serviceDependsOnVacation
   stateDependentRouting := family.routingDependsOnVacation
-  irreducible := family.irreducible
-  fosterLyapunovDrift := family.fosterLyapunovDrift
-  petiteSet := family.petiteSet
-  positiveRecurrent := family.positiveRecurrent
-  stationaryLawExists := family.stationaryLawExists
-  positiveRecurrenceFromDrift := family.positiveRecurrenceFromDrift
-  stationaryLawFromPositiveRecurrence := family.stationaryLawFromPositiveRecurrence
+  bridgeState := family.bridgeState
+  toBridgePositive := family.toBridgePositive
+  fromBridgePositive := family.fromBridgePositive
+  driftBound := family.driftBound
+  driftGapPositive := family.driftGapPositive
+  smallSetFinite := Set.toFinite family.smallSet
 
 theorem vacation_openAge_zero_of_no_vacation_ae
     {maxQueue : ℕ}
@@ -192,12 +200,10 @@ theorem vacation_openAge_zero_of_no_vacation_ae
 theorem VacationQueueFamily.stationary_balance
     {maxQueue : ℕ}
     (family : VacationQueueFamily maxQueue) :
-    family.positiveRecurrent /\
-      family.stationaryLawExists /\
-      (∫⁻ state, (vacationQueueLaw maxQueue).customerTime state ∂ family.stationary.toMeasure =
-        ∫⁻ state, (vacationQueueLaw maxQueue).sojournTime state ∂ family.stationary.toMeasure +
-          ∫⁻ state, (vacationQueueLaw maxQueue).openAge state ∂ family.stationary.toMeasure) := by
-  exact state_dependent_queue_stability_schema
+    (∫⁻ state, (vacationQueueLaw maxQueue).customerTime state ∂ family.stationary.toMeasure =
+      ∫⁻ state, (vacationQueueLaw maxQueue).sojournTime state ∂ family.stationary.toMeasure +
+        ∫⁻ state, (vacationQueueLaw maxQueue).openAge state ∂ family.stationary.toMeasure) := by
+  exact state_dependent_queue_balance_from_drift_schema
     family.stabilityAssumptions
     family.serviceDependsOnVacation_holds
     family.routingDependsOnVacation_holds
@@ -209,11 +215,9 @@ theorem VacationQueueFamily.terminal_balance
     {maxQueue : ℕ}
     (family : VacationQueueFamily maxQueue)
     (hNoVacation : ∀ᵐ state ∂ family.stationary.toMeasure, state.2 = false) :
-    family.positiveRecurrent /\
-      family.stationaryLawExists /\
-      (∫⁻ state, (vacationQueueLaw maxQueue).customerTime state ∂ family.stationary.toMeasure =
-        ∫⁻ state, (vacationQueueLaw maxQueue).sojournTime state ∂ family.stationary.toMeasure) := by
-  exact state_dependent_queue_terminal_balance_schema
+    (∫⁻ state, (vacationQueueLaw maxQueue).customerTime state ∂ family.stationary.toMeasure =
+      ∫⁻ state, (vacationQueueLaw maxQueue).sojournTime state ∂ family.stationary.toMeasure) := by
+  exact state_dependent_queue_terminal_balance_from_drift_schema
     family.stabilityAssumptions
     (vacation_openAge_zero_of_no_vacation_ae family hNoVacation)
     family.serviceDependsOnVacation_holds
@@ -225,70 +229,18 @@ theorem VacationQueueFamily.terminal_balance
 theorem VacationQueueKernelFamily.stationary_balance
     {maxQueue : ℕ}
     (kernel : VacationQueueKernelFamily maxQueue) :
-    kernel.positiveRecurrent /\
-      kernel.stationaryLawExists /\
-      (∫⁻ state, (vacationQueueLaw maxQueue).customerTime state ∂ kernel.stationary.toMeasure =
-        ∫⁻ state, (vacationQueueLaw maxQueue).sojournTime state ∂ kernel.stationary.toMeasure +
-          ∫⁻ state, (vacationQueueLaw maxQueue).openAge state ∂ kernel.stationary.toMeasure) := by
-  let assumptions : StateDependentQueueStabilityAssumptions (VacationQueueState maxQueue) := {
-    law := vacationQueueLaw maxQueue
-    stationaryMeasure := kernel.stationary.toMeasure
-    stateDependentService := kernel.serviceDependsOnVacation
-    stateDependentRouting := kernel.routingDependsOnVacation
-    irreducible := kernel.irreducible
-    fosterLyapunovDrift := kernel.fosterLyapunovDrift
-    petiteSet := kernel.petiteSet
-    positiveRecurrent := kernel.positiveRecurrent
-    stationaryLawExists := kernel.stationaryLawExists
-    positiveRecurrenceFromDrift := by
-      intro _ _ hIrreducible hDrift _
-      exact kernel.positiveRecurrenceFromDrift hIrreducible hDrift kernel.driftGapPositive
-    stationaryLawFromPositiveRecurrence := kernel.stationaryLawFromPositiveRecurrence
-  }
-  exact state_dependent_queue_stability_schema
-    assumptions
-    kernel.serviceDependsOnVacation_holds
-    kernel.routingDependsOnVacation_holds
-    kernel.irreducible_holds
-    kernel.fosterLyapunovDrift_holds
-    kernel.petiteSet_holds
+    (∫⁻ state, (vacationQueueLaw maxQueue).customerTime state ∂ kernel.stationary.toMeasure =
+      ∫⁻ state, (vacationQueueLaw maxQueue).sojournTime state ∂ kernel.stationary.toMeasure +
+        ∫⁻ state, (vacationQueueLaw maxQueue).openAge state ∂ kernel.stationary.toMeasure) := by
+  simpa using VacationQueueFamily.stationary_balance kernel.toFamily
 
 theorem VacationQueueKernelFamily.terminal_balance
     {maxQueue : ℕ}
     (kernel : VacationQueueKernelFamily maxQueue)
     (hNoVacation : ∀ᵐ state ∂ kernel.stationary.toMeasure, state.2 = false) :
-    kernel.positiveRecurrent /\
-      kernel.stationaryLawExists /\
-      (∫⁻ state, (vacationQueueLaw maxQueue).customerTime state ∂ kernel.stationary.toMeasure =
-        ∫⁻ state, (vacationQueueLaw maxQueue).sojournTime state ∂ kernel.stationary.toMeasure) := by
-  let assumptions : StateDependentQueueStabilityAssumptions (VacationQueueState maxQueue) := {
-    law := vacationQueueLaw maxQueue
-    stationaryMeasure := kernel.stationary.toMeasure
-    stateDependentService := kernel.serviceDependsOnVacation
-    stateDependentRouting := kernel.routingDependsOnVacation
-    irreducible := kernel.irreducible
-    fosterLyapunovDrift := kernel.fosterLyapunovDrift
-    petiteSet := kernel.petiteSet
-    positiveRecurrent := kernel.positiveRecurrent
-    stationaryLawExists := kernel.stationaryLawExists
-    positiveRecurrenceFromDrift := by
-      intro _ _ hIrreducible hDrift _
-      exact kernel.positiveRecurrenceFromDrift hIrreducible hDrift kernel.driftGapPositive
-    stationaryLawFromPositiveRecurrence := kernel.stationaryLawFromPositiveRecurrence
-  }
-  have hOpenAgeZero :
-      (vacationQueueLaw maxQueue).openAge =ᵐ[kernel.stationary.toMeasure] 0 := by
-    filter_upwards [hNoVacation] with state hState
-    change vacationOpenAge state = 0
-    simp [vacationOpenAge, boolOpenAge, hState]
-  exact state_dependent_queue_terminal_balance_schema
-    assumptions
-    hOpenAgeZero
-    kernel.serviceDependsOnVacation_holds
-    kernel.routingDependsOnVacation_holds
-    kernel.irreducible_holds
-    kernel.fosterLyapunovDrift_holds
-    kernel.petiteSet_holds
+    (∫⁻ state, (vacationQueueLaw maxQueue).customerTime state ∂ kernel.stationary.toMeasure =
+      ∫⁻ state, (vacationQueueLaw maxQueue).sojournTime state ∂ kernel.stationary.toMeasure) := by
+  simpa using VacationQueueFamily.terminal_balance kernel.toFamily hNoVacation
 
 noncomputable def retrialQueueLength {maxQueue maxOrbit : ℕ}
     (state : RetrialQueueState maxQueue maxOrbit) : ℝ≥0∞ :=
@@ -314,30 +266,6 @@ noncomputable def retrialQueueLaw (maxQueue maxOrbit : ℕ) :
     intro state
     rfl
 
-structure RetrialQueueFamily (maxQueue maxOrbit : ℕ) where
-  stationary : PMF (RetrialQueueState maxQueue maxOrbit)
-  serviceDependsOnOrbit : Prop
-  routingDependsOnOrbit : Prop
-  irreducible : Prop
-  fosterLyapunovDrift : Prop
-  petiteSet : Prop
-  serviceDependsOnOrbit_holds : serviceDependsOnOrbit
-  routingDependsOnOrbit_holds : routingDependsOnOrbit
-  irreducible_holds : irreducible
-  fosterLyapunovDrift_holds : fosterLyapunovDrift
-  petiteSet_holds : petiteSet
-  positiveRecurrent : Prop
-  stationaryLawExists : Prop
-  positiveRecurrenceFromDrift :
-    serviceDependsOnOrbit ->
-    routingDependsOnOrbit ->
-    irreducible ->
-    fosterLyapunovDrift ->
-    petiteSet ->
-    positiveRecurrent
-  stationaryLawFromPositiveRecurrence :
-    positiveRecurrent -> stationaryLawExists
-
 structure RetrialQueueKernelFamily (maxQueue maxOrbit : ℕ) where
   stationary : PMF (RetrialQueueState maxQueue maxOrbit)
   serviceKernel : RetrialQueueState maxQueue maxOrbit → ℝ
@@ -356,20 +284,14 @@ structure RetrialQueueKernelFamily (maxQueue maxOrbit : ℕ) where
       (nextState : RetrialQueueState maxQueue maxOrbit),
       routingKernel (queueLevel, orbitA) nextState ≠
         routingKernel (queueLevel, orbitB) nextState
-  irreducible : Prop
-  irreducible_holds : irreducible
+  bridgeState : RetrialQueueState maxQueue maxOrbit
+  toBridgePositive : ∀ state, 0 < routingKernel state bridgeState
+  fromBridgePositive : ∀ state, 0 < routingKernel bridgeState state
   driftBound :
     ∀ state ∉ smallSet, expectedLyapunov state ≤ lyapunov state - driftGap
   driftGapPositive : 0 < driftGap
-  positiveRecurrent : Prop
-  stationaryLawExists : Prop
-  positiveRecurrenceFromDrift :
-    irreducible ->
-    (∀ state ∉ smallSet, expectedLyapunov state ≤ lyapunov state - driftGap) ->
-    0 < driftGap ->
-    positiveRecurrent
-  stationaryLawFromPositiveRecurrence :
-    positiveRecurrent -> stationaryLawExists
+
+abbrev RetrialQueueFamily (maxQueue maxOrbit : ℕ) := RetrialQueueKernelFamily maxQueue maxOrbit
 
 def RetrialQueueKernelFamily.serviceDependsOnOrbit
     {maxQueue maxOrbit : ℕ}
@@ -396,6 +318,31 @@ def RetrialQueueKernelFamily.petiteSet
     (kernel : RetrialQueueKernelFamily maxQueue maxOrbit) : Prop :=
   kernel.smallSet.Finite
 
+def RetrialQueueKernelFamily.irreducible
+    {maxQueue maxOrbit : ℕ}
+    (kernel : RetrialQueueKernelFamily maxQueue maxOrbit) : Prop :=
+  KernelIrreducible kernel.routingKernel
+
+def RetrialQueueKernelFamily.positiveRecurrent
+    {maxQueue maxOrbit : ℕ}
+    (kernel : RetrialQueueKernelFamily maxQueue maxOrbit) : Prop :=
+  KernelPositiveRecurrent
+    kernel.routingKernel
+    kernel.expectedLyapunov
+    kernel.lyapunov
+    kernel.smallSet
+    kernel.driftGap
+
+abbrev RetrialQueueKernelFamily.stationaryLawExists
+    {maxQueue maxOrbit : ℕ}
+    (kernel : RetrialQueueKernelFamily maxQueue maxOrbit) : Prop :=
+  KernelStationaryLawExists
+    kernel.routingKernel
+    kernel.expectedLyapunov
+    kernel.lyapunov
+    kernel.smallSet
+    kernel.driftGap
+
 theorem RetrialQueueKernelFamily.serviceDependsOnOrbit_holds
     {maxQueue maxOrbit : ℕ}
     (kernel : RetrialQueueKernelFamily maxQueue maxOrbit) :
@@ -414,6 +361,16 @@ theorem RetrialQueueKernelFamily.fosterLyapunovDrift_holds
     kernel.fosterLyapunovDrift :=
   kernel.driftBound
 
+theorem RetrialQueueKernelFamily.irreducible_holds
+    {maxQueue maxOrbit : ℕ}
+    (kernel : RetrialQueueKernelFamily maxQueue maxOrbit) :
+    kernel.irreducible :=
+  kernelIrreducible_of_bridge
+    kernel.routingKernel
+    kernel.bridgeState
+    kernel.toBridgePositive
+    kernel.fromBridgePositive
+
 theorem RetrialQueueKernelFamily.petiteSet_holds
     {maxQueue maxOrbit : ℕ}
     (kernel : RetrialQueueKernelFamily maxQueue maxOrbit) :
@@ -421,27 +378,26 @@ theorem RetrialQueueKernelFamily.petiteSet_holds
   classical
   exact Set.toFinite kernel.smallSet
 
-noncomputable def RetrialQueueKernelFamily.toFamily
+theorem RetrialQueueKernelFamily.positiveRecurrent_holds
     {maxQueue maxOrbit : ℕ}
     (kernel : RetrialQueueKernelFamily maxQueue maxOrbit) :
-    RetrialQueueFamily maxQueue maxOrbit where
-  stationary := kernel.stationary
-  serviceDependsOnOrbit := kernel.serviceDependsOnOrbit
-  routingDependsOnOrbit := kernel.routingDependsOnOrbit
-  irreducible := kernel.irreducible
-  fosterLyapunovDrift := kernel.fosterLyapunovDrift
-  petiteSet := kernel.petiteSet
-  serviceDependsOnOrbit_holds := kernel.serviceDependsOnOrbit_holds
-  routingDependsOnOrbit_holds := kernel.routingDependsOnOrbit_holds
-  irreducible_holds := kernel.irreducible_holds
-  fosterLyapunovDrift_holds := kernel.fosterLyapunovDrift_holds
-  petiteSet_holds := kernel.petiteSet_holds
-  positiveRecurrent := kernel.positiveRecurrent
-  stationaryLawExists := kernel.stationaryLawExists
-  positiveRecurrenceFromDrift := by
-    intro _ _ hIrreducible hDrift _
-    exact kernel.positiveRecurrenceFromDrift hIrreducible hDrift kernel.driftGapPositive
-  stationaryLawFromPositiveRecurrence := kernel.stationaryLawFromPositiveRecurrence
+    kernel.positiveRecurrent :=
+  kernelPositiveRecurrent_of_drift
+    kernel.irreducible_holds
+    kernel.driftBound
+    kernel.driftGapPositive
+
+theorem RetrialQueueKernelFamily.stationaryLawExists_holds
+    {maxQueue maxOrbit : ℕ}
+    (kernel : RetrialQueueKernelFamily maxQueue maxOrbit) :
+    kernel.stationaryLawExists :=
+  kernelStationaryLawExists_of_positiveRecurrence kernel.positiveRecurrent_holds
+
+abbrev RetrialQueueKernelFamily.toFamily
+    {maxQueue maxOrbit : ℕ}
+    (kernel : RetrialQueueKernelFamily maxQueue maxOrbit) :
+    RetrialQueueFamily maxQueue maxOrbit :=
+  kernel
 
 noncomputable def RetrialQueueFamily.stabilityAssumptions
     {maxQueue maxOrbit : ℕ}
@@ -450,15 +406,19 @@ noncomputable def RetrialQueueFamily.stabilityAssumptions
       (RetrialQueueState maxQueue maxOrbit) where
   law := retrialQueueLaw maxQueue maxOrbit
   stationaryMeasure := family.stationary.toMeasure
+  routingKernel := family.routingKernel
+  lyapunov := family.lyapunov
+  expectedLyapunov := family.expectedLyapunov
+  smallSet := family.smallSet
+  driftGap := family.driftGap
   stateDependentService := family.serviceDependsOnOrbit
   stateDependentRouting := family.routingDependsOnOrbit
-  irreducible := family.irreducible
-  fosterLyapunovDrift := family.fosterLyapunovDrift
-  petiteSet := family.petiteSet
-  positiveRecurrent := family.positiveRecurrent
-  stationaryLawExists := family.stationaryLawExists
-  positiveRecurrenceFromDrift := family.positiveRecurrenceFromDrift
-  stationaryLawFromPositiveRecurrence := family.stationaryLawFromPositiveRecurrence
+  bridgeState := family.bridgeState
+  toBridgePositive := family.toBridgePositive
+  fromBridgePositive := family.fromBridgePositive
+  driftBound := family.driftBound
+  driftGapPositive := family.driftGapPositive
+  smallSetFinite := Set.toFinite family.smallSet
 
 theorem retrial_openAge_zero_of_empty_orbit_ae
     {maxQueue maxOrbit : ℕ}
@@ -472,12 +432,10 @@ theorem retrial_openAge_zero_of_empty_orbit_ae
 theorem RetrialQueueFamily.stationary_balance
     {maxQueue maxOrbit : ℕ}
     (family : RetrialQueueFamily maxQueue maxOrbit) :
-    family.positiveRecurrent /\
-      family.stationaryLawExists /\
-      (∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).customerTime state ∂ family.stationary.toMeasure =
-        ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).sojournTime state ∂ family.stationary.toMeasure +
-          ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).openAge state ∂ family.stationary.toMeasure) := by
-  exact state_dependent_queue_stability_schema
+    (∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).customerTime state ∂ family.stationary.toMeasure =
+      ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).sojournTime state ∂ family.stationary.toMeasure +
+        ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).openAge state ∂ family.stationary.toMeasure) := by
+  exact state_dependent_queue_balance_from_drift_schema
     family.stabilityAssumptions
     family.serviceDependsOnOrbit_holds
     family.routingDependsOnOrbit_holds
@@ -489,11 +447,9 @@ theorem RetrialQueueFamily.terminal_balance
     {maxQueue maxOrbit : ℕ}
     (family : RetrialQueueFamily maxQueue maxOrbit)
     (hEmptyOrbit : ∀ᵐ state ∂ family.stationary.toMeasure, (state.2 : ℕ) = 0) :
-    family.positiveRecurrent /\
-      family.stationaryLawExists /\
-      (∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).customerTime state ∂ family.stationary.toMeasure =
-        ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).sojournTime state ∂ family.stationary.toMeasure) := by
-  exact state_dependent_queue_terminal_balance_schema
+    (∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).customerTime state ∂ family.stationary.toMeasure =
+      ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).sojournTime state ∂ family.stationary.toMeasure) := by
+  exact state_dependent_queue_terminal_balance_from_drift_schema
     family.stabilityAssumptions
     (retrial_openAge_zero_of_empty_orbit_ae family hEmptyOrbit)
     family.serviceDependsOnOrbit_holds
@@ -505,21 +461,17 @@ theorem RetrialQueueFamily.terminal_balance
 theorem RetrialQueueKernelFamily.stationary_balance
     {maxQueue maxOrbit : ℕ}
     (kernel : RetrialQueueKernelFamily maxQueue maxOrbit) :
-    kernel.positiveRecurrent /\
-      kernel.stationaryLawExists /\
-      (∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).customerTime state ∂ kernel.stationary.toMeasure =
-        ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).sojournTime state ∂ kernel.stationary.toMeasure +
-          ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).openAge state ∂ kernel.stationary.toMeasure) := by
+    (∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).customerTime state ∂ kernel.stationary.toMeasure =
+      ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).sojournTime state ∂ kernel.stationary.toMeasure +
+        ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).openAge state ∂ kernel.stationary.toMeasure) := by
   simpa using RetrialQueueFamily.stationary_balance kernel.toFamily
 
 theorem RetrialQueueKernelFamily.terminal_balance
     {maxQueue maxOrbit : ℕ}
     (kernel : RetrialQueueKernelFamily maxQueue maxOrbit)
     (hEmptyOrbit : ∀ᵐ state ∂ kernel.stationary.toMeasure, (state.2 : ℕ) = 0) :
-    kernel.positiveRecurrent /\
-      kernel.stationaryLawExists /\
-      (∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).customerTime state ∂ kernel.stationary.toMeasure =
-        ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).sojournTime state ∂ kernel.stationary.toMeasure) := by
+    (∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).customerTime state ∂ kernel.stationary.toMeasure =
+      ∫⁻ state, (retrialQueueLaw maxQueue maxOrbit).sojournTime state ∂ kernel.stationary.toMeasure) := by
   simpa using RetrialQueueFamily.terminal_balance kernel.toFamily hEmptyOrbit
 
 noncomputable def renegingQueueLength {maxQueue maxPatience : ℕ}
@@ -767,30 +719,6 @@ theorem linearRenegingMeanQueueSummable
     ((_root_.summable_nat_add_iff (f := fun n : ℕ => (n : ℝ) * linearRenegingMass arrival μ γ n) 1).1
       hShifted)
 
-structure RenegingQueueFamily (maxQueue maxPatience : ℕ) where
-  stationary : PMF (RenegingQueueState maxQueue maxPatience)
-  serviceDependsOnPatience : Prop
-  routingDependsOnPatience : Prop
-  irreducible : Prop
-  fosterLyapunovDrift : Prop
-  petiteSet : Prop
-  serviceDependsOnPatience_holds : serviceDependsOnPatience
-  routingDependsOnPatience_holds : routingDependsOnPatience
-  irreducible_holds : irreducible
-  fosterLyapunovDrift_holds : fosterLyapunovDrift
-  petiteSet_holds : petiteSet
-  positiveRecurrent : Prop
-  stationaryLawExists : Prop
-  positiveRecurrenceFromDrift :
-    serviceDependsOnPatience ->
-    routingDependsOnPatience ->
-    irreducible ->
-    fosterLyapunovDrift ->
-    petiteSet ->
-    positiveRecurrent
-  stationaryLawFromPositiveRecurrence :
-    positiveRecurrent -> stationaryLawExists
-
 structure RenegingQueueKernelFamily (maxQueue maxPatience : ℕ) where
   stationary : PMF (RenegingQueueState maxQueue maxPatience)
   serviceKernel : RenegingQueueState maxQueue maxPatience → ℝ
@@ -809,20 +737,14 @@ structure RenegingQueueKernelFamily (maxQueue maxPatience : ℕ) where
       (nextState : RenegingQueueState maxQueue maxPatience),
       routingKernel (queueLevel, patienceA) nextState ≠
         routingKernel (queueLevel, patienceB) nextState
-  irreducible : Prop
-  irreducible_holds : irreducible
+  bridgeState : RenegingQueueState maxQueue maxPatience
+  toBridgePositive : ∀ state, 0 < routingKernel state bridgeState
+  fromBridgePositive : ∀ state, 0 < routingKernel bridgeState state
   driftBound :
     ∀ state ∉ smallSet, expectedLyapunov state ≤ lyapunov state - driftGap
   driftGapPositive : 0 < driftGap
-  positiveRecurrent : Prop
-  stationaryLawExists : Prop
-  positiveRecurrenceFromDrift :
-    irreducible ->
-    (∀ state ∉ smallSet, expectedLyapunov state ≤ lyapunov state - driftGap) ->
-    0 < driftGap ->
-    positiveRecurrent
-  stationaryLawFromPositiveRecurrence :
-    positiveRecurrent -> stationaryLawExists
+
+abbrev RenegingQueueFamily (maxQueue maxPatience : ℕ) := RenegingQueueKernelFamily maxQueue maxPatience
 
 def RenegingQueueKernelFamily.serviceDependsOnPatience
     {maxQueue maxPatience : ℕ}
@@ -849,6 +771,31 @@ def RenegingQueueKernelFamily.petiteSet
     (kernel : RenegingQueueKernelFamily maxQueue maxPatience) : Prop :=
   kernel.smallSet.Finite
 
+def RenegingQueueKernelFamily.irreducible
+    {maxQueue maxPatience : ℕ}
+    (kernel : RenegingQueueKernelFamily maxQueue maxPatience) : Prop :=
+  KernelIrreducible kernel.routingKernel
+
+def RenegingQueueKernelFamily.positiveRecurrent
+    {maxQueue maxPatience : ℕ}
+    (kernel : RenegingQueueKernelFamily maxQueue maxPatience) : Prop :=
+  KernelPositiveRecurrent
+    kernel.routingKernel
+    kernel.expectedLyapunov
+    kernel.lyapunov
+    kernel.smallSet
+    kernel.driftGap
+
+abbrev RenegingQueueKernelFamily.stationaryLawExists
+    {maxQueue maxPatience : ℕ}
+    (kernel : RenegingQueueKernelFamily maxQueue maxPatience) : Prop :=
+  KernelStationaryLawExists
+    kernel.routingKernel
+    kernel.expectedLyapunov
+    kernel.lyapunov
+    kernel.smallSet
+    kernel.driftGap
+
 theorem RenegingQueueKernelFamily.serviceDependsOnPatience_holds
     {maxQueue maxPatience : ℕ}
     (kernel : RenegingQueueKernelFamily maxQueue maxPatience) :
@@ -867,6 +814,16 @@ theorem RenegingQueueKernelFamily.fosterLyapunovDrift_holds
     kernel.fosterLyapunovDrift :=
   kernel.driftBound
 
+theorem RenegingQueueKernelFamily.irreducible_holds
+    {maxQueue maxPatience : ℕ}
+    (kernel : RenegingQueueKernelFamily maxQueue maxPatience) :
+    kernel.irreducible :=
+  kernelIrreducible_of_bridge
+    kernel.routingKernel
+    kernel.bridgeState
+    kernel.toBridgePositive
+    kernel.fromBridgePositive
+
 theorem RenegingQueueKernelFamily.petiteSet_holds
     {maxQueue maxPatience : ℕ}
     (kernel : RenegingQueueKernelFamily maxQueue maxPatience) :
@@ -874,27 +831,26 @@ theorem RenegingQueueKernelFamily.petiteSet_holds
   classical
   exact Set.toFinite kernel.smallSet
 
-noncomputable def RenegingQueueKernelFamily.toFamily
+theorem RenegingQueueKernelFamily.positiveRecurrent_holds
     {maxQueue maxPatience : ℕ}
     (kernel : RenegingQueueKernelFamily maxQueue maxPatience) :
-    RenegingQueueFamily maxQueue maxPatience where
-  stationary := kernel.stationary
-  serviceDependsOnPatience := kernel.serviceDependsOnPatience
-  routingDependsOnPatience := kernel.routingDependsOnPatience
-  irreducible := kernel.irreducible
-  fosterLyapunovDrift := kernel.fosterLyapunovDrift
-  petiteSet := kernel.petiteSet
-  serviceDependsOnPatience_holds := kernel.serviceDependsOnPatience_holds
-  routingDependsOnPatience_holds := kernel.routingDependsOnPatience_holds
-  irreducible_holds := kernel.irreducible_holds
-  fosterLyapunovDrift_holds := kernel.fosterLyapunovDrift_holds
-  petiteSet_holds := kernel.petiteSet_holds
-  positiveRecurrent := kernel.positiveRecurrent
-  stationaryLawExists := kernel.stationaryLawExists
-  positiveRecurrenceFromDrift := by
-    intro _ _ hIrreducible hDrift _
-    exact kernel.positiveRecurrenceFromDrift hIrreducible hDrift kernel.driftGapPositive
-  stationaryLawFromPositiveRecurrence := kernel.stationaryLawFromPositiveRecurrence
+    kernel.positiveRecurrent :=
+  kernelPositiveRecurrent_of_drift
+    kernel.irreducible_holds
+    kernel.driftBound
+    kernel.driftGapPositive
+
+theorem RenegingQueueKernelFamily.stationaryLawExists_holds
+    {maxQueue maxPatience : ℕ}
+    (kernel : RenegingQueueKernelFamily maxQueue maxPatience) :
+    kernel.stationaryLawExists :=
+  kernelStationaryLawExists_of_positiveRecurrence kernel.positiveRecurrent_holds
+
+abbrev RenegingQueueKernelFamily.toFamily
+    {maxQueue maxPatience : ℕ}
+    (kernel : RenegingQueueKernelFamily maxQueue maxPatience) :
+    RenegingQueueFamily maxQueue maxPatience :=
+  kernel
 
 noncomputable def RenegingQueueFamily.stabilityAssumptions
     {maxQueue maxPatience : ℕ}
@@ -903,15 +859,19 @@ noncomputable def RenegingQueueFamily.stabilityAssumptions
       (RenegingQueueState maxQueue maxPatience) where
   law := renegingQueueLaw maxQueue maxPatience
   stationaryMeasure := family.stationary.toMeasure
+  routingKernel := family.routingKernel
+  lyapunov := family.lyapunov
+  expectedLyapunov := family.expectedLyapunov
+  smallSet := family.smallSet
+  driftGap := family.driftGap
   stateDependentService := family.serviceDependsOnPatience
   stateDependentRouting := family.routingDependsOnPatience
-  irreducible := family.irreducible
-  fosterLyapunovDrift := family.fosterLyapunovDrift
-  petiteSet := family.petiteSet
-  positiveRecurrent := family.positiveRecurrent
-  stationaryLawExists := family.stationaryLawExists
-  positiveRecurrenceFromDrift := family.positiveRecurrenceFromDrift
-  stationaryLawFromPositiveRecurrence := family.stationaryLawFromPositiveRecurrence
+  bridgeState := family.bridgeState
+  toBridgePositive := family.toBridgePositive
+  fromBridgePositive := family.fromBridgePositive
+  driftBound := family.driftBound
+  driftGapPositive := family.driftGapPositive
+  smallSetFinite := Set.toFinite family.smallSet
 
 theorem reneging_openAge_zero_of_no_impatience_ae
     {maxQueue maxPatience : ℕ}
@@ -925,12 +885,10 @@ theorem reneging_openAge_zero_of_no_impatience_ae
 theorem RenegingQueueFamily.stationary_balance
     {maxQueue maxPatience : ℕ}
     (family : RenegingQueueFamily maxQueue maxPatience) :
-    family.positiveRecurrent /\
-      family.stationaryLawExists /\
-      (∫⁻ state, (renegingQueueLaw maxQueue maxPatience).customerTime state ∂ family.stationary.toMeasure =
-        ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).sojournTime state ∂ family.stationary.toMeasure +
-          ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).openAge state ∂ family.stationary.toMeasure) := by
-  exact state_dependent_queue_stability_schema
+    (∫⁻ state, (renegingQueueLaw maxQueue maxPatience).customerTime state ∂ family.stationary.toMeasure =
+      ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).sojournTime state ∂ family.stationary.toMeasure +
+        ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).openAge state ∂ family.stationary.toMeasure) := by
+  exact state_dependent_queue_balance_from_drift_schema
     family.stabilityAssumptions
     family.serviceDependsOnPatience_holds
     family.routingDependsOnPatience_holds
@@ -942,11 +900,9 @@ theorem RenegingQueueFamily.terminal_balance
     {maxQueue maxPatience : ℕ}
     (family : RenegingQueueFamily maxQueue maxPatience)
     (hNoImpatience : ∀ᵐ state ∂ family.stationary.toMeasure, (state.2 : ℕ) = 0) :
-    family.positiveRecurrent /\
-      family.stationaryLawExists /\
-      (∫⁻ state, (renegingQueueLaw maxQueue maxPatience).customerTime state ∂ family.stationary.toMeasure =
-        ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).sojournTime state ∂ family.stationary.toMeasure) := by
-  exact state_dependent_queue_terminal_balance_schema
+    (∫⁻ state, (renegingQueueLaw maxQueue maxPatience).customerTime state ∂ family.stationary.toMeasure =
+      ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).sojournTime state ∂ family.stationary.toMeasure) := by
+  exact state_dependent_queue_terminal_balance_from_drift_schema
     family.stabilityAssumptions
     (reneging_openAge_zero_of_no_impatience_ae family hNoImpatience)
     family.serviceDependsOnPatience_holds
@@ -958,26 +914,22 @@ theorem RenegingQueueFamily.terminal_balance
 theorem RenegingQueueKernelFamily.stationary_balance
     {maxQueue maxPatience : ℕ}
     (kernel : RenegingQueueKernelFamily maxQueue maxPatience) :
-    kernel.positiveRecurrent /\
-      kernel.stationaryLawExists /\
-      (∫⁻ state, (renegingQueueLaw maxQueue maxPatience).customerTime state
-          ∂ kernel.stationary.toMeasure =
-        ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).sojournTime state
-            ∂ kernel.stationary.toMeasure +
-          ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).openAge state
-            ∂ kernel.stationary.toMeasure) := by
+    (∫⁻ state, (renegingQueueLaw maxQueue maxPatience).customerTime state
+        ∂ kernel.stationary.toMeasure =
+      ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).sojournTime state
+          ∂ kernel.stationary.toMeasure +
+        ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).openAge state
+          ∂ kernel.stationary.toMeasure) := by
   simpa using RenegingQueueFamily.stationary_balance kernel.toFamily
 
 theorem RenegingQueueKernelFamily.terminal_balance
     {maxQueue maxPatience : ℕ}
     (kernel : RenegingQueueKernelFamily maxQueue maxPatience)
     (hNoImpatience : ∀ᵐ state ∂ kernel.stationary.toMeasure, (state.2 : ℕ) = 0) :
-    kernel.positiveRecurrent /\
-      kernel.stationaryLawExists /\
-      (∫⁻ state, (renegingQueueLaw maxQueue maxPatience).customerTime state
-          ∂ kernel.stationary.toMeasure =
-        ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).sojournTime state
-          ∂ kernel.stationary.toMeasure) := by
+    (∫⁻ state, (renegingQueueLaw maxQueue maxPatience).customerTime state
+        ∂ kernel.stationary.toMeasure =
+      ∫⁻ state, (renegingQueueLaw maxQueue maxPatience).sojournTime state
+        ∂ kernel.stationary.toMeasure) := by
   simpa using RenegingQueueFamily.terminal_balance kernel.toFamily hNoImpatience
 
 noncomputable def adaptiveRoutingQueueLength {maxLeft maxRight : ℕ}
@@ -1004,30 +956,6 @@ noncomputable def adaptiveRoutingQueueLaw (maxLeft maxRight : ℕ) :
     intro state
     rfl
 
-structure AdaptiveRoutingQueueFamily (maxLeft maxRight : ℕ) where
-  stationary : PMF (AdaptiveRoutingQueueState maxLeft maxRight)
-  serviceDependsOnCongestion : Prop
-  routingDependsOnCongestion : Prop
-  irreducible : Prop
-  fosterLyapunovDrift : Prop
-  petiteSet : Prop
-  serviceDependsOnCongestion_holds : serviceDependsOnCongestion
-  routingDependsOnCongestion_holds : routingDependsOnCongestion
-  irreducible_holds : irreducible
-  fosterLyapunovDrift_holds : fosterLyapunovDrift
-  petiteSet_holds : petiteSet
-  positiveRecurrent : Prop
-  stationaryLawExists : Prop
-  positiveRecurrenceFromDrift :
-    serviceDependsOnCongestion ->
-    routingDependsOnCongestion ->
-    irreducible ->
-    fosterLyapunovDrift ->
-    petiteSet ->
-    positiveRecurrent
-  stationaryLawFromPositiveRecurrence :
-    positiveRecurrent -> stationaryLawExists
-
 structure AdaptiveRoutingQueueKernelFamily (maxLeft maxRight : ℕ) where
   stationary : PMF (AdaptiveRoutingQueueState maxLeft maxRight)
   serviceKernel : AdaptiveRoutingQueueState maxLeft maxRight → ℝ
@@ -1044,20 +972,14 @@ structure AdaptiveRoutingQueueKernelFamily (maxLeft maxRight : ℕ) where
   routingDependsWitness :
     ∃ stateA stateB nextState : AdaptiveRoutingQueueState maxLeft maxRight,
       routingKernel stateA nextState ≠ routingKernel stateB nextState
-  irreducible : Prop
-  irreducible_holds : irreducible
+  bridgeState : AdaptiveRoutingQueueState maxLeft maxRight
+  toBridgePositive : ∀ state, 0 < routingKernel state bridgeState
+  fromBridgePositive : ∀ state, 0 < routingKernel bridgeState state
   driftBound :
     ∀ state ∉ smallSet, expectedLyapunov state ≤ lyapunov state - driftGap
   driftGapPositive : 0 < driftGap
-  positiveRecurrent : Prop
-  stationaryLawExists : Prop
-  positiveRecurrenceFromDrift :
-    irreducible ->
-    (∀ state ∉ smallSet, expectedLyapunov state ≤ lyapunov state - driftGap) ->
-    0 < driftGap ->
-    positiveRecurrent
-  stationaryLawFromPositiveRecurrence :
-    positiveRecurrent -> stationaryLawExists
+
+abbrev AdaptiveRoutingQueueFamily (maxLeft maxRight : ℕ) := AdaptiveRoutingQueueKernelFamily maxLeft maxRight
 
 def AdaptiveRoutingQueueKernelFamily.serviceDependsOnCongestion
     {maxLeft maxRight : ℕ}
@@ -1081,6 +1003,31 @@ def AdaptiveRoutingQueueKernelFamily.petiteSet
     (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight) : Prop :=
   kernel.smallSet.Finite
 
+def AdaptiveRoutingQueueKernelFamily.irreducible
+    {maxLeft maxRight : ℕ}
+    (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight) : Prop :=
+  KernelIrreducible kernel.routingKernel
+
+def AdaptiveRoutingQueueKernelFamily.positiveRecurrent
+    {maxLeft maxRight : ℕ}
+    (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight) : Prop :=
+  KernelPositiveRecurrent
+    kernel.routingKernel
+    kernel.expectedLyapunov
+    kernel.lyapunov
+    kernel.smallSet
+    kernel.driftGap
+
+abbrev AdaptiveRoutingQueueKernelFamily.stationaryLawExists
+    {maxLeft maxRight : ℕ}
+    (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight) : Prop :=
+  KernelStationaryLawExists
+    kernel.routingKernel
+    kernel.expectedLyapunov
+    kernel.lyapunov
+    kernel.smallSet
+    kernel.driftGap
+
 theorem AdaptiveRoutingQueueKernelFamily.serviceDependsOnCongestion_holds
     {maxLeft maxRight : ℕ}
     (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight) :
@@ -1099,6 +1046,16 @@ theorem AdaptiveRoutingQueueKernelFamily.fosterLyapunovDrift_holds
     kernel.fosterLyapunovDrift :=
   kernel.driftBound
 
+theorem AdaptiveRoutingQueueKernelFamily.irreducible_holds
+    {maxLeft maxRight : ℕ}
+    (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight) :
+    kernel.irreducible :=
+  kernelIrreducible_of_bridge
+    kernel.routingKernel
+    kernel.bridgeState
+    kernel.toBridgePositive
+    kernel.fromBridgePositive
+
 theorem AdaptiveRoutingQueueKernelFamily.petiteSet_holds
     {maxLeft maxRight : ℕ}
     (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight) :
@@ -1106,27 +1063,26 @@ theorem AdaptiveRoutingQueueKernelFamily.petiteSet_holds
   classical
   exact Set.toFinite kernel.smallSet
 
-noncomputable def AdaptiveRoutingQueueKernelFamily.toFamily
+theorem AdaptiveRoutingQueueKernelFamily.positiveRecurrent_holds
     {maxLeft maxRight : ℕ}
     (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight) :
-    AdaptiveRoutingQueueFamily maxLeft maxRight where
-  stationary := kernel.stationary
-  serviceDependsOnCongestion := kernel.serviceDependsOnCongestion
-  routingDependsOnCongestion := kernel.routingDependsOnCongestion
-  irreducible := kernel.irreducible
-  fosterLyapunovDrift := kernel.fosterLyapunovDrift
-  petiteSet := kernel.petiteSet
-  serviceDependsOnCongestion_holds := kernel.serviceDependsOnCongestion_holds
-  routingDependsOnCongestion_holds := kernel.routingDependsOnCongestion_holds
-  irreducible_holds := kernel.irreducible_holds
-  fosterLyapunovDrift_holds := kernel.fosterLyapunovDrift_holds
-  petiteSet_holds := kernel.petiteSet_holds
-  positiveRecurrent := kernel.positiveRecurrent
-  stationaryLawExists := kernel.stationaryLawExists
-  positiveRecurrenceFromDrift := by
-    intro _ _ hIrreducible hDrift _
-    exact kernel.positiveRecurrenceFromDrift hIrreducible hDrift kernel.driftGapPositive
-  stationaryLawFromPositiveRecurrence := kernel.stationaryLawFromPositiveRecurrence
+    kernel.positiveRecurrent :=
+  kernelPositiveRecurrent_of_drift
+    kernel.irreducible_holds
+    kernel.driftBound
+    kernel.driftGapPositive
+
+theorem AdaptiveRoutingQueueKernelFamily.stationaryLawExists_holds
+    {maxLeft maxRight : ℕ}
+    (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight) :
+    kernel.stationaryLawExists :=
+  kernelStationaryLawExists_of_positiveRecurrence kernel.positiveRecurrent_holds
+
+abbrev AdaptiveRoutingQueueKernelFamily.toFamily
+    {maxLeft maxRight : ℕ}
+    (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight) :
+    AdaptiveRoutingQueueFamily maxLeft maxRight :=
+  kernel
 
 noncomputable def AdaptiveRoutingQueueFamily.stabilityAssumptions
     {maxLeft maxRight : ℕ}
@@ -1135,15 +1091,19 @@ noncomputable def AdaptiveRoutingQueueFamily.stabilityAssumptions
       (AdaptiveRoutingQueueState maxLeft maxRight) where
   law := adaptiveRoutingQueueLaw maxLeft maxRight
   stationaryMeasure := family.stationary.toMeasure
+  routingKernel := family.routingKernel
+  lyapunov := family.lyapunov
+  expectedLyapunov := family.expectedLyapunov
+  smallSet := family.smallSet
+  driftGap := family.driftGap
   stateDependentService := family.serviceDependsOnCongestion
   stateDependentRouting := family.routingDependsOnCongestion
-  irreducible := family.irreducible
-  fosterLyapunovDrift := family.fosterLyapunovDrift
-  petiteSet := family.petiteSet
-  positiveRecurrent := family.positiveRecurrent
-  stationaryLawExists := family.stationaryLawExists
-  positiveRecurrenceFromDrift := family.positiveRecurrenceFromDrift
-  stationaryLawFromPositiveRecurrence := family.stationaryLawFromPositiveRecurrence
+  bridgeState := family.bridgeState
+  toBridgePositive := family.toBridgePositive
+  fromBridgePositive := family.fromBridgePositive
+  driftBound := family.driftBound
+  driftGapPositive := family.driftGapPositive
+  smallSetFinite := Set.toFinite family.smallSet
 
 theorem adaptiveRouting_openAge_zero_of_static_policy_ae
     {maxLeft maxRight : ℕ}
@@ -1157,15 +1117,13 @@ theorem adaptiveRouting_openAge_zero_of_static_policy_ae
 theorem AdaptiveRoutingQueueFamily.stationary_balance
     {maxLeft maxRight : ℕ}
     (family : AdaptiveRoutingQueueFamily maxLeft maxRight) :
-    family.positiveRecurrent /\
-      family.stationaryLawExists /\
-      (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
-          ∂ family.stationary.toMeasure =
-        ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
-            ∂ family.stationary.toMeasure +
-          ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).openAge state
-            ∂ family.stationary.toMeasure) := by
-  exact state_dependent_queue_stability_schema
+    (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
+        ∂ family.stationary.toMeasure =
+      ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
+          ∂ family.stationary.toMeasure +
+        ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).openAge state
+          ∂ family.stationary.toMeasure) := by
+  exact state_dependent_queue_balance_from_drift_schema
     family.stabilityAssumptions
     family.serviceDependsOnCongestion_holds
     family.routingDependsOnCongestion_holds
@@ -1177,13 +1135,11 @@ theorem AdaptiveRoutingQueueFamily.terminal_balance
     {maxLeft maxRight : ℕ}
     (family : AdaptiveRoutingQueueFamily maxLeft maxRight)
     (hStaticPolicy : ∀ᵐ state ∂ family.stationary.toMeasure, state.2.2 = false) :
-    family.positiveRecurrent /\
-      family.stationaryLawExists /\
-      (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
-          ∂ family.stationary.toMeasure =
-        ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
-          ∂ family.stationary.toMeasure) := by
-  exact state_dependent_queue_terminal_balance_schema
+    (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
+        ∂ family.stationary.toMeasure =
+      ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
+        ∂ family.stationary.toMeasure) := by
+  exact state_dependent_queue_terminal_balance_from_drift_schema
     family.stabilityAssumptions
     (adaptiveRouting_openAge_zero_of_static_policy_ae family hStaticPolicy)
     family.serviceDependsOnCongestion_holds
@@ -1195,26 +1151,22 @@ theorem AdaptiveRoutingQueueFamily.terminal_balance
 theorem AdaptiveRoutingQueueKernelFamily.stationary_balance
     {maxLeft maxRight : ℕ}
     (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight) :
-    kernel.positiveRecurrent /\
-      kernel.stationaryLawExists /\
-      (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
-          ∂ kernel.stationary.toMeasure =
-        ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
-            ∂ kernel.stationary.toMeasure +
-          ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).openAge state
-            ∂ kernel.stationary.toMeasure) := by
+    (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
+        ∂ kernel.stationary.toMeasure =
+      ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
+          ∂ kernel.stationary.toMeasure +
+        ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).openAge state
+          ∂ kernel.stationary.toMeasure) := by
   simpa using AdaptiveRoutingQueueFamily.stationary_balance kernel.toFamily
 
 theorem AdaptiveRoutingQueueKernelFamily.terminal_balance
     {maxLeft maxRight : ℕ}
     (kernel : AdaptiveRoutingQueueKernelFamily maxLeft maxRight)
     (hStaticPolicy : ∀ᵐ state ∂ kernel.stationary.toMeasure, state.2.2 = false) :
-    kernel.positiveRecurrent /\
-      kernel.stationaryLawExists /\
-      (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
-          ∂ kernel.stationary.toMeasure =
-        ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
-          ∂ kernel.stationary.toMeasure) := by
+    (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
+        ∂ kernel.stationary.toMeasure =
+      ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
+        ∂ kernel.stationary.toMeasure) := by
   simpa using AdaptiveRoutingQueueFamily.terminal_balance kernel.toFamily hStaticPolicy
 
 /-!
@@ -1471,20 +1423,6 @@ structure ResidualKernelAssumptions (maxLeft maxRight : ℕ) where
   stationary : PMF (AdaptiveRoutingQueueState maxLeft maxRight)
   serviceGap : params.serviceLeft ≠ params.serviceRight
   reroutePositive : 0 < params.rerouteProb
-  irreducible : Prop
-  irreducible_holds : irreducible
-  positiveRecurrent : Prop
-  stationaryLawExists : Prop
-  positiveRecurrenceFromDrift :
-    irreducible ->
-    (∀ state : AdaptiveRoutingQueueState maxLeft maxRight,
-        state ∉ (smallSet (maxLeft := maxLeft) (maxRight := maxRight)) ->
-          expectedLyapunov (maxLeft := maxLeft) (maxRight := maxRight) params state ≤
-            lyapunov (maxLeft := maxLeft) (maxRight := maxRight) state - params.driftGap) ->
-    0 < params.driftGap ->
-    positiveRecurrent
-  stationaryLawFromPositiveRecurrence :
-    positiveRecurrent -> stationaryLawExists
 
 def lowCongestionState {maxLeft maxRight : ℕ} :
     AdaptiveRoutingQueueState maxLeft maxRight :=
@@ -1502,7 +1440,27 @@ noncomputable def routingKernel {maxLeft maxRight : ℕ} :
     AdaptiveRoutingQueueState maxLeft maxRight →
       AdaptiveRoutingQueueState maxLeft maxRight → ℝ
   | state, nextState =>
-      if nextState = highCongestionState then adaptiveRouting params state false true else 0
+      params.rerouteProb / 2 +
+        if nextState = highCongestionState ∧ adaptiveSignal state then params.rerouteProb / 2 else 0
+
+theorem routingKernel_positive
+    {maxLeft maxRight : ℕ}
+    (assumptions : ResidualKernelAssumptions params maxLeft maxRight)
+    (state nextState : AdaptiveRoutingQueueState maxLeft maxRight) :
+    0 < routingKernel params state nextState := by
+  have hBase : 0 < params.rerouteProb / 2 := by
+    have hTwoPos : (0 : ℝ) < 2 := by norm_num
+    exact div_pos assumptions.reroutePositive hTwoPos
+  unfold routingKernel
+  have hExtraNonneg :
+      0 ≤
+        (if nextState = highCongestionState ∧ adaptiveSignal state then
+          params.rerouteProb / 2
+        else 0) := by
+    by_cases hBoost : nextState = highCongestionState ∧ adaptiveSignal state
+    · simp [hBoost, le_of_lt hBase]
+    · simp [hBoost]
+  linarith
 
 noncomputable def kernelFamily
     {maxLeft maxRight : ℕ}
@@ -1511,7 +1469,7 @@ noncomputable def kernelFamily
   stationary := assumptions.stationary
   serviceKernel := fun state => if state.2.2 then params.serviceRight else params.serviceLeft
   routingKernel := fun state nextState =>
-    if nextState = highCongestionState then adaptiveRouting params state false true else 0
+    routingKernel params state nextState
   lyapunov := fun state => lyapunov state
   expectedLyapunov := fun state => expectedLyapunov params state
   smallSet := smallSet
@@ -1521,19 +1479,29 @@ noncomputable def kernelFamily
     simpa [serviceKernel, lowCongestionState, highCongestionState] using assumptions.serviceGap
   routingDependsWitness := by
     refine ⟨lowCongestionState, highCongestionState, highCongestionState, ?_⟩
-    have hRerouteNe : params.rerouteProb ≠ 0 := ne_of_gt assumptions.reroutePositive
-    simp [adaptiveRouting, adaptiveSignal, lowCongestionState, highCongestionState,
-      eq_comm, hRerouteNe]
-  irreducible := assumptions.irreducible
-  irreducible_holds := assumptions.irreducible_holds
+    simp [routingKernel, adaptiveSignal, lowCongestionState, highCongestionState]
+    nlinarith [assumptions.reroutePositive]
+  bridgeState := highCongestionState
+  toBridgePositive := by
+    intro state
+    exact routingKernel_positive params assumptions state highCongestionState
+  fromBridgePositive := by
+    intro state
+    exact routingKernel_positive params assumptions highCongestionState state
   driftBound := by
     intro state hState
     exact expectedLyapunov_drift params state hState
   driftGapPositive := driftGap_positive params
-  positiveRecurrent := assumptions.positiveRecurrent
-  stationaryLawExists := assumptions.stationaryLawExists
-  positiveRecurrenceFromDrift := assumptions.positiveRecurrenceFromDrift
-  stationaryLawFromPositiveRecurrence := assumptions.stationaryLawFromPositiveRecurrence
+
+abbrev ResidualKernelAssumptions.positiveRecurrent
+    {maxLeft maxRight : ℕ}
+    (assumptions : ResidualKernelAssumptions params maxLeft maxRight) : Prop :=
+  (kernelFamily params assumptions).positiveRecurrent
+
+abbrev ResidualKernelAssumptions.stationaryLawExists
+    {maxLeft maxRight : ℕ}
+    (assumptions : ResidualKernelAssumptions params maxLeft maxRight) : Prop :=
+  (kernelFamily params assumptions).stationaryLawExists
 
 noncomputable def adaptiveSupremumAssumptions
     {maxLeft maxRight : ℕ}
@@ -1546,21 +1514,23 @@ noncomputable def adaptiveSupremumAssumptions
   supremumKernelSubstochastic := ∀ i, ∑ j, params.ceilingTrafficData.routing i j ≤ 1
   supremumKernelContractive := spectralRadius ℝ params.ceilingTrafficData.routingMatrix < 1
   spectralCandidateStable := ∀ i, params.candidate i < params.service i
-  driftFromSupremumComparison := by
-    intro _ _ _ _
-    exact (kernelFamily params assumptions).fosterLyapunovDrift_holds
+  ceilingExpectedLyapunov := (kernelFamily params assumptions).expectedLyapunov
+  expectedLyapunovLeCeilingExpected := by
+    intro _ state
+    exact le_rfl
+  ceilingDriftBound := by
+    intro _ _ _ state hState
+    exact (kernelFamily params assumptions).fosterLyapunovDrift_holds state hState
 
 theorem kernelFamily_stationary_balance_from_supremum_schema
     {maxLeft maxRight : ℕ}
     (assumptions : ResidualKernelAssumptions params maxLeft maxRight) :
-    assumptions.positiveRecurrent /\
-      assumptions.stationaryLawExists /\
-      (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
-          ∂ assumptions.stationary.toMeasure =
-        ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
-            ∂ assumptions.stationary.toMeasure +
-          ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).openAge state
-            ∂ assumptions.stationary.toMeasure) := by
+    (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
+        ∂ assumptions.stationary.toMeasure =
+      ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
+          ∂ assumptions.stationary.toMeasure +
+        ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).openAge state
+          ∂ assumptions.stationary.toMeasure) := by
   let kernel := kernelFamily params assumptions
   let adaptiveAssumptions := adaptiveSupremumAssumptions params assumptions
   have hDominated : adaptiveAssumptions.dominatedBySupremumKernel := by
@@ -1587,14 +1557,15 @@ theorem kernelFamily_stationary_balance_from_supremum_schema
       AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
       kernel.routingDependsOnCongestion_holds
   have hIrreducible : adaptiveAssumptions.base.irreducible := by
-    simpa [kernel, kernelFamily] using
-      assumptions.irreducible_holds
+    simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
+      AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
+      kernel.irreducible_holds
   have hPetite : adaptiveAssumptions.base.petiteSet := by
     simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
       AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
       kernel.petiteSet_holds
   have hMain :=
-    adaptive_queue_stability_from_supremum_schema adaptiveAssumptions
+    adaptive_queue_balance_from_supremum_schema adaptiveAssumptions
       hDominated
       hSubstochastic
       hContractive
@@ -1603,10 +1574,9 @@ theorem kernelFamily_stationary_balance_from_supremum_schema
       hRouting
       hIrreducible
       hPetite
-  refine ⟨hMain.1, hMain.2.1, ?_⟩
   simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
     kernelFamily, AdaptiveRoutingQueueKernelFamily.toFamily,
-    AdaptiveRoutingQueueFamily.stabilityAssumptions] using hMain.2.2
+    AdaptiveRoutingQueueFamily.stabilityAssumptions] using hMain
 
 theorem kernelFamily_terminal_balance_from_supremum_schema
     {maxLeft maxRight : ℕ}
@@ -1614,12 +1584,10 @@ theorem kernelFamily_terminal_balance_from_supremum_schema
     (hStaticPolicy :
       ∀ᵐ state : AdaptiveRoutingQueueState maxLeft maxRight ∂ assumptions.stationary.toMeasure,
         state.2.2 = false) :
-    assumptions.positiveRecurrent /\
-      assumptions.stationaryLawExists /\
-      (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
-          ∂ assumptions.stationary.toMeasure =
-        ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
-          ∂ assumptions.stationary.toMeasure) := by
+    (∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).customerTime state
+        ∂ assumptions.stationary.toMeasure =
+      ∫⁻ state, (adaptiveRoutingQueueLaw maxLeft maxRight).sojournTime state
+        ∂ assumptions.stationary.toMeasure) := by
   have hOpenAgeZero :
       (adaptiveRoutingQueueLaw maxLeft maxRight).openAge =ᵐ[assumptions.stationary.toMeasure] 0 := by
     filter_upwards [hStaticPolicy] with state hState
@@ -1656,14 +1624,15 @@ theorem kernelFamily_terminal_balance_from_supremum_schema
       AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
       kernel.routingDependsOnCongestion_holds
   have hIrreducible : adaptiveAssumptions.base.irreducible := by
-    simpa [kernel, kernelFamily] using
-      assumptions.irreducible_holds
+    simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
+      AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
+      kernel.irreducible_holds
   have hPetite : adaptiveAssumptions.base.petiteSet := by
     simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
       AdaptiveRoutingQueueKernelFamily.toFamily, AdaptiveRoutingQueueFamily.stabilityAssumptions] using
       kernel.petiteSet_holds
   have hMain :=
-    adaptive_queue_terminal_balance_from_supremum_schema
+    adaptive_queue_terminal_balance_from_supremum_balance_schema
       adaptiveAssumptions
       hOpenAgeZero'
       hDominated
@@ -1674,10 +1643,9 @@ theorem kernelFamily_terminal_balance_from_supremum_schema
       hRouting
       hIrreducible
       hPetite
-  refine ⟨hMain.1, hMain.2.1, ?_⟩
   simpa [adaptiveAssumptions, kernel, adaptiveSupremumAssumptions,
     kernelFamily, AdaptiveRoutingQueueKernelFamily.toFamily,
-    AdaptiveRoutingQueueFamily.stabilityAssumptions] using hMain.2.2
+    AdaptiveRoutingQueueFamily.stabilityAssumptions] using hMain
 
 end TwoNodeAdaptiveRoutingParameters
 

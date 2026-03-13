@@ -81,25 +81,226 @@ theorem queue_limit_schema (assumptions : QueueLimitAssumptions) :
     hEnvelope
     hBalanced
 
+def KernelBridgeWitness {Ω : Type*}
+    (routingKernel : Ω → Ω → ℝ)
+    (bridge : Ω) : Prop :=
+  (∀ state, 0 < routingKernel state bridge) ∧
+    ∀ state, 0 < routingKernel bridge state
+
+def KernelIrreducible {Ω : Type*}
+    (routingKernel : Ω → Ω → ℝ) : Prop :=
+  ∃ bridge, KernelBridgeWitness routingKernel bridge
+
+theorem kernelIrreducible_of_bridge
+    {Ω : Type*}
+    (routingKernel : Ω → Ω → ℝ)
+    (bridge : Ω)
+    (hToBridge : ∀ state, 0 < routingKernel state bridge)
+    (hFromBridge : ∀ state, 0 < routingKernel bridge state) :
+    KernelIrreducible routingKernel := by
+  exact ⟨bridge, hToBridge, hFromBridge⟩
+
+def KernelFosterLyapunovDrift {Ω : Type*}
+    (expectedLyapunov lyapunov : Ω → ℝ)
+    (smallSet : Set Ω)
+    (driftGap : ℝ) : Prop :=
+  ∀ state ∉ smallSet, expectedLyapunov state ≤ lyapunov state - driftGap
+
+abbrev KernelPetiteSet {Ω : Type*}
+    (smallSet : Set Ω) : Prop :=
+  smallSet.Finite
+
+def KernelPositiveRecurrent {Ω : Type*}
+    (routingKernel : Ω → Ω → ℝ)
+    (expectedLyapunov lyapunov : Ω → ℝ)
+    (smallSet : Set Ω)
+    (driftGap : ℝ) : Prop :=
+  KernelIrreducible routingKernel ∧
+    KernelFosterLyapunovDrift expectedLyapunov lyapunov smallSet driftGap ∧
+    0 < driftGap
+
+abbrev KernelStationaryLawExists {Ω : Type*}
+    (routingKernel : Ω → Ω → ℝ)
+    (expectedLyapunov lyapunov : Ω → ℝ)
+    (smallSet : Set Ω)
+    (driftGap : ℝ) : Prop :=
+  KernelPositiveRecurrent routingKernel expectedLyapunov lyapunov smallSet driftGap
+
+theorem kernelPositiveRecurrent_of_drift
+    {Ω : Type*}
+    {routingKernel : Ω → Ω → ℝ}
+    {expectedLyapunov lyapunov : Ω → ℝ}
+    {smallSet : Set Ω}
+    {driftGap : ℝ}
+    (hIrreducible : KernelIrreducible routingKernel)
+    (hDrift : KernelFosterLyapunovDrift expectedLyapunov lyapunov smallSet driftGap)
+    (hGap : 0 < driftGap) :
+    KernelPositiveRecurrent routingKernel expectedLyapunov lyapunov smallSet driftGap := by
+  exact ⟨hIrreducible, hDrift, hGap⟩
+
+theorem kernelStationaryLawExists_of_positiveRecurrence
+    {Ω : Type*}
+    {routingKernel : Ω → Ω → ℝ}
+    {expectedLyapunov lyapunov : Ω → ℝ}
+    {smallSet : Set Ω}
+    {driftGap : ℝ}
+    (hPositive :
+      KernelPositiveRecurrent routingKernel expectedLyapunov lyapunov smallSet driftGap) :
+    KernelStationaryLawExists routingKernel expectedLyapunov lyapunov smallSet driftGap :=
+  hPositive
+
+theorem kernelFosterLyapunovDrift_of_expectedLyapunov_bound
+    {Ω : Type*}
+    {expectedLyapunov ceilingExpectedLyapunov lyapunov : Ω → ℝ}
+    {smallSet : Set Ω}
+    {driftGap : ℝ}
+    (hCompare : ∀ state, expectedLyapunov state ≤ ceilingExpectedLyapunov state)
+    (hCeilingDrift :
+      ∀ state ∉ smallSet, ceilingExpectedLyapunov state ≤ lyapunov state - driftGap) :
+    KernelFosterLyapunovDrift expectedLyapunov lyapunov smallSet driftGap := by
+  intro state hState
+  exact le_trans (hCompare state) (hCeilingDrift state hState)
+
 structure StateDependentQueueStabilityAssumptions (Ω : Type*) [MeasurableSpace Ω] where
   law : MeasureQueueLaw Ω
   stationaryMeasure : Measure Ω
+  routingKernel : Ω → Ω → ℝ
+  lyapunov : Ω → ℝ
+  expectedLyapunov : Ω → ℝ
+  smallSet : Set Ω
+  driftGap : ℝ
   stateDependentService : Prop
   stateDependentRouting : Prop
-  irreducible : Prop
-  fosterLyapunovDrift : Prop
-  petiteSet : Prop
-  positiveRecurrent : Prop
-  stationaryLawExists : Prop
-  positiveRecurrenceFromDrift :
-    stateDependentService ->
-    stateDependentRouting ->
-    irreducible ->
-    fosterLyapunovDrift ->
-    petiteSet ->
-    positiveRecurrent
-  stationaryLawFromPositiveRecurrence :
-    positiveRecurrent -> stationaryLawExists
+  bridgeState : Ω
+  toBridgePositive : ∀ state, 0 < routingKernel state bridgeState
+  fromBridgePositive : ∀ state, 0 < routingKernel bridgeState state
+  driftBound :
+    ∀ state ∉ smallSet, expectedLyapunov state ≤ lyapunov state - driftGap
+  driftGapPositive : 0 < driftGap
+  smallSetFinite : smallSet.Finite
+
+def StateDependentQueueStabilityAssumptions.irreducible
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω) : Prop :=
+  KernelIrreducible assumptions.routingKernel
+
+theorem StateDependentQueueStabilityAssumptions.irreducible_holds
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω) :
+    assumptions.irreducible := by
+  exact kernelIrreducible_of_bridge
+    assumptions.routingKernel
+    assumptions.bridgeState
+    assumptions.toBridgePositive
+    assumptions.fromBridgePositive
+
+def StateDependentQueueStabilityAssumptions.fosterLyapunovDrift
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω) : Prop :=
+  KernelFosterLyapunovDrift
+    assumptions.expectedLyapunov
+    assumptions.lyapunov
+    assumptions.smallSet
+    assumptions.driftGap
+
+theorem StateDependentQueueStabilityAssumptions.fosterLyapunovDrift_holds
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω) :
+    assumptions.fosterLyapunovDrift :=
+  assumptions.driftBound
+
+abbrev StateDependentQueueStabilityAssumptions.petiteSet
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω) : Prop :=
+  KernelPetiteSet assumptions.smallSet
+
+theorem StateDependentQueueStabilityAssumptions.petiteSet_holds
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω) :
+    assumptions.petiteSet :=
+  assumptions.smallSetFinite
+
+def StateDependentQueueStabilityAssumptions.positiveRecurrent
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω) : Prop :=
+  KernelPositiveRecurrent
+    assumptions.routingKernel
+    assumptions.expectedLyapunov
+    assumptions.lyapunov
+    assumptions.smallSet
+    assumptions.driftGap
+
+abbrev StateDependentQueueStabilityAssumptions.stationaryLawExists
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω) : Prop :=
+  KernelStationaryLawExists
+    assumptions.routingKernel
+    assumptions.expectedLyapunov
+    assumptions.lyapunov
+    assumptions.smallSet
+    assumptions.driftGap
+
+theorem StateDependentQueueStabilityAssumptions.positiveRecurrent_holds
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω) :
+    assumptions.stateDependentService ->
+    assumptions.stateDependentRouting ->
+    assumptions.irreducible ->
+    assumptions.fosterLyapunovDrift ->
+    assumptions.petiteSet ->
+    assumptions.positiveRecurrent := by
+  intro _ _ hIrreducible hDrift _
+  exact kernelPositiveRecurrent_of_drift
+    hIrreducible
+    hDrift
+    assumptions.driftGapPositive
+
+theorem StateDependentQueueStabilityAssumptions.stationaryLawExists_holds
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω) :
+    assumptions.stateDependentService ->
+    assumptions.stateDependentRouting ->
+    assumptions.irreducible ->
+    assumptions.fosterLyapunovDrift ->
+    assumptions.petiteSet ->
+    assumptions.stationaryLawExists := by
+  intro hService hRouting hIrreducible hDrift hPetite
+  exact kernelStationaryLawExists_of_positiveRecurrence
+    (assumptions.positiveRecurrent_holds
+      hService
+      hRouting
+      hIrreducible
+      hDrift
+      hPetite)
+
+theorem state_dependent_queue_balance_from_drift_schema
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω) :
+    assumptions.stateDependentService ->
+    assumptions.stateDependentRouting ->
+    assumptions.irreducible ->
+    assumptions.fosterLyapunovDrift ->
+    assumptions.petiteSet ->
+    (∫⁻ ω, assumptions.law.customerTime ω ∂ assumptions.stationaryMeasure =
+      ∫⁻ ω, assumptions.law.sojournTime ω ∂ assumptions.stationaryMeasure +
+        ∫⁻ ω, assumptions.law.openAge ω ∂ assumptions.stationaryMeasure) := by
+  intro _ _ _ _ _
+  exact measure_queue_lintegral_balance assumptions.stationaryMeasure assumptions.law
+
+theorem state_dependent_queue_terminal_balance_from_drift_schema
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : StateDependentQueueStabilityAssumptions Ω)
+    (hOpenAgeZero : assumptions.law.openAge =ᵐ[assumptions.stationaryMeasure] 0) :
+    assumptions.stateDependentService ->
+    assumptions.stateDependentRouting ->
+    assumptions.irreducible ->
+    assumptions.fosterLyapunovDrift ->
+    assumptions.petiteSet ->
+    (∫⁻ ω, assumptions.law.customerTime ω ∂ assumptions.stationaryMeasure =
+      ∫⁻ ω, assumptions.law.sojournTime ω ∂ assumptions.stationaryMeasure) := by
+  intro _ _ _ _ _
+  exact measure_queue_terminal_lintegral_balance
+    assumptions.stationaryMeasure assumptions.law hOpenAgeZero
 
 theorem state_dependent_queue_stability_schema
     {Ω : Type*} [MeasurableSpace Ω]
@@ -115,11 +316,17 @@ theorem state_dependent_queue_stability_schema
         ∫⁻ ω, assumptions.law.sojournTime ω ∂ assumptions.stationaryMeasure +
           ∫⁻ ω, assumptions.law.openAge ω ∂ assumptions.stationaryMeasure) := by
   intro hService hRouting hIrreducible hDrift hPetite
-  have hPositiveRecurrent :=
-    assumptions.positiveRecurrenceFromDrift hService hRouting hIrreducible hDrift hPetite
-  refine And.intro hPositiveRecurrent ?_
-  refine And.intro (assumptions.stationaryLawFromPositiveRecurrence hPositiveRecurrent) ?_
-  exact measure_queue_lintegral_balance assumptions.stationaryMeasure assumptions.law
+  refine And.intro
+    (assumptions.positiveRecurrent_holds hService hRouting hIrreducible hDrift hPetite) ?_
+  refine And.intro
+    (assumptions.stationaryLawExists_holds hService hRouting hIrreducible hDrift hPetite) ?_
+  exact state_dependent_queue_balance_from_drift_schema
+    assumptions
+    hService
+    hRouting
+    hIrreducible
+    hDrift
+    hPetite
 
 theorem state_dependent_queue_terminal_balance_schema
     {Ω : Type*} [MeasurableSpace Ω]
@@ -135,12 +342,18 @@ theorem state_dependent_queue_terminal_balance_schema
       (∫⁻ ω, assumptions.law.customerTime ω ∂ assumptions.stationaryMeasure =
         ∫⁻ ω, assumptions.law.sojournTime ω ∂ assumptions.stationaryMeasure) := by
   intro hService hRouting hIrreducible hDrift hPetite
-  have hPositiveRecurrent :=
-    assumptions.positiveRecurrenceFromDrift hService hRouting hIrreducible hDrift hPetite
-  refine And.intro hPositiveRecurrent ?_
-  refine And.intro (assumptions.stationaryLawFromPositiveRecurrence hPositiveRecurrent) ?_
-  exact measure_queue_terminal_lintegral_balance
-    assumptions.stationaryMeasure assumptions.law hOpenAgeZero
+  refine And.intro
+    (assumptions.positiveRecurrent_holds hService hRouting hIrreducible hDrift hPetite) ?_
+  refine And.intro
+    (assumptions.stationaryLawExists_holds hService hRouting hIrreducible hDrift hPetite) ?_
+  exact state_dependent_queue_terminal_balance_from_drift_schema
+    assumptions
+    hOpenAgeZero
+    hService
+    hRouting
+    hIrreducible
+    hDrift
+    hPetite
 
 structure AdaptiveSupremumStabilityAssumptions (Ω : Type*) [MeasurableSpace Ω] where
   base : StateDependentQueueStabilityAssumptions Ω
@@ -148,12 +361,115 @@ structure AdaptiveSupremumStabilityAssumptions (Ω : Type*) [MeasurableSpace Ω]
   supremumKernelSubstochastic : Prop
   supremumKernelContractive : Prop
   spectralCandidateStable : Prop
-  driftFromSupremumComparison :
+  ceilingExpectedLyapunov : Ω → ℝ
+  expectedLyapunovLeCeilingExpected :
     dominatedBySupremumKernel ->
+    ∀ state, base.expectedLyapunov state ≤ ceilingExpectedLyapunov state
+  ceilingDriftBound :
     supremumKernelSubstochastic ->
     supremumKernelContractive ->
     spectralCandidateStable ->
-    base.fosterLyapunovDrift
+    ∀ state ∉ base.smallSet, ceilingExpectedLyapunov state ≤ base.lyapunov state - base.driftGap
+
+theorem AdaptiveSupremumStabilityAssumptions.fosterLyapunovDrift_holds
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : AdaptiveSupremumStabilityAssumptions Ω) :
+    assumptions.dominatedBySupremumKernel ->
+    assumptions.supremumKernelSubstochastic ->
+    assumptions.supremumKernelContractive ->
+    assumptions.spectralCandidateStable ->
+    assumptions.base.fosterLyapunovDrift := by
+  intro hDominated hSubstochastic hContractive hStable
+  exact kernelFosterLyapunovDrift_of_expectedLyapunov_bound
+    (assumptions.expectedLyapunovLeCeilingExpected hDominated)
+    (assumptions.ceilingDriftBound hSubstochastic hContractive hStable)
+
+theorem AdaptiveSupremumStabilityAssumptions.positiveRecurrent_holds
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : AdaptiveSupremumStabilityAssumptions Ω) :
+    assumptions.dominatedBySupremumKernel ->
+    assumptions.supremumKernelSubstochastic ->
+    assumptions.supremumKernelContractive ->
+    assumptions.spectralCandidateStable ->
+    assumptions.base.stateDependentService ->
+    assumptions.base.stateDependentRouting ->
+    assumptions.base.irreducible ->
+    assumptions.base.petiteSet ->
+    assumptions.base.positiveRecurrent := by
+  intro hDominated hSubstochastic hContractive hStable hService hRouting hIrreducible hPetite
+  exact assumptions.base.positiveRecurrent_holds
+    hService
+    hRouting
+    hIrreducible
+    (assumptions.fosterLyapunovDrift_holds hDominated hSubstochastic hContractive hStable)
+    hPetite
+
+theorem AdaptiveSupremumStabilityAssumptions.stationaryLawExists_holds
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : AdaptiveSupremumStabilityAssumptions Ω) :
+    assumptions.dominatedBySupremumKernel ->
+    assumptions.supremumKernelSubstochastic ->
+    assumptions.supremumKernelContractive ->
+    assumptions.spectralCandidateStable ->
+    assumptions.base.stateDependentService ->
+    assumptions.base.stateDependentRouting ->
+    assumptions.base.irreducible ->
+    assumptions.base.petiteSet ->
+    assumptions.base.stationaryLawExists := by
+  intro hDominated hSubstochastic hContractive hStable hService hRouting hIrreducible hPetite
+  exact assumptions.base.stationaryLawExists_holds
+    hService
+    hRouting
+    hIrreducible
+    (assumptions.fosterLyapunovDrift_holds hDominated hSubstochastic hContractive hStable)
+    hPetite
+
+theorem adaptive_queue_balance_from_supremum_schema
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : AdaptiveSupremumStabilityAssumptions Ω) :
+    assumptions.dominatedBySupremumKernel ->
+    assumptions.supremumKernelSubstochastic ->
+    assumptions.supremumKernelContractive ->
+    assumptions.spectralCandidateStable ->
+    assumptions.base.stateDependentService ->
+    assumptions.base.stateDependentRouting ->
+    assumptions.base.irreducible ->
+    assumptions.base.petiteSet ->
+    (∫⁻ ω, assumptions.base.law.customerTime ω ∂ assumptions.base.stationaryMeasure =
+      ∫⁻ ω, assumptions.base.law.sojournTime ω ∂ assumptions.base.stationaryMeasure +
+        ∫⁻ ω, assumptions.base.law.openAge ω ∂ assumptions.base.stationaryMeasure) := by
+  intro hDominated hSubstochastic hContractive hStable hService hRouting hIrreducible hPetite
+  exact state_dependent_queue_balance_from_drift_schema
+    assumptions.base
+    hService
+    hRouting
+    hIrreducible
+    (assumptions.fosterLyapunovDrift_holds hDominated hSubstochastic hContractive hStable)
+    hPetite
+
+theorem adaptive_queue_terminal_balance_from_supremum_balance_schema
+    {Ω : Type*} [MeasurableSpace Ω]
+    (assumptions : AdaptiveSupremumStabilityAssumptions Ω)
+    (hOpenAgeZero : assumptions.base.law.openAge =ᵐ[assumptions.base.stationaryMeasure] 0) :
+    assumptions.dominatedBySupremumKernel ->
+    assumptions.supremumKernelSubstochastic ->
+    assumptions.supremumKernelContractive ->
+    assumptions.spectralCandidateStable ->
+    assumptions.base.stateDependentService ->
+    assumptions.base.stateDependentRouting ->
+    assumptions.base.irreducible ->
+    assumptions.base.petiteSet ->
+    (∫⁻ ω, assumptions.base.law.customerTime ω ∂ assumptions.base.stationaryMeasure =
+      ∫⁻ ω, assumptions.base.law.sojournTime ω ∂ assumptions.base.stationaryMeasure) := by
+  intro hDominated hSubstochastic hContractive hStable hService hRouting hIrreducible hPetite
+  exact state_dependent_queue_terminal_balance_from_drift_schema
+    assumptions.base
+    hOpenAgeZero
+    hService
+    hRouting
+    hIrreducible
+    (assumptions.fosterLyapunovDrift_holds hDominated hSubstochastic hContractive hStable)
+    hPetite
 
 theorem adaptive_queue_stability_from_supremum_schema
     {Ω : Type*} [MeasurableSpace Ω]
@@ -172,14 +488,23 @@ theorem adaptive_queue_stability_from_supremum_schema
         ∫⁻ ω, assumptions.base.law.sojournTime ω ∂ assumptions.base.stationaryMeasure +
           ∫⁻ ω, assumptions.base.law.openAge ω ∂ assumptions.base.stationaryMeasure) := by
   intro hDominated hSubstochastic hContractive hStable hService hRouting hIrreducible hPetite
-  have hDrift :=
-    assumptions.driftFromSupremumComparison hDominated hSubstochastic hContractive hStable
-  exact state_dependent_queue_stability_schema
-    assumptions.base
+  refine And.intro
+    (assumptions.positiveRecurrent_holds
+      hDominated hSubstochastic hContractive hStable
+      hService hRouting hIrreducible hPetite) ?_
+  refine And.intro
+    (assumptions.stationaryLawExists_holds
+      hDominated hSubstochastic hContractive hStable
+      hService hRouting hIrreducible hPetite) ?_
+  exact adaptive_queue_balance_from_supremum_schema
+    assumptions
+    hDominated
+    hSubstochastic
+    hContractive
+    hStable
     hService
     hRouting
     hIrreducible
-    hDrift
     hPetite
 
 theorem adaptive_queue_terminal_balance_from_supremum_schema
@@ -199,15 +524,24 @@ theorem adaptive_queue_terminal_balance_from_supremum_schema
       (∫⁻ ω, assumptions.base.law.customerTime ω ∂ assumptions.base.stationaryMeasure =
         ∫⁻ ω, assumptions.base.law.sojournTime ω ∂ assumptions.base.stationaryMeasure) := by
   intro hDominated hSubstochastic hContractive hStable hService hRouting hIrreducible hPetite
-  have hDrift :=
-    assumptions.driftFromSupremumComparison hDominated hSubstochastic hContractive hStable
-  exact state_dependent_queue_terminal_balance_schema
-    assumptions.base
+  refine And.intro
+    (assumptions.positiveRecurrent_holds
+      hDominated hSubstochastic hContractive hStable
+      hService hRouting hIrreducible hPetite) ?_
+  refine And.intro
+    (assumptions.stationaryLawExists_holds
+      hDominated hSubstochastic hContractive hStable
+      hService hRouting hIrreducible hPetite) ?_
+  exact adaptive_queue_terminal_balance_from_supremum_balance_schema
+    assumptions
     hOpenAgeZero
+    hDominated
+    hSubstochastic
+    hContractive
+    hStable
     hService
     hRouting
     hIrreducible
-    hDrift
     hPetite
 
 structure DagExpressibilityAssumptions where

@@ -6,15 +6,15 @@
       "label": "Manuscript draft",
       "category": "document",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/ch17-arxiv-manuscript.md",
-      "sizeBytes": 186611,
-      "sha256": "c06fd7467f2ebaec868269a52243b92c8e78853af422689f70ad425273ac5ad3"
+      "sizeBytes": 187956,
+      "sha256": "97b7e3d28506fdc3329add40a5bc177a16ff8234d87e261bc025f7a845782d4a"
     },
     {
       "label": "Companion README",
       "category": "document",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/README.md",
-      "sizeBytes": 22445,
-      "sha256": "acf62dd429676745777d24fc4c293fb9a6d852fc69c0ff1f35403df8daa09f72"
+      "sizeBytes": 22467,
+      "sha256": "0cd05355d4d9a121f139858fc5e1c9b1d096bdb187cce201a427e2f990cb8791"
     },
     {
       "label": "Evidence workflow",
@@ -209,8 +209,8 @@
       "label": "Theorem ledger",
       "category": "formal",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/THEOREM_LEDGER.md",
-      "sizeBytes": 38807,
-      "sha256": "cb5cd82e154cd1ae4fdf8c0d26caf5f9213e7867b305f44e1f6150a2bb8dfa75"
+      "sizeBytes": 39268,
+      "sha256": "94f612a1fe7306a782262ec6bfbbf4bf4f6b1bc616bacbb96bedbaa4f99f4e98"
     },
     {
       "label": "Affine benchmark topology suite",
