@@ -99,7 +99,7 @@ And the triangle is **fractal**. Zoom into any sub-triangle and you see the same
 
 The top of the triangle has $\beta_1 = 0$ -- one chunk, one path, no parallelism. As you descend, $\beta_1$ increases -- more chunks in flight, more independent paths through the system. At the diagonal, $\beta_1$ is maximum. Then the ramp-down triangle on the other side collapses $\beta_1$ back to zero.
 
-It's turtles all the way down!
+It's triangles all the way down!
 
 **Fork is entering the triangle. Race is the diagonal. Fold is exiting.**
 
