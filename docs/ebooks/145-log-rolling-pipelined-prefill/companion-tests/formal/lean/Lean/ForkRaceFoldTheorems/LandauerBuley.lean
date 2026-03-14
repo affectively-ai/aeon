@@ -6,26 +6,32 @@ open scoped BigOperators ENNReal
 namespace ForkRaceFoldTheorems
 
 /--
-The current finite Landauer bridge: an equiprobable `n`-way live frontier carries `log₂ n`
-bits, every finite branch law on `n` live branches carries at most that entropy budget, and
-deterministic collapse still pays the existing `n - 1` failure-tax floor. Every achievable
-deterministic collapse of the same finite frontier cardinality therefore pays at least the
-corresponding finite Landauer heat budget. On the binary surface the Bernoulli entropy/heat
-law is also closed: the failure-tax floor bounds every binary Shannon erasure budget and
-matches it exactly at the fair fork witness. The measurable side now has both
-a countable-support entropy shell (arbitrary PMFs carry an `ENNReal` Shannon entropy written
-as a `tsum`, recovered as a supremum of finite truncations and, on countable measurable types,
-as a counting-measure `lintegral`; on finite supports this shell reduces to the earlier
-real-valued finite entropy), a parallel countable-support heat shell obtained by direct
-`ENNReal` scaling of the entropy-in-nats surface (again recovered as a supremum of finite
-truncations and, on countable measurable types, as a counting-measure `lintegral`; on finite
-supports this shell reduces to the earlier real-valued finite heat), an observable pushforward
-shell letting arbitrary source branch laws talk to finite/countable measurable observables
-through coarse-grained PMFs on the observable codomain, and measurable erasure theorems: the
-`ENNReal` entropy of any
-finite-type PMF is bounded by the frontier entropy and by the failure tax, the Landauer heat
-of that entropy is bounded by the failure-tax heat budget, and the Landauer heat of any
-finite-type PMF's entropy is bounded by the Landauer heat of any achievable collapse cost.
+The Landauer bridge now spans finite, countable-support, observable-pushforward, and
+effective-support layers. An equiprobable `n`-way live frontier carries `log₂ n` bits, every
+finite branch law on `n` live branches carries at most that entropy budget, and deterministic
+collapse still pays the existing `n - 1` failure-tax floor. Every achievable deterministic
+collapse of the same finite frontier cardinality therefore pays at least the corresponding
+finite Landauer heat budget. On the binary surface the Bernoulli entropy/heat law is also
+closed: the failure-tax floor bounds every binary Shannon erasure budget and matches it exactly
+at the fair fork witness.
+
+The measurable side has four layers:
+1. A countable-support entropy shell (arbitrary PMFs carry an `ENNReal` Shannon entropy written
+   as a `tsum`, recovered as a supremum of finite truncations and, on countable measurable
+   types, as a counting-measure `lintegral`; on finite supports this shell reduces to the
+   earlier real-valued finite entropy).
+2. A parallel countable-support heat shell obtained by direct `ENNReal` scaling of the
+   entropy-in-nats surface.
+3. An observable pushforward shell letting arbitrary source branch laws talk to
+   finite/countable measurable observables through coarse-grained PMFs on the observable
+   codomain.
+4. Effective-support theorems: for any PMF on any type whose support is contained in a finite
+   `Finset s`, the `ENNReal` entropy is bounded by the frontier entropy `log₂(s.card)` and by
+   the failure tax `s.card - 1`, the Landauer heat is bounded by the failure-tax heat budget,
+   and the Landauer heat is bounded by the Landauer heat of any achievable collapse cost. This
+   closes the measurable erasure gap for arbitrary branch laws with finite effective support,
+   without requiring the ambient type to be a `Fintype`.
+
 The sharp finite heat equality story is also closed and lifts through the `ENNReal` shell.
 -/
 noncomputable def equiprobableFrontierEntropyBits (liveBranches : Nat) : ℝ :=
@@ -1216,5 +1222,204 @@ theorem frontier_entropy_bits_lt_failure_tax_of_three_or_more
     equiprobableFrontierEntropyBits liveBranches <
       deterministicCollapseFailureTax liveBranches :=
   frontier_entropy_bits_lt_failure_tax_of_three_le hLive
+
+/--
+Restrict a PMF to a Finset that covers its support. If `branchLaw a = 0` for all `a ∉ s`,
+the resulting PMF on `↥s` has the same mass distribution and the same entropy.
+-/
+private noncomputable def restrictPMFToSupportFinset
+    {α : Type*}
+    (branchLaw : PMF α)
+    (s : Finset α)
+    (hSupport : ∀ a, a ∉ s → branchLaw a = 0) : PMF ↥s where
+  val := fun ⟨a, _⟩ => branchLaw a
+  property := by
+    have hSum : ∑ x : ↥s, branchLaw ↑x = 1 := by
+      calc ∑ x : ↥s, branchLaw ↑x
+          = ∑ a ∈ s, branchLaw a := by rw [← Finset.sum_coe_sort s]
+        _ = ∑' a, branchLaw a := (tsum_eq_sum (fun a ha => hSupport a ha)).symm
+        _ = 1 := branchLaw.tsum_coe
+    exact hSum ▸ hasSum_fintype _
+
+private theorem negMulLog_zero_of_pmf_zero
+    {α : Type*}
+    (branchLaw : PMF α)
+    {a : α}
+    (ha : branchLaw a = 0) :
+    ENNReal.ofReal (Real.negMulLog (branchLaw a).toReal) = 0 := by
+  simp [ha]
+
+/--
+When the PMF vanishes outside a Finset, the countable-support entropy tsum reduces to
+the finite entropy of the restricted PMF on that Finset.
+-/
+private theorem countable_entropy_natsENN_eq_restricted
+    {α : Type*}
+    (branchLaw : PMF α)
+    (s : Finset α)
+    (hSupport : ∀ a, a ∉ s → branchLaw a = 0) :
+    countableBranchEntropyNatsENN branchLaw =
+      ENNReal.ofReal (finiteBranchEntropyNats
+        (restrictPMFToSupportFinset branchLaw s hSupport)) := by
+  unfold countableBranchEntropyNatsENN finiteBranchEntropyNats restrictPMFToSupportFinset
+  simp only
+  rw [tsum_eq_sum (fun a ha => negMulLog_zero_of_pmf_zero branchLaw (hSupport a ha))]
+  rw [← Finset.sum_coe_sort s]
+  symm
+  exact ENNReal.ofReal_sum_of_nonneg
+    (fun x _ => branch_entropy_term_nonneg branchLaw ↑x)
+
+/--
+Effective-support entropy bound (nats): for any PMF whose support is contained in a
+Finset `s`, the countable-support Shannon entropy in nats is bounded by `log(s.card)`.
+This closes the measurable erasure gap for arbitrary branch laws with finite effective support.
+-/
+theorem effective_support_entropy_natsENN_le_log_card
+    {α : Type*}
+    (branchLaw : PMF α)
+    (s : Finset α)
+    (hSupport : ∀ a, a ∉ s → branchLaw a = 0)
+    (hNonempty : s.Nonempty) :
+    countableBranchEntropyNatsENN branchLaw ≤
+      ENNReal.ofReal (Real.log s.card) := by
+  rw [countable_entropy_natsENN_eq_restricted branchLaw s hSupport]
+  have : Nonempty ↥s := hNonempty.coe_sort
+  exact ENNReal.ofReal_le_ofReal (by
+    have hBound := finite_branch_entropy_nats_le_log_card
+      (restrictPMFToSupportFinset branchLaw s hSupport)
+    simp only [Fintype.card_coe] at hBound
+    exact hBound)
+
+/--
+Effective-support entropy bound (bits): for any PMF whose support is contained in a
+Finset `s`, the countable-support Shannon entropy in bits is bounded by the
+equiprobable frontier entropy `log₂(s.card)`.
+-/
+theorem effective_support_entropy_bitsENN_le_frontier_entropy_bits
+    {α : Type*}
+    (branchLaw : PMF α)
+    (s : Finset α)
+    (hSupport : ∀ a, a ∉ s → branchLaw a = 0)
+    (hNonempty : s.Nonempty) :
+    countableBranchEntropyBitsENN branchLaw ≤
+      ENNReal.ofReal (equiprobableFrontierEntropyBits s.card) := by
+  have : Nonempty ↥s := hNonempty.coe_sort
+  unfold countableBranchEntropyBitsENN
+  rw [countable_entropy_natsENN_eq_restricted branchLaw s hSupport]
+  rw [← countable_branch_entropy_natsENN_eq_finite]
+  have hBound := countable_branch_entropy_bitsENN_le_frontier_entropy_bits
+    (restrictPMFToSupportFinset branchLaw s hSupport)
+  simp only [Fintype.card_coe] at hBound
+  unfold countableBranchEntropyBitsENN at hBound
+  exact hBound
+
+/--
+Effective-support entropy bound (failure tax): for any PMF whose support is contained in
+a Finset `s`, the countable-support Shannon entropy in bits is bounded by the
+deterministic-collapse failure tax `s.card - 1`.
+-/
+theorem effective_support_entropy_bitsENN_le_failure_tax
+    {α : Type*}
+    (branchLaw : PMF α)
+    (s : Finset α)
+    (hSupport : ∀ a, a ∉ s → branchLaw a = 0)
+    (hNonempty : s.Nonempty) :
+    countableBranchEntropyBitsENN branchLaw ≤
+      ENNReal.ofReal (deterministicCollapseFailureTax s.card) := by
+  exact le_trans
+    (effective_support_entropy_bitsENN_le_frontier_entropy_bits branchLaw s hSupport hNonempty)
+    (ENNReal.ofReal_le_ofReal
+      (frontier_entropy_bits_le_failure_tax (Finset.Nonempty.card_pos hNonempty)))
+
+/--
+When the PMF vanishes outside a Finset, the countable-support Landauer heat equals the
+Landauer heat of the restricted PMF's finite entropy. This bridges the ENNReal tsum
+product to the real-valued `landauerHeatLowerBound`.
+-/
+private theorem countable_heat_eq_restricted_landauer_heat
+    {α : Type*}
+    (branchLaw : PMF α)
+    (s : Finset α)
+    (hSupport : ∀ a, a ∉ s → branchLaw a = 0)
+    {boltzmannConstant temperature : ℝ}
+    (hBoltzmannNonneg : 0 ≤ boltzmannConstant)
+    (hTemperatureNonneg : 0 ≤ temperature) :
+    countableLandauerHeatLowerBoundENN boltzmannConstant temperature branchLaw =
+      ENNReal.ofReal (landauerHeatLowerBound boltzmannConstant temperature
+        (finiteBranchEntropyBits
+          (restrictPMFToSupportFinset branchLaw s hSupport))) := by
+  have hCoeff : 0 ≤ boltzmannConstant * temperature := by positivity
+  have hLogTwoPos : 0 < Real.log 2 := Real.log_pos (by norm_num)
+  have hLogTwoNe : Real.log 2 ≠ 0 := ne_of_gt hLogTwoPos
+  unfold countableLandauerHeatLowerBoundENN
+  rw [countable_entropy_natsENN_eq_restricted branchLaw s hSupport]
+  calc
+    ENNReal.ofReal (boltzmannConstant * temperature) *
+        ENNReal.ofReal (finiteBranchEntropyNats
+          (restrictPMFToSupportFinset branchLaw s hSupport)) =
+      ENNReal.ofReal ((boltzmannConstant * temperature) *
+        finiteBranchEntropyNats
+          (restrictPMFToSupportFinset branchLaw s hSupport)) := by
+        rw [← ENNReal.ofReal_mul hCoeff]
+    _ = ENNReal.ofReal (landauerHeatLowerBound boltzmannConstant temperature
+          (finiteBranchEntropyBits
+            (restrictPMFToSupportFinset branchLaw s hSupport))) := by
+        congr 1
+        unfold landauerHeatLowerBound finiteBranchEntropyBits
+        field_simp [hLogTwoNe]
+
+/--
+Effective-support Landauer heat bound: for any PMF whose support is contained in a
+Finset `s`, the countable-support Landauer heat is bounded by the failure-tax heat budget.
+-/
+theorem effective_support_landauer_heat_le_failure_tax_budget
+    {α : Type*}
+    (branchLaw : PMF α)
+    (s : Finset α)
+    (hSupport : ∀ a, a ∉ s → branchLaw a = 0)
+    (hNonempty : s.Nonempty)
+    {boltzmannConstant temperature : ℝ}
+    (hBoltzmannNonneg : 0 ≤ boltzmannConstant)
+    (hTemperatureNonneg : 0 ≤ temperature) :
+    countableLandauerHeatLowerBoundENN boltzmannConstant temperature branchLaw ≤
+      ENNReal.ofReal (failureTaxHeatBudget boltzmannConstant temperature s.card) := by
+  have : Nonempty ↥s := hNonempty.coe_sort
+  rw [countable_heat_eq_restricted_landauer_heat branchLaw s hSupport
+    hBoltzmannNonneg hTemperatureNonneg]
+  have hBound := finite_landauer_heat_le_failure_tax_budget
+    hBoltzmannNonneg hTemperatureNonneg
+    (restrictPMFToSupportFinset branchLaw s hSupport)
+  simp only [Fintype.card_coe] at hBound
+  exact ENNReal.ofReal_le_ofReal hBound
+
+/--
+Effective-support collapse-cost comparison: for any PMF whose support is contained in
+a Finset `s` of size matching a live frontier, and any achievable deterministic collapse
+of that frontier, the Landauer heat of the PMF's entropy is bounded by the Landauer heat
+of the collapse cost.
+-/
+theorem effective_support_collapse_landauer_heat_le_total_cost
+    {α : Type*}
+    (branchLaw : PMF α)
+    (s : Finset α)
+    (hSupport : ∀ a, a ∉ s → branchLaw a = 0)
+    (hNonempty : s.Nonempty)
+    {start : List BranchSnapshot}
+    {cost : Nat}
+    {boltzmannConstant temperature : ℝ}
+    (hBoltzmannNonneg : 0 ≤ boltzmannConstant)
+    (hTemperatureNonneg : 0 ≤ temperature)
+    (hCard : s.card = liveBranchCount start)
+    (hAchievable : CollapseCostAchievableFrom start cost) :
+    countableLandauerHeatLowerBoundENN boltzmannConstant temperature branchLaw ≤
+      ENNReal.ofReal (landauerHeatLowerBound boltzmannConstant temperature cost) := by
+  have : Nonempty ↥s := hNonempty.coe_sort
+  rw [countable_heat_eq_restricted_landauer_heat branchLaw s hSupport
+    hBoltzmannNonneg hTemperatureNonneg]
+  have hBound := achievable_collapse_finite_entropy_landauer_heat_le_total_cost
+    (restrictPMFToSupportFinset branchLaw s hSupport)
+    hBoltzmannNonneg hTemperatureNonneg
+    (by simp only [Fintype.card_coe]; exact hCard) hAchievable
+  exact ENNReal.ofReal_le_ofReal hBound
 
 end ForkRaceFoldTheorems
