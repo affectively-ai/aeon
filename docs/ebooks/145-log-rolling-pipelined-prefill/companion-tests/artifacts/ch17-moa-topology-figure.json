@@ -10,36 +10,14 @@
   "headsPerBlock": 4,
   "activeHeadsPerLiveBlock": 2,
   "sparseExample": {
-    "activeBlockLabels": [
-      "blk A",
-      "blk B"
-    ],
-    "suppressedBlockLabels": [
-      "blk C",
-      "blk D"
-    ],
-    "activeHeadLabels": [
-      "h1",
-      "h2"
-    ],
-    "suppressedHeadLabels": [
-      "h3",
-      "h4"
-    ]
+    "activeBlockLabels": ["blk A", "blk B"],
+    "suppressedBlockLabels": ["blk C", "blk D"],
+    "activeHeadLabels": ["h1", "h2"],
+    "suppressedHeadLabels": ["h3", "h4"]
   },
   "denseBaseline": {
-    "blockLabels": [
-      "blk A",
-      "blk B",
-      "blk C",
-      "blk D"
-    ],
-    "headLabels": [
-      "h1",
-      "h2",
-      "h3",
-      "h4"
-    ]
+    "blockLabels": ["blk A", "blk B", "blk C", "blk D"],
+    "headLabels": ["h1", "h2", "h3", "h4"]
   },
   "legend": {
     "active": "solid edges show live routed paths",
