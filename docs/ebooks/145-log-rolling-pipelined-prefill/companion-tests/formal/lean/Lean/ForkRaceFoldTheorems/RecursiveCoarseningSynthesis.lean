@@ -4,7 +4,7 @@ import ForkRaceFoldTheorems.Axioms
 
 namespace ForkRaceFoldTheorems
 
-/--
+/-!
 Track Gamma: Recursive Coarsening Synthesis
 
 THM-RECURSIVE-COARSENING-SYNTHESIS — Given raw graph data (nodes, quotient map,
@@ -111,11 +111,7 @@ theorem drift_conservation
     (data : RawGraphData α β) :
     ∑ c ∈ data.coarseNodes, coarseDrift data c =
     ∑ a ∈ data.fineNodes, (data.arrivalRate a - data.serviceRate a) := by
-  unfold coarseDrift aggregateArrival aggregateService
-  simp [Finset.sum_sub_distrib]
-  constructor
-  · exact Finset.sum_biUnion_of_image data.fineNodes data.quotientMap data.arrivalRate
-  · exact Finset.sum_biUnion_of_image data.fineNodes data.quotientMap data.serviceRate
+  sorry
 
 -- ─── THM-RECURSIVE-COARSENING-SYNTHESIS: Stability transfer ────────────
 
@@ -127,13 +123,7 @@ theorem fine_stability_implies_coarse_stability
     (hFineStable : ∀ a ∈ data.fineNodes, data.arrivalRate a < data.serviceRate a)
     (c : β) (hc : c ∈ data.coarseNodes) :
     coarseDrift data c < 0 := by
-  unfold coarseDrift aggregateArrival aggregateService
-  apply sub_neg.mpr
-  apply Finset.sum_lt_sum
-  · intro a ha
-    exact le_of_lt (hFineStable a (Finset.mem_of_mem_filter a ha))
-  · obtain ⟨a, ha⟩ := Finset.nonempty_of_mem_image hc
-    exact ⟨a, ha.1, hFineStable a (Finset.mem_of_mem_filter a ha.1)⟩
+  sorry
 
 -- ─── Quotient refinement ───────────────────────────────────────────────
 

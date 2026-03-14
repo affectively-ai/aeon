@@ -8,7 +8,7 @@ open scoped BigOperators ENNReal
 
 namespace ForkRaceFoldTheorems
 
-/--
+/-!
 The Thermodynamic Arrow of Abstraction.
 
 This module connects three previously independent formal surfaces:

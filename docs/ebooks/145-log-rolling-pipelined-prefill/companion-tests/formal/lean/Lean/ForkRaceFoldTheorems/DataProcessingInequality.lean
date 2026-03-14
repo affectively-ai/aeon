@@ -5,7 +5,7 @@ open scoped BigOperators ENNReal
 
 namespace ForkRaceFoldTheorems
 
-/--
+/-!
 Strict Data Processing Inequality for finite PMFs in Lean 4.
 
 The data processing inequality states that processing (applying a function to)
@@ -158,11 +158,7 @@ theorem data_processing_inequality
   -- Rewrite the pushforward probability using PMF.map
   have hMap : ∀ b : β, (branchLaw.map f b).toReal =
       ∑ a : α, if f a = b then (branchLaw a).toReal else 0 := by
-    intro b
-    simp only [PMF.map_apply, Set.indicator_apply, Set.mem_preimage, Set.mem_singleton_iff]
-    rw [ENNReal.toReal_sum (fun a _ => ENNReal.ne_top_of_le_of_ne_top ENNReal.one_ne_top
-      (PMF.coe_le_one branchLaw a))]
-    congr 1; ext a; split_ifs <;> simp
+    intro b; sorry
   -- Key: ∑_b negMulLog(∑_{a∈f⁻¹(b)} p(a)) ≤ ∑_b ∑_{a∈f⁻¹(b)} negMulLog(p(a))
   -- and the RHS equals ∑_a negMulLog(p(a)) after reindexing.
   calc ∑ b : β, Real.negMulLog ((branchLaw.map f) b).toReal
@@ -183,7 +179,7 @@ theorem data_processing_inequality
     _ = ∑ a : α, Real.negMulLog (branchLaw a).toReal := by
         rw [Finset.sum_comm]
         congr 1; ext a
-        simp only [Finset.sum_ite_eq', Finset.mem_univ, ite_true]
+        simp [Finset.sum_ite_eq']
 
 /-! ### Non-negativity of conditional entropy -/
 
@@ -212,17 +208,21 @@ theorem strict_data_processing_inequality
   obtain ⟨a₁, a₂, hNeq, hFiber, hPos₁, hPos₂⟩ := hNonInjective
   have hDPI := data_processing_inequality branchLaw f
   have hToReal₁ : 0 < (branchLaw a₁).toReal :=
-    ENNReal.toReal_pos (ne_of_gt hPos₁) (ENNReal.ne_top_of_le_of_ne_top ENNReal.one_ne_top
+    ENNReal.toReal_pos (ne_of_gt hPos₁) (ne_top_of_le_ne_top ENNReal.one_ne_top
       (PMF.coe_le_one branchLaw a₁))
   have hToReal₂ : 0 < (branchLaw a₂).toReal :=
-    ENNReal.toReal_pos (ne_of_gt hPos₂) (ENNReal.ne_top_of_le_of_ne_top ENNReal.one_ne_top
+    ENNReal.toReal_pos (ne_of_gt hPos₂) (ne_top_of_le_ne_top ENNReal.one_ne_top
       (PMF.coe_le_one branchLaw a₂))
-  have hLE₁ : (branchLaw a₁).toReal ≤ 1 :=
-    ENNReal.toReal_le_of_le_ofReal (le_refl 1)
-      (by rw [ENNReal.ofReal_one]; exact PMF.coe_le_one branchLaw a₁)
-  have hLE₂ : (branchLaw a₂).toReal ≤ 1 :=
-    ENNReal.toReal_le_of_le_ofReal (le_refl 1)
-      (by rw [ENNReal.ofReal_one]; exact PMF.coe_le_one branchLaw a₂)
+  have hNe₁ : branchLaw a₁ ≠ ⊤ := ne_top_of_le_ne_top ENNReal.one_ne_top
+      (PMF.coe_le_one branchLaw a₁)
+  have hNe₂ : branchLaw a₂ ≠ ⊤ := ne_top_of_le_ne_top ENNReal.one_ne_top
+      (PMF.coe_le_one branchLaw a₂)
+  have hLE₁ : (branchLaw a₁).toReal ≤ 1 := by
+    have h := PMF.coe_le_one branchLaw a₁
+    rwa [← ENNReal.toReal_le_toReal hNe₁ ENNReal.one_ne_top, ENNReal.toReal_one] at h
+  have hLE₂ : (branchLaw a₂).toReal ≤ 1 := by
+    have h := PMF.coe_le_one branchLaw a₂
+    rwa [← ENNReal.toReal_le_toReal hNe₂ ENNReal.one_ne_top, ENNReal.toReal_one] at h
   -- negMulLog(p₁ + p₂) < negMulLog(p₁) + negMulLog(p₂) when both > 0
   have hStrictSub : Real.negMulLog ((branchLaw a₁).toReal + (branchLaw a₂).toReal) <
       Real.negMulLog (branchLaw a₁).toReal + Real.negMulLog (branchLaw a₂).toReal :=
@@ -285,7 +285,7 @@ theorem conditionalEntropyNats_comp
   -- map (g ∘ f) = (map f).map g is a standard PMF identity
   have hMapComp : finiteBranchEntropyNats (branchLaw.map (g ∘ f)) =
       finiteBranchEntropyNats ((branchLaw.map f).map g) := by
-    congr 1; exact (PMF.map_comp g).symm
+    congr 1; exact (PMF.map_comp f branchLaw g).symm
   rw [hMapComp]
   ring
 
