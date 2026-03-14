@@ -28,6 +28,7 @@ import { serveHttp2, http2RoundTrips } from '../protocols/http2';
 import { serveHttp3, http3RoundTrips } from '../protocols/http3';
 import { serveAeonFlow, aeonFlowRoundTrips } from '../protocols/aeon-flow';
 import { serveAeonFluxHttp, serveAeonFluxFlow, aeonFluxHttpRoundTrips, aeonFluxFlowRoundTrips } from '../protocols/aeon-flux';
+import { serveXGnosis, xGnosisRoundTrips } from '../protocols/x-gnosis';
 import type { SiteManifest, SiteResult, Protocol, CompressionAlgo, ComparisonRow } from '../types';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -53,6 +54,8 @@ function runSite(
         return serveAeonFluxHttp(resource, compression);
       case 'aeon-flux-flow':
         return serveAeonFluxFlow(resource, compression);
+      case 'x-gnosis':
+        return serveXGnosis(resource, compression, site.resources.length);
     }
   });
 
@@ -89,6 +92,10 @@ function runSite(
     case 'aeon-flux-flow':
       roundTrips = aeonFluxFlowRoundTrips();
       maxConcurrentStreams = 1;
+      break;
+    case 'x-gnosis':
+      roundTrips = xGnosisRoundTrips(site.resources.length);
+      maxConcurrentStreams = 6;
       break;
   }
 
@@ -160,6 +167,7 @@ function printTable(siteName: string, rows: ComparisonRow[]): void {
       row.protocol === 'aeon-flow' ? 'Aeon Flow' :
       row.protocol === 'aeon-flux-http' ? 'Aeon-Flux/HTTP' :
       row.protocol === 'aeon-flux-flow' ? 'Aeon-Flux/Flow' :
+      row.protocol === 'x-gnosis' ? 'x-gnosis' :
       row.protocol === 'http3' ? 'HTTP/3' :
       row.protocol === 'http1' ? 'HTTP/1.1' : 'HTTP/2';
     console.log(
@@ -184,8 +192,8 @@ function printTable(siteName: string, rows: ComparisonRow[]): void {
 // Original Protocol Tests (HTTP/1.1, HTTP/2, Aeon Flow)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const protocols: Protocol[] = ['http1', 'http2', 'http3', 'aeon-flow'];
-const allProtocols: Protocol[] = ['http1', 'http2', 'http3', 'aeon-flow', 'aeon-flux-http', 'aeon-flux-flow'];
+const protocols: Protocol[] = ['http1', 'http2', 'http3', 'aeon-flow', 'x-gnosis'];
+const allProtocols: Protocol[] = ['http1', 'http2', 'http3', 'aeon-flow', 'x-gnosis', 'aeon-flux-http', 'aeon-flux-flow'];
 const compressions: CompressionAlgo[] = ['none', 'gzip', 'brotli', 'topo-pure', 'topo-full'];
 
 describe('Protocol Shootoff', () => {
@@ -303,13 +311,14 @@ describe('Protocol Shootoff', () => {
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe('Full matrix comparison', () => {
-    it('Big Content: HTTP vs Aeon vs Aeon-Flux (brotli)', () => {
+    it('Big Content: HTTP vs Aeon vs x-gnosis vs Aeon-Flux (brotli)', () => {
       const results: SiteResult[] = [
-        // Original site through 4 protocols
+        // Original site through 5 protocols
         runSite(bigContentSite, 'http1', 'brotli'),
         runSite(bigContentSite, 'http2', 'brotli'),
         runSite(bigContentSite, 'http3', 'brotli'),
         runSite(bigContentSite, 'aeon-flow', 'brotli'),
+        runSite(bigContentSite, 'x-gnosis', 'brotli'),
         // Flux site through 2 transports
         runSite(bigContentFluxSite, 'aeon-flux-http', 'brotli'),
         runSite(bigContentFluxSite, 'aeon-flux-flow', 'brotli'),
@@ -340,12 +349,13 @@ describe('Protocol Shootoff', () => {
       expect(fluxFlow.roundTrips).toBeLessThanOrEqual(http1.roundTrips);
     });
 
-    it('Microfrontend: HTTP vs Aeon vs Aeon-Flux (brotli)', () => {
+    it('Microfrontend: HTTP vs Aeon vs x-gnosis vs Aeon-Flux (brotli)', () => {
       const results: SiteResult[] = [
         runSite(microfrontendSite, 'http1', 'brotli'),
         runSite(microfrontendSite, 'http2', 'brotli'),
         runSite(microfrontendSite, 'http3', 'brotli'),
         runSite(microfrontendSite, 'aeon-flow', 'brotli'),
+        runSite(microfrontendSite, 'x-gnosis', 'brotli'),
         runSite(microfrontendFluxSite, 'aeon-flux-http', 'brotli'),
         runSite(microfrontendFluxSite, 'aeon-flux-flow', 'brotli'),
       ];
@@ -499,6 +509,7 @@ describe('Protocol Shootoff', () => {
           p === 'aeon-flow' ? 'Aeon Flow' :
           p === 'aeon-flux-http' ? 'Aeon-Flux/HTTP' :
           p === 'aeon-flux-flow' ? 'Aeon-Flux/Flow' :
+          p === 'x-gnosis' ? 'x-gnosis' :
           p === 'http3' ? 'HTTP/3' :
           p === 'http1' ? 'HTTP/1.1' : 'HTTP/2';
 
@@ -506,7 +517,8 @@ describe('Protocol Shootoff', () => {
         console.log(`    Lowest framing overhead: ${protoLabel(bestByOverhead.protocol)} + ${bestByOverhead.comp} (${bestByOverhead.pct.toFixed(3)}%)`);
 
         const h1rtt = http1RoundTrips(manifest.resources.length);
-        console.log(`    Round trips:            HTTP/1.1=${h1rtt}, HTTP/2=2, HTTP/3=1, Aeon Flow=1, Aeon-Flux/HTTP=2, Aeon-Flux/Flow=1`);
+        const xgRtt = xGnosisRoundTrips(manifest.resources.length);
+        console.log(`    Round trips:            HTTP/1.1=${h1rtt}, HTTP/2=2, HTTP/3=1, Aeon Flow=1, x-gnosis=${xgRtt}, Aeon-Flux/HTTP=2, Aeon-Flux/Flow=1`);
 
         // Show the raw payload reduction from Flux
         const origRaw = manifest.resources.reduce((s, r) => s + r.size, 0);
