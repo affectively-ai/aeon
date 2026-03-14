@@ -795,32 +795,11 @@ Transformer architecture can be interpreted as a recursive Wallington-style comp
 
 **A GG-backed sparse transformer witness now makes that recursive claim executable.** The sparse family is declared directly in `open-source/gnosis/examples/benchmarks/moa-transformer-moa.gg` through the `StructuredMoA` primitive and reported in `companion-tests/artifacts/gnosis-moa-transformer-evidence-benchmark.{json,md}`. Across the compact, baseline, and wide workload sweep, the sparse surface retains eval wall-clock speedups `7.02x`, `4.45x`, and `2.56x` while the eval-MSE gap against the dense regular baseline closes from `0.0806` (`0.0829 - 0.0023`) to `0.0025` (`0.0033 - 0.0008`). At the wide workload, the sparse surface runs with `4` active heads rather than `16` and `16` frames rather than `64`; on the sparsity-ablation frontier, full MoA reaches compute-adjusted exact `0.2306`, versus `0.1250` without outer sparsity and `0.1237` without inner sparsity, while the under-routed regime degrades to eval MSE `0.2233` and exact-within-tolerance `0.1900`. The assembled manuscript figure is emitted automatically to `companion-tests/artifacts/ch17-moa-transformer-figure.{json,md,svg}`. A compact ASCII rendering of the executable Gnosis shape is:
 
-```text
-input -> o -> o
-         |    |
-      outer  outer
-       rot   router
-            /      \
-     blk A o        o blk B
-           |        |
-         o -> o    o -> o
-         |    |    |    |
-      h.rot h.sel h.rot h.sel
-         / \        / \
-      hA1  hA2   hB1  hB2
-         \ /        \ /
-          o          o
-       A whip     B whip
-          |          |
-         out        out
-           \        /
-            o -> output
-            outer whip
-```
+The executable topology figure is emitted automatically to `companion-tests/artifacts/ch17-moa-topology-figure.{json,md,svg}` and the sweep/ablation performance figure to `companion-tests/artifacts/ch17-moa-transformer-figure.{json,md,svg}`.
 
-Here `h.rot` is the inner Wallington head rotation and `h.sel` is the head router. Suppressed blocks and suppressed heads are omitted from this sparse drawing; the dense baseline fills them back in.
+![Figure 2a. Artifact-generated `StructuredMoA` topology figure showing one sparse `2-of-4` routed realization against the dense `4-of-4` baseline, with explicit outer rotation, outer router, labeled heads, and inner/outer Worthington whips.](companion-tests/artifacts/ch17-moa-topology-figure.svg)
 
-![Figure 2. Artifact-generated GG-backed MoA transformer figure showing scale-sweep speedup, closing eval-MSE gap, and the sparsity-ablation frontier for the `StructuredMoA` surface.](companion-tests/artifacts/ch17-moa-transformer-figure.svg)
+![Figure 2b. Artifact-generated GG-backed MoA transformer figure showing scale-sweep speedup, closing eval-MSE gap, and the sparsity-ablation frontier for the `StructuredMoA` surface.](companion-tests/artifacts/ch17-moa-transformer-figure.svg)
 
 ### 6.12 Selected Structural Correspondences with Physical Formalisms
 
