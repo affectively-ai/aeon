@@ -12,6 +12,8 @@ import ForkRaceFoldTheorems.FailureUniversality
 import ForkRaceFoldTheorems.InterferenceCoarsening
 import ForkRaceFoldTheorems.LandauerBuley
 import ForkRaceFoldTheorems.LandauerBeautyBridge
+import ForkRaceFoldTheorems.DataProcessingInequality
+import ForkRaceFoldTheorems.CoarseningThermodynamics
 import ForkRaceFoldTheorems.QuorumAsyncNetwork
 import ForkRaceFoldTheorems.QuorumConsistency
 import ForkRaceFoldTheorems.QuorumLinearizability
