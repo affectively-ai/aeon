@@ -1,8 +1,8 @@
-# Chapter 2: The Log-Rolling Pipeline — Promise.race() as a Rotational Engine
+# Chapter 2: The Log-Rolling Pipeline  --  Promise.race() as a Rotational Engine
 
 ## The Core Data Structure
 
-The pipeline maintains one "slot" per node — a promise representing the token currently being processed on that node:
+The pipeline maintains one "slot" per node  --  a promise representing the token currently being processed on that node:
 
 ```typescript
 const inFlight: (Promise<{
@@ -52,12 +52,12 @@ while (completedTokens < tokensToProcess) {
     // Feed result to next node (same token, next stage)
     dispatch(completed.nodeIdx + 1, completed.pos, completed.result);
   } else {
-    // Token exited last node — fully complete
+    // Token exited last node  --  fully complete
     lastHiddenStates = completed.result;
     completedTokens++;
   }
 
-  // Node 0 is free — dispatch next token
+  // Node 0 is free  --  dispatch next token
   if (completed.nodeIdx === 0 && nextToDispatch < numTokens) {
     dispatch(0, nextToDispatch, nextTokenEmbedding);
     nextToDispatch++;
@@ -67,9 +67,9 @@ while (completedTokens < tokensToProcess) {
 
 ## Why Promise.race() Is the Right Primitive
 
-`Promise.race()` returns whichever promise settles first. In a balanced pipeline (all nodes take similar time), this naturally alternates between nodes. In an unbalanced pipeline (one node is slower), it automatically adapts — the fast nodes don't block waiting for the slow one.
+`Promise.race()` returns whichever promise settles first. In a balanced pipeline (all nodes take similar time), this naturally alternates between nodes. In an unbalanced pipeline (one node is slower), it automatically adapts  --  the fast nodes don't block waiting for the slow one.
 
-This is Wallington's Rolling Pivot (#5). When he moved his barn, he pivoted on one corner at a time, swinging the opposite side forward. `Promise.race()` does the same — whichever node finishes first becomes the pivot point. The rest of the system rotates around it.
+This is Wallington's Rolling Pivot (#5). When he moved his barn, he pivoted on one corner at a time, swinging the opposite side forward. `Promise.race()` does the same  --  whichever node finishes first becomes the pivot point. The rest of the system rotates around it.
 
 ## Pipeline Flow Visualization
 
@@ -90,7 +90,7 @@ Sequential would take 5 × 3 = 15 steps. Pipeline takes 5 + 2 = 7 steps. The pip
 
 A concern with pipelining: does Token 1 see Token 0's KV cache entries when it arrives at Node-01?
 
-**Yes, by construction.** Token 1 is dispatched to Node-01 only after Token 0 completes on Node-01 (because Node-01 was busy with Token 0). By that time, Token 0's KV entries at Node-01's layers are written. The pipeline's per-node serialization is the ordering guarantee. No locks, no barriers, no coordination — just the natural constraint that a node can only process one token at a time.
+**Yes, by construction.** Token 1 is dispatched to Node-01 only after Token 0 completes on Node-01 (because Node-01 was busy with Token 0). By that time, Token 0's KV entries at Node-01's layers are written. The pipeline's per-node serialization is the ordering guarantee. No locks, no barriers, no coordination  --  just the natural constraint that a node can only process one token at a time.
 
 ## The Zero-Copy Question
 
@@ -104,7 +104,7 @@ const tokenEmb = allEmbeddings.subarray(
 dispatch(0, nextToDispatch, tokenEmb);
 ```
 
-However, intermediate results between nodes use `new Float32Array(r.hiddenStates)` — a copy. This copy is necessary because `executeLayerStage` may return a buffer that gets reused. But it's worth investigating whether the layer node protocol guarantees buffer ownership, which would allow zero-copy forwarding between pipeline stages. See Chapter 6 for this as a future optimization.
+However, intermediate results between nodes use `new Float32Array(r.hiddenStates)`  --  a copy. This copy is necessary because `executeLayerStage` may return a buffer that gets reused. But it's worth investigating whether the layer node protocol guarantees buffer ownership, which would allow zero-copy forwarding between pipeline stages. See Chapter 6 for this as a future optimization.
 
 ## Diagnostics
 

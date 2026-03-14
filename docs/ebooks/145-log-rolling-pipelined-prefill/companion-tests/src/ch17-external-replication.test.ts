@@ -10,7 +10,7 @@ describe('Chapter 17 external replication', () => {
     const report = runCh17ExternalReplication({ executeCommands: false });
 
     expect(report.label).toBe('ch17-external-replication-v1');
-    expect(report.steps).toHaveLength(11);
+    expect(report.steps).toHaveLength(13);
     expect(report.steps.every((step) => step.skipped)).toBe(true);
     expect(report.totalDurationMs).toBe(0);
     expect(report.slowestStepLabel).toBe('n/a');
@@ -21,7 +21,7 @@ describe('Chapter 17 external replication', () => {
 
   it('renders a markdown rerun report', () => {
     const markdown = renderCh17ExternalReplicationMarkdown(
-      runCh17ExternalReplication({ executeCommands: false }),
+      runCh17ExternalReplication({ executeCommands: false })
     );
 
     expect(markdown).toContain('# Chapter 17 External Replication');

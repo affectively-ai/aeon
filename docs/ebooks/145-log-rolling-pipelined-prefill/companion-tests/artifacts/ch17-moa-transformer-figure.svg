@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+<title id="title">Chapter 17 MoA Transformer Figure</title>
+<desc id="desc">Artifact-generated figure showing GG-backed StructuredMoA speedup, accuracy-gap closure, and sparsity ablation frontier.</desc>
+<rect x="0" y="0" width="1200" height="900" fill="#f7f4ea" rx="24" ry="24"/>
+<text x="60" y="72" font-family="Georgia, Times New Roman, serif" font-size="32" font-weight="700" fill="#1f2937">GG-Backed StructuredMoA Evidence</text>
+<text x="60" y="104" font-family="Georgia, Times New Roman, serif" font-size="16" fill="#475569">Sparse primitive: StructuredMoA · topology: moa-transformer-moa.gg</text>
+<rect x="48" y="132" width="520" height="300" rx="20" ry="20" fill="#fffdf8" stroke="#d6d3c7"/>
+<text x="72" y="170" font-family="Georgia, Times New Roman, serif" font-size="24" font-weight="700" fill="#1f2937">Scale Sweep Speedup</text>
+<text x="72" y="196" font-family="Georgia, Times New Roman, serif" font-size="15" fill="#64748b">MoA eval wall-clock speedup versus dense regular baseline</text>
+<rect x="86" y="240" width="104" height="150" rx="12" ry="12" fill="#0f766e" opacity="0.88"/>
+<text x="138" y="230" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="16" fill="#0f172a">7.02x</text>
+<text x="138" y="414" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="15" fill="#334155">compact</text>
+<rect x="236" y="294.7940060809055" width="104" height="95.2059939190945" rx="12" ry="12" fill="#0f766e" opacity="0.88"/>
+<text x="288" y="284.7940060809055" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="16" fill="#0f172a">4.45x</text>
+<text x="288" y="414" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="15" fill="#334155">baseline</text>
+<rect x="386" y="335.3427203947748" width="104" height="54.65727960522522" rx="12" ry="12" fill="#0f766e" opacity="0.88"/>
+<text x="438" y="325.3427203947748" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="16" fill="#0f172a">2.56x</text>
+<text x="438" y="414" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="15" fill="#334155">wide</text>
+<rect x="632" y="132" width="520" height="300" rx="20" ry="20" fill="#fffdf8" stroke="#d6d3c7"/>
+<text x="656" y="170" font-family="Georgia, Times New Roman, serif" font-size="24" font-weight="700" fill="#1f2937">Accuracy Gap Closes</text>
+<text x="656" y="196" font-family="Georgia, Times New Roman, serif" font-size="15" fill="#64748b">Eval-MSE gap = MoA minus dense regular baseline</text>
+<rect x="670" y="240" width="104" height="150" rx="12" ry="12" fill="#c2410c" opacity="0.84"/>
+<text x="722" y="230" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="16" fill="#7c2d12">0.0806</text>
+<text x="722" y="414" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="15" fill="#334155">compact</text>
+<rect x="820" y="266.78487196780395" width="104" height="123.21512803219602" rx="12" ry="12" fill="#c2410c" opacity="0.84"/>
+<text x="872" y="256.78487196780395" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="16" fill="#7c2d12">0.0662</text>
+<text x="872" y="414" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="15" fill="#334155">baseline</text>
+<rect x="970" y="385.27663037449867" width="104" height="4.7233696255013395" rx="12" ry="12" fill="#c2410c" opacity="0.84"/>
+<text x="1022" y="375.27663037449867" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="16" fill="#7c2d12">0.0025</text>
+<text x="1022" y="414" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="15" fill="#334155">wide</text>
+<rect x="48" y="470" width="700" height="360" rx="20" ry="20" fill="#fffdf8" stroke="#d6d3c7"/>
+<text x="72" y="508" font-family="Georgia, Times New Roman, serif" font-size="24" font-weight="700" fill="#1f2937">Ablation Frontier</text>
+<text x="72" y="534" font-family="Georgia, Times New Roman, serif" font-size="15" fill="#64748b">Speedup on x-axis, exact fraction on y-axis; bubble size tracks compute-adjusted exact</text>
+<line x1="92" y1="778" x2="702" y2="778" stroke="#94a3b8" stroke-width="2"/>
+<line x1="92" y1="568" x2="92" y2="778" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="326.4263466520446" cy="584.275" r="27.07" fill="#0f766e" fill-opacity="0.20" stroke="#0f766e" stroke-width="2"/>
+<text x="326.4263466520446" y="589.275" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="13" fill="#0f172a">full-moa</text>
+<circle cx="123.39885749604998" cy="568" r="22" fill="#0f766e" fill-opacity="0.20" stroke="#0f766e" stroke-width="2"/>
+<text x="123.39885749604998" y="573" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="13" fill="#0f172a">no-outer-sparsity</text>
+<circle cx="92" cy="570.1" r="21.939999999999998" fill="#0f766e" fill-opacity="0.20" stroke="#0f766e" stroke-width="2"/>
+<text x="92" y="575.1" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="13" fill="#0f172a">no-inner-sparsity</text>
+<circle cx="702" cy="738.1" r="20.560000000000002" fill="#0f766e" fill-opacity="0.20" stroke="#0f766e" stroke-width="2"/>
+<text x="702" y="743.1" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="13" fill="#0f172a">under-routed</text>
+<rect x="780" y="470" width="372" height="360" rx="20" ry="20" fill="#fffdf8" stroke="#d6d3c7"/>
+<text x="804" y="508" font-family="Georgia, Times New Roman, serif" font-size="24" font-weight="700" fill="#1f2937">GG Surface</text>
+<text x="806" y="548" font-family="Georgia, Times New Roman, serif" font-size="17" fill="#334155">Structured primitive: StructuredMoA</text>
+<text x="806" y="578" font-family="Georgia, Times New Roman, serif" font-size="17" fill="#334155">Sparse topology: moa-transformer-moa.gg</text>
+<text x="806" y="608" font-family="Georgia, Times New Roman, serif" font-size="17" fill="#334155">Dense topology: moa-transformer-regular.gg</text>
+<text x="806" y="638" font-family="Georgia, Times New Roman, serif" font-size="17" fill="#334155">Head reduction: 4.0x</text>
+<text x="806" y="668" font-family="Georgia, Times New Roman, serif" font-size="17" fill="#334155">Frame reduction: 4.0x</text>
+<text x="806" y="698" font-family="Georgia, Times New Roman, serif" font-size="17" fill="#334155">Wide speedup: 2.56x</text>
+<text x="806" y="728" font-family="Georgia, Times New Roman, serif" font-size="17" fill="#334155">Wide MoA MSE: 0.0033</text>
+<text x="806" y="758" font-family="Georgia, Times New Roman, serif" font-size="17" fill="#334155">Wide regular MSE: 0.0008</text>
+<text x="806" y="788" font-family="Georgia, Times New Roman, serif" font-size="17" fill="#334155">Wide gap: 0.0025</text>
+</svg>

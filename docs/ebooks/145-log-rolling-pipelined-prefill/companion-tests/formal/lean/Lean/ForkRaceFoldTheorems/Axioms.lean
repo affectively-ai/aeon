@@ -549,6 +549,200 @@ noncomputable def AdaptiveCeilingDriftSynthesis.ofPositivePartScoreSlack
     slackLowerBound
     ceilingExpectedEqWeightedSlack
 
+noncomputable def serviceSlackScores
+    (expectedLyapunovSynthesis :
+      AdaptiveExpectedLyapunovSynthesis (ι := ι) (Ω := Ω) expectedLyapunov) :
+    Ω → ι → ℝ :=
+  fun _ i =>
+    expectedLyapunovSynthesis.adaptiveTrafficData.serviceRate i -
+      expectedLyapunovSynthesis.ceilingCandidate i
+
+omit [Fintype Ω] [Nonempty Ω] [MeasurableSpace Ω] in
+theorem positivePartServiceSlackScores_totalPos_of_slackLowerBound
+    [Nonempty ι]
+    (expectedLyapunovSynthesis :
+      AdaptiveExpectedLyapunovSynthesis (ι := ι) (Ω := Ω) expectedLyapunov)
+    (smallSet : Set Ω)
+    (driftGap : ℝ)
+    (hGapPos : 0 < driftGap)
+    (slackLowerBound :
+      ∀ state ∉ smallSet,
+        ∀ i,
+          driftGap ≤
+            expectedLyapunovSynthesis.adaptiveTrafficData.serviceRate i -
+              expectedLyapunovSynthesis.ceilingCandidate i) :
+    ∀ state ∉ smallSet,
+      0 <
+        ∑ j,
+          positivePartSlackScores
+            (Ω := Ω)
+            (serviceSlackScores expectedLyapunovSynthesis)
+            state
+            j := by
+  intro state hState
+  classical
+  let witness : ι := Classical.choice inferInstance
+  have hSlackGe :
+      driftGap ≤
+        expectedLyapunovSynthesis.adaptiveTrafficData.serviceRate witness -
+          expectedLyapunovSynthesis.ceilingCandidate witness :=
+    slackLowerBound state hState witness
+  have hSlackPos :
+      0 <
+        expectedLyapunovSynthesis.adaptiveTrafficData.serviceRate witness -
+          expectedLyapunovSynthesis.ceilingCandidate witness :=
+    lt_of_lt_of_le hGapPos hSlackGe
+  have hWitnessPos :
+      0 <
+        positivePartSlackScores
+          (Ω := Ω)
+          (serviceSlackScores expectedLyapunovSynthesis)
+          state
+          witness := by
+    dsimp [positivePartSlackScores, serviceSlackScores]
+    rw [max_eq_left hSlackPos.le]
+    exact hSlackPos
+  have hWitnessLe :
+      positivePartSlackScores
+          (Ω := Ω)
+          (serviceSlackScores expectedLyapunovSynthesis)
+          state
+          witness ≤
+        ∑ j,
+          positivePartSlackScores
+            (Ω := Ω)
+            (serviceSlackScores expectedLyapunovSynthesis)
+            state
+            j := by
+    exact Finset.single_le_sum
+      (fun j _ =>
+        positivePartSlackScores_nonneg
+          (Ω := Ω)
+          (serviceSlackScores expectedLyapunovSynthesis)
+          state
+          j)
+      (Finset.mem_univ witness)
+  exact lt_of_lt_of_le hWitnessPos hWitnessLe
+
+noncomputable def AdaptiveCeilingDriftSynthesis.ofPositivePartServiceSlack
+    [Nonempty ι]
+    (expectedLyapunovSynthesis :
+      AdaptiveExpectedLyapunovSynthesis (ι := ι) (Ω := Ω) expectedLyapunov)
+    (lyapunov : Ω → ℝ)
+    (smallSet : Set Ω)
+    (driftGap : ℝ)
+    (hGapPos : 0 < driftGap)
+    (slackLowerBound :
+      ∀ state ∉ smallSet,
+        ∀ i,
+          driftGap ≤
+            expectedLyapunovSynthesis.adaptiveTrafficData.serviceRate i -
+              expectedLyapunovSynthesis.ceilingCandidate i)
+    (ceilingExpectedEqWeightedSlack :
+      ∀ state,
+        expectedLyapunovSynthesis.ceilingExpectedLyapunov state =
+          lyapunov state -
+            ∑ i,
+              normalizedSlackWeights
+                (Ω := Ω)
+                smallSet
+                (positivePartSlackScores
+                  (Ω := Ω)
+                  (serviceSlackScores expectedLyapunovSynthesis))
+                state
+                i *
+                (expectedLyapunovSynthesis.adaptiveTrafficData.serviceRate i -
+                  expectedLyapunovSynthesis.ceilingCandidate i)) :
+    AdaptiveCeilingDriftSynthesis
+      (ι := ι)
+      (Ω := Ω)
+      expectedLyapunov
+      expectedLyapunovSynthesis
+      lyapunov
+      smallSet
+      driftGap :=
+  AdaptiveCeilingDriftSynthesis.ofPositivePartScoreSlack
+    (ι := ι)
+    (Ω := Ω)
+    (expectedLyapunovSynthesis := expectedLyapunovSynthesis)
+    (lyapunov := lyapunov)
+    (smallSet := smallSet)
+    (driftGap := driftGap)
+    (weightScores := serviceSlackScores expectedLyapunovSynthesis)
+    (scoresTotalPos :=
+      positivePartServiceSlackScores_totalPos_of_slackLowerBound
+        (Ω := Ω)
+        (expectedLyapunovSynthesis := expectedLyapunovSynthesis)
+        (smallSet := smallSet)
+        (driftGap := driftGap)
+        hGapPos
+        slackLowerBound)
+    slackLowerBound
+    ceilingExpectedEqWeightedSlack
+
+noncomputable def routingPressureScores
+    (expectedLyapunovSynthesis :
+      AdaptiveExpectedLyapunovSynthesis (ι := ι) (Ω := Ω) expectedLyapunov) :
+    Ω → ι → ℝ :=
+  fun state i => ∑ j, expectedLyapunovSynthesis.adaptiveTrafficData.routing state j i
+
+omit [Fintype Ω] [Nonempty Ω] [MeasurableSpace Ω] in
+theorem routingPressureScores_nonneg
+    (expectedLyapunovSynthesis :
+      AdaptiveExpectedLyapunovSynthesis (ι := ι) (Ω := Ω) expectedLyapunov) :
+    ∀ state i, 0 ≤ routingPressureScores expectedLyapunovSynthesis state i := by
+  intro state i
+  unfold routingPressureScores
+  exact Finset.sum_nonneg (fun j _ => expectedLyapunovSynthesis.adaptiveTrafficData.routingNonneg state j i)
+
+noncomputable def AdaptiveCeilingDriftSynthesis.ofRoutingPressureScoreSlack
+    (expectedLyapunovSynthesis :
+      AdaptiveExpectedLyapunovSynthesis (ι := ι) (Ω := Ω) expectedLyapunov)
+    (lyapunov : Ω → ℝ)
+    (smallSet : Set Ω)
+    (driftGap : ℝ)
+    (scoresTotalPos :
+      ∀ state ∉ smallSet, 0 < ∑ j, routingPressureScores expectedLyapunovSynthesis state j)
+    (slackLowerBound :
+      ∀ state ∉ smallSet,
+        ∀ i,
+          driftGap ≤
+            expectedLyapunovSynthesis.adaptiveTrafficData.serviceRate i -
+              expectedLyapunovSynthesis.ceilingCandidate i)
+    (ceilingExpectedEqWeightedSlack :
+      ∀ state,
+        expectedLyapunovSynthesis.ceilingExpectedLyapunov state =
+          lyapunov state -
+            ∑ i,
+              normalizedSlackWeights
+                (Ω := Ω)
+                smallSet
+                (routingPressureScores expectedLyapunovSynthesis)
+                state
+                i *
+                (expectedLyapunovSynthesis.adaptiveTrafficData.serviceRate i -
+                  expectedLyapunovSynthesis.ceilingCandidate i)) :
+    AdaptiveCeilingDriftSynthesis
+      (ι := ι)
+      (Ω := Ω)
+      expectedLyapunov
+      expectedLyapunovSynthesis
+      lyapunov
+      smallSet
+      driftGap :=
+  AdaptiveCeilingDriftSynthesis.ofNormalizedScoreSlack
+    (ι := ι)
+    (Ω := Ω)
+    (expectedLyapunovSynthesis := expectedLyapunovSynthesis)
+    (lyapunov := lyapunov)
+    (smallSet := smallSet)
+    (driftGap := driftGap)
+    (weightScores := routingPressureScores expectedLyapunovSynthesis)
+    (scoresNonneg := routingPressureScores_nonneg (Ω := Ω) expectedLyapunovSynthesis)
+    (scoresTotalPos := scoresTotalPos)
+    slackLowerBound
+    ceilingExpectedEqWeightedSlack
+
 noncomputable def selectedDriftWeights
     (smallSet : Set Ω)
     (selector : Ω → ι) :
@@ -1212,6 +1406,58 @@ theorem convergence_schema (assumptions : ConvergenceAssumptions) :
     ConvergenceInModeledClass assumptions := by
   intro _ _ _ _ _ hAttractor hNoAlternative
   exact And.intro hAttractor hNoAlternative
+
+structure InterferenceCoarseningAssumptions where
+  fineInitialLive : Nat
+  coarseInitialLive : Nat
+  coarseTerminalLive : Nat
+  coarseTotalVented : Nat
+  coarseTotalRepairDebt : Nat
+  fineContagious : Prop
+  coarseDeterministicCollapse : Prop
+  supportPreservingQuotient : 1 < fineInitialLive -> 1 < coarseInitialLive
+  survivorFaithfulQuotient : coarseDeterministicCollapse -> coarseTerminalLive = 1
+  contagionReflectingQuotient :
+    coarseTotalVented = 0 ->
+    fineContagious ->
+    1 < coarseInitialLive ->
+    0 < coarseTotalRepairDebt \/ 1 < coarseTerminalLive
+
+theorem interference_coarsening_zero_vent_requires_repair
+    (assumptions : InterferenceCoarseningAssumptions) :
+    1 < assumptions.fineInitialLive ->
+    assumptions.coarseTotalVented = 0 ->
+    assumptions.fineContagious ->
+    assumptions.coarseDeterministicCollapse ->
+    0 < assumptions.coarseTotalRepairDebt := by
+  intro hFineForked hZeroVent hContagious hCollapse
+  have hCoarseForked := assumptions.supportPreservingQuotient hFineForked
+  have hReflected :=
+    assumptions.contagionReflectingQuotient hZeroVent hContagious hCoarseForked
+  rcases hReflected with hDebt | hMultiplicity
+  · exact hDebt
+  · have hSingle := assumptions.survivorFaithfulQuotient hCollapse
+    rw [hSingle] at hMultiplicity
+    omega
+
+theorem interference_coarsening_schema
+    (assumptions : InterferenceCoarseningAssumptions) :
+    1 < assumptions.fineInitialLive ->
+    assumptions.fineContagious ->
+    assumptions.coarseDeterministicCollapse ->
+    0 < assumptions.coarseTotalVented \/ 0 < assumptions.coarseTotalRepairDebt := by
+  intro hFineForked hContagious hCollapse
+  by_cases hZeroVent : assumptions.coarseTotalVented = 0
+  · right
+    exact
+      interference_coarsening_zero_vent_requires_repair
+        assumptions
+        hFineForked
+        hZeroVent
+        hContagious
+        hCollapse
+  · left
+    exact Nat.pos_of_ne_zero hZeroVent
 
 abbrev Bu := Nat
 

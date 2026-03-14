@@ -1,4 +1,4 @@
-# Chapter 1: The Sequential Bottleneck — Why P×N Was Hiding in Plain Sight
+# Chapter 1: The Sequential Bottleneck  --  Why P×N Was Hiding in Plain Sight
 
 ## The Original Loop
 
@@ -33,11 +33,11 @@ The actual data dependency is narrower:
 - **Token 1 on Node-01** needs Token 0's KV cache entries **at Node-01's layers** (so Node-01 can attend to position 0 when processing position 1).
 - Token 1 on Node-01 does **not** need Token 0's results from Node-02, Node-03, or any downstream node.
 
-The pipeline naturally guarantees this. Token 1 can't start on Node-01 until Token 0 finishes there — because Node-01 is busy with Token 0. By the time Node-01 is free, Token 0's KV entries are written. The constraint we thought we were enforcing was already enforced by the hardware.
+The pipeline naturally guarantees this. Token 1 can't start on Node-01 until Token 0 finishes there  --  because Node-01 is busy with Token 0. By the time Node-01 is free, Token 0's KV entries are written. The constraint we thought we were enforcing was already enforced by the hardware.
 
 ## Why It Looked Correct
 
-The sequential loop is a natural translation of the mathematical description: "for each token, forward through all layers." It produces correct results. It's easy to reason about. And for single-node inference (N=1), there's no cost — the inner loop runs once.
+The sequential loop is a natural translation of the mathematical description: "for each token, forward through all layers." It produces correct results. It's easy to reason about. And for single-node inference (N=1), there's no cost  --  the inner loop runs once.
 
 The bottleneck only becomes visible when N > 1. With 4 nodes and a 100-token prompt, the sequential loop creates 400 blocking network calls. But if you pipeline, you need only 103 steps (100 tokens + 3 pipeline fill/drain steps).
 
@@ -45,7 +45,7 @@ The bottleneck only becomes visible when N > 1. With 4 nodes and a 100-token pro
 
 Wallington's Dynamic Offset Pivot works by placing the fulcrum slightly off the center of gravity. The stone becomes "heavy" on one side but "weightless" on the pivot. Push the light end, and the stone rotates 180°, advancing its center of gravity forward.
 
-The sequential loop was perfectly balanced — every token waited for every node. By shifting the "pivot" to per-node ordering instead of global ordering, we made the system rotationally unstable in a controlled way. Each token "falls forward" through the pipeline under its own momentum.
+The sequential loop was perfectly balanced  --  every token waited for every node. By shifting the "pivot" to per-node ordering instead of global ordering, we made the system rotationally unstable in a controlled way. Each token "falls forward" through the pipeline under its own momentum.
 
 ## The Cost Model
 
@@ -55,7 +55,7 @@ The sequential loop was perfectly balanced — every token waited for every node
 | P=100, N=4 | 400 | 103 | 297 wasted steps |
 | P=500, N=8 | 4000 | 507 | 3493 wasted steps |
 
-"Idle node-time" is the difference — steps where a node could have been processing a token but was forced to wait because the sequential loop hadn't reached it yet. The pipeline eliminates this waste.
+"Idle node-time" is the difference  --  steps where a node could have been processing a token but was forced to wait because the sequential loop hadn't reached it yet. The pipeline eliminates this waste.
 
 ## The Realization
 

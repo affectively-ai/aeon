@@ -1,8 +1,8 @@
-# Chapter 4: Edge Cases — Tunneling, Single-Node Fallback, and Shard Collapse
+# Chapter 4: Edge Cases  --  Tunneling, Single-Node Fallback, and Shard Collapse
 
 ## Tunneled Tokens
 
-Some layer nodes can process all remaining layers in a single forward pass — this is called "tunneling." When `executeLayerStage` returns `tunneled: true`, the token has already passed through all remaining layers on that node. Forwarding it to the next node would double-process those layers.
+Some layer nodes can process all remaining layers in a single forward pass  --  this is called "tunneling." When `executeLayerStage` returns `tunneled: true`, the token has already passed through all remaining layers on that node. Forwarding it to the next node would double-process those layers.
 
 The pipeline handles this cleanly:
 
@@ -14,7 +14,7 @@ if (completed.tunneled) {
 }
 ```
 
-A tunneled token is immediately marked complete, regardless of which node it was on. The node that processed it becomes free and can accept the next token. No special bookkeeping — the same dispatch-on-free logic applies.
+A tunneled token is immediately marked complete, regardless of which node it was on. The node that processed it becomes free and can accept the next token. No special bookkeeping  --  the same dispatch-on-free logic applies.
 
 ### When Does Tunneling Happen?
 
@@ -37,7 +37,7 @@ This is mathematically identical to the sequential loop: P tokens × 1 node = P 
 The test suite verifies this:
 
 ```typescript
-test('Single node fallback — degrades to sequential, same results', async () => {
+test('Single node fallback  --  degrades to sequential, same results', async () => {
   const result = await runPipeline(4, 0, [makeNode(5, 2.0)]);
   expect(result.completedPositions).toEqual([0, 1, 2, 3]);
   expect(result.lastHiddenStates[0]).toBeCloseTo(8.0, 4);
@@ -59,7 +59,7 @@ if (isCollapseActive && this.localNode && this.layerNodes.size > 0) {
 }
 ```
 
-There's no pipeline opportunity here — there's only one node (the local one). The sequential loop is optimal.
+There's no pipeline opportunity here  --  there's only one node (the local one). The sequential loop is optimal.
 
 ### Why Not Pipeline Shard Collapse?
 
@@ -67,10 +67,10 @@ Even if the local node internally distributes across CPU cores, the `forward()` 
 
 ## SSM Models (Mamba, RWKV)
 
-SSM (State Space Model) architectures don't use KV caches — they maintain recurrent state on each layer node. The pipeline works identically for SSMs because:
+SSM (State Space Model) architectures don't use KV caches  --  they maintain recurrent state on each layer node. The pipeline works identically for SSMs because:
 
 1. `prefixMatchLen = 0` always (no cache reuse for SSMs)
-2. The per-node ordering guarantee still holds — Token 1 arrives at Node-01 after Token 0, so Node-01's recurrent state is updated in order
+2. The per-node ordering guarantee still holds  --  Token 1 arrives at Node-01 after Token 0, so Node-01's recurrent state is updated in order
 3. No KV cache append ordering concerns
 
 The pipeline is architecture-agnostic. It only cares about per-node serialization, not about what kind of state each node maintains.
@@ -90,7 +90,7 @@ while (
 }
 ```
 
-The pipeline starts at `prefixMatchLen` instead of 0, processing only the new suffix. This is orthogonal to the pipeline optimization — both reduce latency, and they compose multiplicatively.
+The pipeline starts at `prefixMatchLen` instead of 0, processing only the new suffix. This is orthogonal to the pipeline optimization  --  both reduce latency, and they compose multiplicatively.
 
 For a 100-token prompt where 80 tokens match the previous context, only 20 tokens enter the pipeline. With 4 nodes: sequential = 80 steps, pipeline = 23 steps. Combined with prefix matching: 20 × 4 = 80 → 23, plus 80 tokens skipped entirely = 103 → 23 total steps.
 
@@ -104,4 +104,4 @@ if (tokensToProcess <= 0) {
 }
 ```
 
-This is the degenerate case — a repeated prompt. The generation loop starts immediately from the cached KV state.
+This is the degenerate case  --  a repeated prompt. The generation loop starts immediately from the cached KV state.

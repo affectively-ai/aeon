@@ -1,0 +1,714 @@
+{
+  "label": "gnosis-aeon-framed-transformer-benchmark-v1",
+  "config": {
+    "seedCount": 12,
+    "epochs": 1800,
+    "learningRate": 0.02,
+    "exactPredictionTolerance": 0.08,
+    "dualActiveThreshold": 0.4,
+    "frameStageCount": 4,
+    "trainSampleCount": 169,
+    "evalSampleCount": 100,
+    "targetFamily": "quadrant-l1-framed-transformer"
+  },
+  "topology": {
+    "nodeCount": 77,
+    "edgeCount": 65,
+    "structuralBeta1": 11,
+    "transformerletCount": 4,
+    "rotationStageCount": 4,
+    "parameterCount": 16
+  },
+  "strategies": {
+    "linear": {
+      "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/aeon-framed-transformer-linear.gg",
+      "topologyNodeCount": 77,
+      "topologyEdgeCount": 65,
+      "structuralBeta1": 11,
+      "transformerletCount": 4,
+      "rotationStageCount": 4,
+      "parameterCount": 16,
+      "streamCountPerSample": 4,
+      "seedMetrics": [
+        {
+          "seed": 1,
+          "trainMeanSquaredError": 0.002380314186733608,
+          "evalMeanSquaredError": 0.0009582551861106127,
+          "exactWithinToleranceFraction": 0.99,
+          "dualActiveRegionMeanAbsoluteError": 0.025295342993172345,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 2,
+          "trainMeanSquaredError": 0.0026632983602274066,
+          "evalMeanSquaredError": 0.00117510831439763,
+          "exactWithinToleranceFraction": 0.99,
+          "dualActiveRegionMeanAbsoluteError": 0.026790678744709594,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 3,
+          "trainMeanSquaredError": 0.0026708788260217976,
+          "evalMeanSquaredError": 0.001192565786974023,
+          "exactWithinToleranceFraction": 0.99,
+          "dualActiveRegionMeanAbsoluteError": 0.027164439464444707,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 4,
+          "trainMeanSquaredError": 0.0029658108097854554,
+          "evalMeanSquaredError": 0.0014053999794352825,
+          "exactWithinToleranceFraction": 0.99,
+          "dualActiveRegionMeanAbsoluteError": 0.02614803893289282,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 5,
+          "trainMeanSquaredError": 0.0030195809835710506,
+          "evalMeanSquaredError": 0.0013494034314709758,
+          "exactWithinToleranceFraction": 0.97,
+          "dualActiveRegionMeanAbsoluteError": 0.025811098080795077,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 6,
+          "trainMeanSquaredError": 0.0030318216684957137,
+          "evalMeanSquaredError": 0.001480722230033224,
+          "exactWithinToleranceFraction": 0.97,
+          "dualActiveRegionMeanAbsoluteError": 0.027231369546326042,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 7,
+          "trainMeanSquaredError": 0.0023512066544844664,
+          "evalMeanSquaredError": 0.0009243296776387239,
+          "exactWithinToleranceFraction": 1,
+          "dualActiveRegionMeanAbsoluteError": 0.026021620158216907,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 8,
+          "trainMeanSquaredError": 0.002442825024415967,
+          "evalMeanSquaredError": 0.0010514345599265478,
+          "exactWithinToleranceFraction": 1,
+          "dualActiveRegionMeanAbsoluteError": 0.02915897115267062,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 9,
+          "trainMeanSquaredError": 0.0028335143873250736,
+          "evalMeanSquaredError": 0.0013271979870011945,
+          "exactWithinToleranceFraction": 0.97,
+          "dualActiveRegionMeanAbsoluteError": 0.029400240584004807,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 10,
+          "trainMeanSquaredError": 0.0025968626523243995,
+          "evalMeanSquaredError": 0.0010807123070855431,
+          "exactWithinToleranceFraction": 0.97,
+          "dualActiveRegionMeanAbsoluteError": 0.025505331777619208,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 11,
+          "trainMeanSquaredError": 0.0024413885155289863,
+          "evalMeanSquaredError": 0.0010332921263009971,
+          "exactWithinToleranceFraction": 0.97,
+          "dualActiveRegionMeanAbsoluteError": 0.02821979579384036,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 12,
+          "trainMeanSquaredError": 0.0027738663319261756,
+          "evalMeanSquaredError": 0.00122162111027071,
+          "exactWithinToleranceFraction": 0.96,
+          "dualActiveRegionMeanAbsoluteError": 0.02775392699000289,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        }
+      ],
+      "meanTrainMeanSquaredError": 0.0026809473667366752,
+      "stdevTrainMeanSquaredError": 0.00023655978007933875,
+      "meanEvalMeanSquaredError": 0.0011833368913871222,
+      "evalMeanSquaredErrorCi95": {
+        "low": 0.0010856938990356918,
+        "high": 0.0012751320109968564
+      },
+      "stdevEvalMeanSquaredError": 0.00017219966642240367,
+      "meanExactWithinToleranceFraction": 0.9808333333333333,
+      "exactWithinToleranceFractionCi95": {
+        "low": 0.9733333333333335,
+        "high": 0.9875000000000003
+      },
+      "stdevExactWithinToleranceFraction": 0.013202482931462395,
+      "meanDualActiveRegionMeanAbsoluteError": 0.02704173785155795,
+      "dualActiveRegionMeanAbsoluteErrorCi95": {
+        "low": 0.026350764072302267,
+        "high": 0.02779789238515858
+      },
+      "stdevDualActiveRegionMeanAbsoluteError": 0.0013171479020816152,
+      "meanCodecRoundTripExactFraction": 1,
+      "meanReassemblyExactFraction": 1,
+      "meanFoldInvarianceExactFraction": 1,
+      "meanFrameCount": 16,
+      "meanPayloadBytes": 224,
+      "samplePredictions": [
+        {
+          "leftInput": -1.2,
+          "rightInput": -1.2,
+          "target": 2.4,
+          "meanPrediction": 2.427441224970934,
+          "predictionStddev": 0.00491073574843286,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": -1.2,
+          "rightInput": 1.2,
+          "target": 2.4,
+          "meanPrediction": 2.4243212352534482,
+          "predictionStddev": 0.006687246029042112,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": 1.2,
+          "rightInput": -1.2,
+          "target": 2.4,
+          "meanPrediction": 2.422086141660593,
+          "predictionStddev": 0.01022823536069625,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": 1.2,
+          "rightInput": 1.2,
+          "target": 2.4,
+          "meanPrediction": 2.418966151943108,
+          "predictionStddev": 0.011838473978079685,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": 1.2,
+          "rightInput": 0,
+          "target": 1.2,
+          "meanPrediction": 1.3053120927684276,
+          "predictionStddev": 0.014014360717439908,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        }
+      ]
+    },
+    "winner-take-all": {
+      "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/aeon-framed-transformer-winner-take-all.gg",
+      "topologyNodeCount": 77,
+      "topologyEdgeCount": 65,
+      "structuralBeta1": 11,
+      "transformerletCount": 4,
+      "rotationStageCount": 4,
+      "parameterCount": 16,
+      "streamCountPerSample": 4,
+      "seedMetrics": [
+        {
+          "seed": 1,
+          "trainMeanSquaredError": 0.39414925637047094,
+          "evalMeanSquaredError": 0.3742520115218488,
+          "exactWithinToleranceFraction": 0.08,
+          "dualActiveRegionMeanAbsoluteError": 0.47572915980602193,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 2,
+          "trainMeanSquaredError": 0.498818147097492,
+          "evalMeanSquaredError": 0.4608786699687322,
+          "exactWithinToleranceFraction": 0.1,
+          "dualActiveRegionMeanAbsoluteError": 0.5661043174666537,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 3,
+          "trainMeanSquaredError": 0.25301712960767125,
+          "evalMeanSquaredError": 0.23404584824457259,
+          "exactWithinToleranceFraction": 0,
+          "dualActiveRegionMeanAbsoluteError": 0.40988661628961537,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 4,
+          "trainMeanSquaredError": 0.18981330420141707,
+          "evalMeanSquaredError": 0.18725852343596902,
+          "exactWithinToleranceFraction": 0.08,
+          "dualActiveRegionMeanAbsoluteError": 0.32557160455343603,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 5,
+          "trainMeanSquaredError": 0.3810805435313844,
+          "evalMeanSquaredError": 0.370517151504235,
+          "exactWithinToleranceFraction": 0.06,
+          "dualActiveRegionMeanAbsoluteError": 0.4519448603269205,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 6,
+          "trainMeanSquaredError": 0.40399833005378083,
+          "evalMeanSquaredError": 0.37969131798712596,
+          "exactWithinToleranceFraction": 0.08,
+          "dualActiveRegionMeanAbsoluteError": 0.5006511249499002,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 7,
+          "trainMeanSquaredError": 0.40694680182561516,
+          "evalMeanSquaredError": 0.380831115829133,
+          "exactWithinToleranceFraction": 0.08,
+          "dualActiveRegionMeanAbsoluteError": 0.5065263283675288,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 8,
+          "trainMeanSquaredError": 0.22302038524980167,
+          "evalMeanSquaredError": 0.220372300354214,
+          "exactWithinToleranceFraction": 0.2,
+          "dualActiveRegionMeanAbsoluteError": 0.3296194004358939,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 9,
+          "trainMeanSquaredError": 0.2566960315261385,
+          "evalMeanSquaredError": 0.23656681738093405,
+          "exactWithinToleranceFraction": 0,
+          "dualActiveRegionMeanAbsoluteError": 0.4145808018236638,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 10,
+          "trainMeanSquaredError": 0.3915099201591739,
+          "evalMeanSquaredError": 0.37248248726913524,
+          "exactWithinToleranceFraction": 0.06,
+          "dualActiveRegionMeanAbsoluteError": 0.47255682725129516,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 11,
+          "trainMeanSquaredError": 0.38150260071613074,
+          "evalMeanSquaredError": 0.3699467246197405,
+          "exactWithinToleranceFraction": 0.08,
+          "dualActiveRegionMeanAbsoluteError": 0.45527735080178294,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 12,
+          "trainMeanSquaredError": 0.2518786547064802,
+          "evalMeanSquaredError": 0.2332106134797332,
+          "exactWithinToleranceFraction": 0.02,
+          "dualActiveRegionMeanAbsoluteError": 0.4077050629688544,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        }
+      ],
+      "meanTrainMeanSquaredError": 0.33603592542046307,
+      "stdevTrainMeanSquaredError": 0.09179642547116841,
+      "meanEvalMeanSquaredError": 0.31833779846628113,
+      "evalMeanSquaredErrorCi95": {
+        "low": 0.27257628014002366,
+        "high": 0.3654626167233417
+      },
+      "stdevEvalMeanSquaredError": 0.08526872268356074,
+      "meanExactWithinToleranceFraction": 0.06999999999999999,
+      "exactWithinToleranceFractionCi95": {
+        "low": 0.043333333333333335,
+        "high": 0.10137500000000008
+      },
+      "stdevExactWithinToleranceFraction": 0.05066228051190221,
+      "meanDualActiveRegionMeanAbsoluteError": 0.4430127879201305,
+      "dualActiveRegionMeanAbsoluteErrorCi95": {
+        "low": 0.4037601570573427,
+        "high": 0.477411579575178
+      },
+      "stdevDualActiveRegionMeanAbsoluteError": 0.06738195445159227,
+      "meanCodecRoundTripExactFraction": 1,
+      "meanReassemblyExactFraction": 1,
+      "meanFoldInvarianceExactFraction": 1,
+      "meanFrameCount": 16,
+      "meanPayloadBytes": 224,
+      "samplePredictions": [
+        {
+          "leftInput": -1.2,
+          "rightInput": -1.2,
+          "target": 2.4,
+          "meanPrediction": 1.6272613069037911,
+          "predictionStddev": 0.3320319862003854,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": -1.2,
+          "rightInput": 1.2,
+          "target": 2.4,
+          "meanPrediction": 1.7509150880963917,
+          "predictionStddev": 0.25827287058069404,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": 1.2,
+          "rightInput": -1.2,
+          "target": 2.4,
+          "meanPrediction": 1.7135264369215821,
+          "predictionStddev": 0.24389214349090094,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": 1.2,
+          "rightInput": 1.2,
+          "target": 2.4,
+          "meanPrediction": 1.7896093228267642,
+          "predictionStddev": 0.20384632380318696,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": 1.2,
+          "rightInput": 0,
+          "target": 1.2,
+          "meanPrediction": 1.4528105909851738,
+          "predictionStddev": 0.48051358278268447,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        }
+      ]
+    },
+    "early-stop": {
+      "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/aeon-framed-transformer-early-stop.gg",
+      "topologyNodeCount": 77,
+      "topologyEdgeCount": 65,
+      "structuralBeta1": 11,
+      "transformerletCount": 4,
+      "rotationStageCount": 4,
+      "parameterCount": 16,
+      "streamCountPerSample": 4,
+      "seedMetrics": [
+        {
+          "seed": 1,
+          "trainMeanSquaredError": 0.49793995715795053,
+          "evalMeanSquaredError": 0.4612276856220003,
+          "exactWithinToleranceFraction": 0.08,
+          "dualActiveRegionMeanAbsoluteError": 0.5624457513863395,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 2,
+          "trainMeanSquaredError": 0.4988179997513197,
+          "evalMeanSquaredError": 0.4608785788242624,
+          "exactWithinToleranceFraction": 0.1,
+          "dualActiveRegionMeanAbsoluteError": 0.5661041529959592,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 3,
+          "trainMeanSquaredError": 0.5081181247286789,
+          "evalMeanSquaredError": 0.4638592271727864,
+          "exactWithinToleranceFraction": 0.08,
+          "dualActiveRegionMeanAbsoluteError": 0.5845814676110864,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 4,
+          "trainMeanSquaredError": 0.5121998803111477,
+          "evalMeanSquaredError": 0.4657900975634079,
+          "exactWithinToleranceFraction": 0.06,
+          "dualActiveRegionMeanAbsoluteError": 0.5917118092615936,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 5,
+          "trainMeanSquaredError": 0.5052914363298429,
+          "evalMeanSquaredError": 0.4622783597946525,
+          "exactWithinToleranceFraction": 0.08,
+          "dualActiveRegionMeanAbsoluteError": 0.580917494051512,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 6,
+          "trainMeanSquaredError": 0.5015135234643942,
+          "evalMeanSquaredError": 0.46048769552796665,
+          "exactWithinToleranceFraction": 0.08,
+          "dualActiveRegionMeanAbsoluteError": 0.5751160853850533,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 7,
+          "trainMeanSquaredError": 0.5052510665750909,
+          "evalMeanSquaredError": 0.46205834365312953,
+          "exactWithinToleranceFraction": 0.08,
+          "dualActiveRegionMeanAbsoluteError": 0.5813992667059769,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 8,
+          "trainMeanSquaredError": 0.5142212099148044,
+          "evalMeanSquaredError": 0.4667203228068609,
+          "exactWithinToleranceFraction": 0.06,
+          "dualActiveRegionMeanAbsoluteError": 0.5956550050305688,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 9,
+          "trainMeanSquaredError": 0.5114094159996991,
+          "evalMeanSquaredError": 0.4650593034330459,
+          "exactWithinToleranceFraction": 0.06,
+          "dualActiveRegionMeanAbsoluteError": 0.5918101548169723,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 10,
+          "trainMeanSquaredError": 0.5000123383075445,
+          "evalMeanSquaredError": 0.45905971420024066,
+          "exactWithinToleranceFraction": 0.06,
+          "dualActiveRegionMeanAbsoluteError": 0.5747760335263403,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 11,
+          "trainMeanSquaredError": 0.49666642007233697,
+          "evalMeanSquaredError": 0.45739328866426293,
+          "exactWithinToleranceFraction": 0.08,
+          "dualActiveRegionMeanAbsoluteError": 0.5698541736038962,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        },
+        {
+          "seed": 12,
+          "trainMeanSquaredError": 0.5021615630286107,
+          "evalMeanSquaredError": 0.45998733418260335,
+          "exactWithinToleranceFraction": 0.06,
+          "dualActiveRegionMeanAbsoluteError": 0.5783028834101869,
+          "codecRoundTripExactFraction": 1,
+          "reassemblyExactFraction": 1,
+          "foldInvarianceExactFraction": 1,
+          "frameCount": 16,
+          "payloadBytes": 224
+        }
+      ],
+      "meanTrainMeanSquaredError": 0.5044669113034518,
+      "stdevTrainMeanSquaredError": 0.005678974156017963,
+      "meanEvalMeanSquaredError": 0.4620666626204349,
+      "evalMeanSquaredErrorCi95": {
+        "low": 0.46059864995527133,
+        "high": 0.4635663333780782
+      },
+      "stdevEvalMeanSquaredError": 0.00270106344473427,
+      "meanExactWithinToleranceFraction": 0.07333333333333335,
+      "exactWithinToleranceFractionCi95": {
+        "low": 0.06666666666666667,
+        "high": 0.08
+      },
+      "stdevExactWithinToleranceFraction": 0.012472191289246473,
+      "meanDualActiveRegionMeanAbsoluteError": 0.5793895231487903,
+      "dualActiveRegionMeanAbsoluteErrorCi95": {
+        "low": 0.5742394774125649,
+        "high": 0.5848546126413726
+      },
+      "stdevDualActiveRegionMeanAbsoluteError": 0.009996872318343928,
+      "meanCodecRoundTripExactFraction": 1,
+      "meanReassemblyExactFraction": 1,
+      "meanFoldInvarianceExactFraction": 1,
+      "meanFrameCount": 16,
+      "meanPayloadBytes": 224,
+      "samplePredictions": [
+        {
+          "leftInput": -1.2,
+          "rightInput": -1.2,
+          "target": 2.4,
+          "meanPrediction": 1.2594083232234239,
+          "predictionStddev": 0.009245827127803589,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": -1.2,
+          "rightInput": 1.2,
+          "target": 2.4,
+          "meanPrediction": 1.2594083232234239,
+          "predictionStddev": 0.009245827127803589,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": 1.2,
+          "rightInput": -1.2,
+          "target": 2.4,
+          "meanPrediction": 1.5318139483454492,
+          "predictionStddev": 0.03710008080725502,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": 1.2,
+          "rightInput": 1.2,
+          "target": 2.4,
+          "meanPrediction": 1.5318139483454492,
+          "predictionStddev": 0.03710008080725502,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        },
+        {
+          "leftInput": 1.2,
+          "rightInput": 0,
+          "target": 1.2,
+          "meanPrediction": 1.5318139483454492,
+          "predictionStddev": 0.03710008080725502,
+          "meanFrameCount": 16,
+          "meanPayloadBytes": 224
+        }
+      ]
+    }
+  },
+  "rankingByEvalMeanSquaredError": [
+    "linear",
+    "winner-take-all",
+    "early-stop"
+  ],
+  "predictedRankingMatches": true
+}

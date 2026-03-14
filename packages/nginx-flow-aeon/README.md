@@ -1,4 +1,4 @@
-# ngx_flow_aeon_module — Aeon Flow Native Listener for nginx
+# ngx_flow_aeon_module  --  Aeon Flow Native Listener for nginx
 
 The reverse of `ngx_aeon_flow_module`. Accepts native Aeon Flow binary connections on a TCP port and translates them into HTTP requests to upstream backends.
 
@@ -51,7 +51,7 @@ stream {
 ### Connection Lifecycle
 
 1. Aeon Flow client opens TCP connection to port 4001
-2. Client sends DATA frames — each contains an HTTP request (method, URI, headers)
+2. Client sends DATA frames  --  each contains an HTTP request (method, URI, headers)
 3. Module parses the payload and opens an HTTP/1.1 connection to the upstream
 4. HTTP response is read, encoded as Aeon Flow DATA frames, and sent back
 5. FIN frame closes the stream; connection stays open for reuse
@@ -72,7 +72,7 @@ Client → DATA(stream=6, payload="GET /api/comments HTTP/1.1\r\n...")
 Client → DATA(stream=8, payload="GET /api/likes HTTP/1.1\r\n...")
 ```
 
-Each child stream becomes a parallel HTTP request. Responses arrive as they complete — no head-of-line blocking.
+Each child stream becomes a parallel HTTP request. Responses arrive as they complete  --  no head-of-line blocking.
 
 ### Poison Propagation
 
@@ -81,7 +81,7 @@ When a client sends POISON on a stream:
 1. The HTTP upstream connection for that stream is closed immediately
 2. A POISON frame is echoed back to confirm
 3. If the stream has children (from FORK), they are recursively poisoned
-4. Backend work stops — no wasted compute
+4. Backend work stops  --  no wasted compute
 
 When a client disconnects:
 
@@ -102,5 +102,5 @@ Shares the binary codec from `../nginx-aeon-flow/src/ngx_aeon_flow_codec.c` via 
 
 ## See Also
 
-- [`nginx-aeon-flow`](../nginx-aeon-flow/) — The reverse direction (HTTP → Aeon Flow)
+- [`nginx-aeon-flow`](../nginx-aeon-flow/)  --  The reverse direction (HTTP → Aeon Flow)
 - [Chapter 16: The nginx Module](../../docs/ebooks/145-log-rolling-pipelined-prefill/ch16-nginx-aeon-flow-module.md)

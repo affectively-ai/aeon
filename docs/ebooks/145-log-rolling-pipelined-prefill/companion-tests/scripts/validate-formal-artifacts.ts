@@ -74,6 +74,10 @@ function validateLeanProject(): number {
     'Lean project must expose the FailureComposition module',
   );
   assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.FailureDurability'),
+    'Lean project must expose the FailureDurability module',
+  );
+  assert(
     result.report.project.moduleNames.includes('ForkRaceFoldTheorems.FailureUniversality'),
     'Lean project must expose the FailureUniversality module',
   );
@@ -92,6 +96,58 @@ function validateLeanProject(): number {
   assert(
     result.report.project.moduleNames.includes('ForkRaceFoldTheorems.QueueStability'),
     'Lean project must expose the QueueStability module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.JacksonRawClosure'),
+    'Lean project must expose the JacksonRawClosure module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.QueueBoundary'),
+    'Lean project must expose the QueueBoundary module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.JacksonEnvelopeClosure'),
+    'Lean project must expose the JacksonEnvelopeClosure module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.JacksonExactClosure'),
+    'Lean project must expose the JacksonExactClosure module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.JacksonFeedForwardClosure'),
+    'Lean project must expose the JacksonFeedForwardClosure module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.InterferenceCoarsening'),
+    'Lean project must expose the InterferenceCoarsening module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.StateDependentQueueFamilies'),
+    'Lean project must expose the StateDependentQueueFamilies module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.AdaptiveWitnesses'),
+    'Lean project must expose the AdaptiveWitnesses module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.QuorumAsyncNetwork'),
+    'Lean project must expose the QuorumAsyncNetwork module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.QuorumLinearizability'),
+    'Lean project must expose the QuorumLinearizability module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.QuorumVisibility'),
+    'Lean project must expose the QuorumVisibility module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.QuorumConsistency'),
+    'Lean project must expose the QuorumConsistency module',
+  );
+  assert(
+    result.report.project.moduleNames.includes('ForkRaceFoldTheorems.QuorumOrdering'),
+    'Lean project must expose the QuorumOrdering module',
   );
   assert(
     result.report.project.moduleNames.includes('ForkRaceFoldTheorems.JacksonQueueing'),

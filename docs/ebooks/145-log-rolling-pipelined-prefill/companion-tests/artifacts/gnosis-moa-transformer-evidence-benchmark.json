@@ -1,0 +1,275 @@
+{
+  "label": "gnosis-moa-transformer-evidence-v1",
+  "topologySurface": {
+    "regularTopologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-regular.gg",
+    "moaTopologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-moa.gg",
+    "moaStructuredPrimitive": "StructuredMoA"
+  },
+  "baseConfig": {
+    "seedCount": 4,
+    "learningRate": 0.018,
+    "exactPredictionTolerance": 0.08,
+    "dualActiveThreshold": 0.4,
+    "frameStageCount": 4,
+    "samplePoints": [
+      [-1.2, -1.2],
+      [-1.2, 1.2],
+      [1.2, -1.2],
+      [1.2, 1.2],
+      [1.2, 0]
+    ]
+  },
+  "scales": [
+    {
+      "id": "compact",
+      "title": "Compact workload",
+      "epochs": 400,
+      "trainSampleCount": 25,
+      "evalSampleCount": 16,
+      "families": {
+        "regular": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-regular.gg",
+          "meanEvalMeanSquaredError": 0.0023344693630454015,
+          "meanExactWithinToleranceFraction": 0.890625,
+          "meanEvalWallTimeMs": 3.9013227499999914,
+          "meanEvalSamplesPerSecond": 7432.914400561438,
+          "meanActiveBlockCount": 4,
+          "meanActiveHeadCount": 16,
+          "meanFrameCount": 64,
+          "computeAdjustedExactFraction": 0.0556640625
+        },
+        "moa": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-moa.gg",
+          "meanEvalMeanSquaredError": 0.08289821805505497,
+          "meanExactWithinToleranceFraction": 0.25,
+          "meanEvalWallTimeMs": 0.5561042500000042,
+          "meanEvalSamplesPerSecond": 30190.77066545301,
+          "meanActiveBlockCount": 2,
+          "meanActiveHeadCount": 4,
+          "meanFrameCount": 16,
+          "computeAdjustedExactFraction": 0.0625
+        }
+      },
+      "moaEvalWallTimeSpeedupVsRegular": 7.015452138695149,
+      "moaHeadReductionFactor": 4,
+      "moaFrameReductionFactor": 4,
+      "rawAccuracyCompetitive": false,
+      "moaUsesLessCompute": true
+    },
+    {
+      "id": "baseline",
+      "title": "Baseline workload",
+      "epochs": 500,
+      "trainSampleCount": 49,
+      "evalSampleCount": 25,
+      "families": {
+        "regular": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-regular.gg",
+          "meanEvalMeanSquaredError": 0.0004518524719732068,
+          "meanExactWithinToleranceFraction": 1,
+          "meanEvalWallTimeMs": 2.448041750000016,
+          "meanEvalSamplesPerSecond": 11610.727337660224,
+          "meanActiveBlockCount": 4,
+          "meanActiveHeadCount": 16,
+          "meanFrameCount": 64,
+          "computeAdjustedExactFraction": 0.0625
+        },
+        "moa": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-moa.gg",
+          "meanEvalMeanSquaredError": 0.06662966987090403,
+          "meanExactWithinToleranceFraction": 0.44999999999999996,
+          "meanEvalWallTimeMs": 0.5497814999999946,
+          "meanEvalSamplesPerSecond": 45506.11976741605,
+          "meanActiveBlockCount": 2,
+          "meanActiveHeadCount": 4,
+          "meanFrameCount": 16,
+          "computeAdjustedExactFraction": 0.11249999999999999
+        }
+      },
+      "moaEvalWallTimeSpeedupVsRegular": 4.452753957708726,
+      "moaHeadReductionFactor": 4,
+      "moaFrameReductionFactor": 4,
+      "rawAccuracyCompetitive": false,
+      "moaUsesLessCompute": true
+    },
+    {
+      "id": "wide",
+      "title": "Wide workload",
+      "epochs": 600,
+      "trainSampleCount": 81,
+      "evalSampleCount": 49,
+      "families": {
+        "regular": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-regular.gg",
+          "meanEvalMeanSquaredError": 0.0008010879770465443,
+          "meanExactWithinToleranceFraction": 1,
+          "meanEvalWallTimeMs": 3.325750249999885,
+          "meanEvalSamplesPerSecond": 14801.574511507955,
+          "meanActiveBlockCount": 4,
+          "meanActiveHeadCount": 16,
+          "meanFrameCount": 64,
+          "computeAdjustedExactFraction": 0.0625
+        },
+        "moa": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-moa.gg",
+          "meanEvalMeanSquaredError": 0.0033379704003022857,
+          "meanExactWithinToleranceFraction": 0.8010204081632653,
+          "meanEvalWallTimeMs": 1.3009997500000168,
+          "meanEvalSamplesPerSecond": 43433.55434626714,
+          "meanActiveBlockCount": 2,
+          "meanActiveHeadCount": 4,
+          "meanFrameCount": 16,
+          "computeAdjustedExactFraction": 0.2002551020408163
+        }
+      },
+      "moaEvalWallTimeSpeedupVsRegular": 2.556303527344907,
+      "moaHeadReductionFactor": 4,
+      "moaFrameReductionFactor": 4,
+      "rawAccuracyCompetitive": false,
+      "moaUsesLessCompute": true
+    }
+  ],
+  "ablations": [
+    {
+      "id": "full-moa",
+      "title": "Full MoA",
+      "description": "Outer sparsity and inner head sparsity both active at the paper baseline.",
+      "activeBlockCount": 2,
+      "activeHeadCount": 2,
+      "families": {
+        "regular": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-regular.gg",
+          "meanEvalMeanSquaredError": 0.00004601587754538137,
+          "meanExactWithinToleranceFraction": 1,
+          "meanEvalWallTimeMs": 8.266166500000054,
+          "meanEvalSamplesPerSecond": 12146.335466980721,
+          "meanActiveBlockCount": 4,
+          "meanActiveHeadCount": 16,
+          "meanFrameCount": 64,
+          "computeAdjustedExactFraction": 0.0625
+        },
+        "moa": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-moa.gg",
+          "meanEvalMeanSquaredError": 0.001389220125021179,
+          "meanExactWithinToleranceFraction": 0.9225,
+          "meanEvalWallTimeMs": 2.2592812500001855,
+          "meanEvalSamplesPerSecond": 45710.849462326325,
+          "meanActiveBlockCount": 2,
+          "meanActiveHeadCount": 4,
+          "meanFrameCount": 16,
+          "computeAdjustedExactFraction": 0.230625
+        }
+      },
+      "moaEvalWallTimeSpeedupVsRegular": 3.658759395272003,
+      "rawAccuracyCompetitive": false,
+      "moaUsesLessCompute": true
+    },
+    {
+      "id": "no-outer-sparsity",
+      "title": "No outer sparsity",
+      "description": "Keep all four blocks live while preserving the sparse inner head whip.",
+      "activeBlockCount": 4,
+      "activeHeadCount": 2,
+      "families": {
+        "regular": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-regular.gg",
+          "meanEvalMeanSquaredError": 0.00004601587754538137,
+          "meanExactWithinToleranceFraction": 1,
+          "meanEvalWallTimeMs": 7.5861147500000925,
+          "meanEvalSamplesPerSecond": 13606.593103255862,
+          "meanActiveBlockCount": 4,
+          "meanActiveHeadCount": 16,
+          "meanFrameCount": 64,
+          "computeAdjustedExactFraction": 0.0625
+        },
+        "moa": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-moa.gg",
+          "meanEvalMeanSquaredError": 0.00025679431098197023,
+          "meanExactWithinToleranceFraction": 1,
+          "meanEvalWallTimeMs": 3.464864499999976,
+          "meanEvalSamplesPerSecond": 29570.416790503805,
+          "meanActiveBlockCount": 4,
+          "meanActiveHeadCount": 8,
+          "meanFrameCount": 32,
+          "computeAdjustedExactFraction": 0.125
+        }
+      },
+      "moaEvalWallTimeSpeedupVsRegular": 2.18944052501913,
+      "rawAccuracyCompetitive": true,
+      "moaUsesLessCompute": true
+    },
+    {
+      "id": "no-inner-sparsity",
+      "title": "No inner sparsity",
+      "description": "Keep the outer MoA route but expand each live block to all four heads.",
+      "activeBlockCount": 2,
+      "activeHeadCount": 4,
+      "families": {
+        "regular": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-regular.gg",
+          "meanEvalMeanSquaredError": 0.00004601587754538137,
+          "meanExactWithinToleranceFraction": 1,
+          "meanEvalWallTimeMs": 6.175531500000034,
+          "meanEvalSamplesPerSecond": 16609.363527914225,
+          "meanActiveBlockCount": 4,
+          "meanActiveHeadCount": 16,
+          "meanFrameCount": 64,
+          "computeAdjustedExactFraction": 0.0625
+        },
+        "moa": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-moa.gg",
+          "meanEvalMeanSquaredError": 0.000874465144769568,
+          "meanExactWithinToleranceFraction": 0.99,
+          "meanEvalWallTimeMs": 3.147239749999926,
+          "meanEvalSamplesPerSecond": 31993.88153083018,
+          "meanActiveBlockCount": 2,
+          "meanActiveHeadCount": 8,
+          "meanFrameCount": 32,
+          "computeAdjustedExactFraction": 0.12375
+        }
+      },
+      "moaEvalWallTimeSpeedupVsRegular": 1.9622056120764804,
+      "rawAccuracyCompetitive": true,
+      "moaUsesLessCompute": true
+    },
+    {
+      "id": "under-routed",
+      "title": "Under-routed",
+      "description": "Over-sparsify the outer route to a single block and observe the accuracy penalty.",
+      "activeBlockCount": 1,
+      "activeHeadCount": 2,
+      "families": {
+        "regular": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-regular.gg",
+          "meanEvalMeanSquaredError": 0.00004601587754538137,
+          "meanExactWithinToleranceFraction": 1,
+          "meanEvalWallTimeMs": 5.442666250000002,
+          "meanEvalSamplesPerSecond": 18384.63544765425,
+          "meanActiveBlockCount": 4,
+          "meanActiveHeadCount": 16,
+          "meanFrameCount": 64,
+          "computeAdjustedExactFraction": 0.0625
+        },
+        "moa": {
+          "topologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-moa.gg",
+          "meanEvalMeanSquaredError": 0.22329852374928322,
+          "meanExactWithinToleranceFraction": 0.19,
+          "meanEvalWallTimeMs": 0.8535102500002267,
+          "meanEvalSamplesPerSecond": 117176.20355117971,
+          "meanActiveBlockCount": 1,
+          "meanActiveHeadCount": 2,
+          "meanFrameCount": 8,
+          "computeAdjustedExactFraction": 0.095
+        }
+      },
+      "moaEvalWallTimeSpeedupVsRegular": 6.376802446131791,
+      "rawAccuracyCompetitive": false,
+      "moaUsesLessCompute": true
+    }
+  ],
+  "timingAdvantageRecovered": true,
+  "accuracyGapClosesWithScale": true,
+  "outerSparsityImprovesEfficiency": true,
+  "innerSparsityImprovesEfficiency": true,
+  "underRoutingHurtsAccuracy": true
+}

@@ -1,0 +1,184 @@
+{
+  "config": {
+    "trialsPerCell": 4,
+    "maxAttemptsPerRequest": 4,
+    "requestTimeoutMs": 20000,
+    "bootstrapResamples": 1200,
+    "seed": 1588051969,
+    "workloads": [
+      {
+        "name": "md5-grind-n4-b8",
+        "tokens": 32,
+        "nodes": 4,
+        "chunkSize": 8,
+        "serviceMsPerToken": 0,
+        "payloadBytesPerToken": 64,
+        "cpuTask": {
+          "kind": "md5-grind",
+          "unitsPerToken": 180
+        }
+      }
+    ],
+    "networkConditions": [
+      {
+        "name": "rtt3-loss0",
+        "rttMs": 3,
+        "jitterMs": 0.3,
+        "lossRate": 0,
+        "primary": true
+      },
+      {
+        "name": "rtt7-loss0",
+        "rttMs": 7,
+        "jitterMs": 0.6,
+        "lossRate": 0,
+        "primary": true
+      }
+    ]
+  },
+  "execution": {
+    "label": "loopback-md5-grind",
+    "mode": "embedded-stage-servers",
+    "listenHost": "127.0.0.1",
+    "advertiseHost": "127.0.0.1",
+    "endpointPoolSize": 0,
+    "endpointHosts": [],
+    "distinctEndpointHostCount": 0
+  },
+  "cells": [
+    {
+      "cellId": "md5-grind-n4-b8__rtt3-loss0",
+      "workload": {
+        "name": "md5-grind-n4-b8",
+        "tokens": 32,
+        "nodes": 4,
+        "chunkSize": 8,
+        "serviceMsPerToken": 0,
+        "payloadBytesPerToken": 64,
+        "cpuTask": {
+          "kind": "md5-grind",
+          "unitsPerToken": 180
+        }
+      },
+      "network": {
+        "name": "rtt3-loss0",
+        "rttMs": 3,
+        "jitterMs": 0.3,
+        "lossRate": 0,
+        "primary": true
+      },
+      "pairedTrials": 4,
+      "failedTrials": 0,
+      "sequential": {
+        "p50Ms": 356.9324790000001,
+        "p95Ms": 360.34876694999997,
+        "p50Ci": {
+          "low": 347.685209,
+          "high": 360.834792
+        },
+        "p95Ci": {
+          "low": 356.10821260000006,
+          "high": 360.834792
+        }
+      },
+      "chunked": {
+        "p50Ms": 31.978416500000094,
+        "p95Ms": 35.18345179999998,
+        "p50Ci": {
+          "low": 28.059999999999945,
+          "high": 35.62620799999996
+        },
+        "p95Ci": {
+          "low": 31.282333000000108,
+          "high": 35.62620799999996
+        }
+      },
+      "speedupMedian": 11.21609098745028,
+      "speedupMedianCi": {
+        "low": 10.037403503622965,
+        "high": 12.390777227369945
+      },
+      "improvementMedianMs": 323.47820850000005,
+      "improvementMedianMsCi": {
+        "low": 319.62520900000004,
+        "high": 328.1602919999999
+      },
+      "sequentialAvgRetriesPerTrial": 0,
+      "chunkedAvgRetriesPerTrial": 0,
+      "passed": true
+    },
+    {
+      "cellId": "md5-grind-n4-b8__rtt7-loss0",
+      "workload": {
+        "name": "md5-grind-n4-b8",
+        "tokens": 32,
+        "nodes": 4,
+        "chunkSize": 8,
+        "serviceMsPerToken": 0,
+        "payloadBytesPerToken": 64,
+        "cpuTask": {
+          "kind": "md5-grind",
+          "unitsPerToken": 180
+        }
+      },
+      "network": {
+        "name": "rtt7-loss0",
+        "rttMs": 7,
+        "jitterMs": 0.6,
+        "lossRate": 0,
+        "primary": true
+      },
+      "pairedTrials": 4,
+      "failedTrials": 0,
+      "sequential": {
+        "p50Ms": 963.9464794999999,
+        "p95Ms": 981.4409892999997,
+        "p50Ci": {
+          "low": 946.6957910000001,
+          "high": 982.1934579999997
+        },
+        "p95Ci": {
+          "low": 950.7159590000001,
+          "high": 982.1934579999997
+        }
+      },
+      "chunked": {
+        "p50Ms": 65.80533350000019,
+        "p95Ms": 68.53825809999987,
+        "p50Ci": {
+          "low": 59.86974999999984,
+          "high": 68.8277079999998
+        },
+        "p95Ci": {
+          "low": 64.71262500000012,
+          "high": 68.8277079999998
+        }
+      },
+      "speedupMedian": 14.42032275848343,
+      "speedupMedianCi": {
+        "low": 14.197436299927386,
+        "high": 16.405504582865344
+      },
+      "improvementMedianMs": 896.0836044999999,
+      "improvementMedianMsCi": {
+        "low": 881.983166,
+        "high": 922.3237079999999
+      },
+      "sequentialAvgRetriesPerTrial": 0,
+      "chunkedAvgRetriesPerTrial": 0,
+      "passed": true
+    }
+  ],
+  "gate": {
+    "primaryCells": [
+      "md5-grind-n4-b8__rtt3-loss0",
+      "md5-grind-n4-b8__rtt7-loss0"
+    ],
+    "passedPrimaryCells": [
+      "md5-grind-n4-b8__rtt3-loss0",
+      "md5-grind-n4-b8__rtt7-loss0"
+    ],
+    "failedPrimaryCells": [],
+    "pass": true
+  }
+}

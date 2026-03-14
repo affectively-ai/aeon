@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   bootstrapCi,
   makeDefaultGate1Config,
+  makeMd5GrindGate1Config,
+  makeSemiprimeFactorGate1Config,
   quantile,
   runGate1Matrix,
   type Gate1Config,
@@ -63,5 +65,29 @@ describe('Gate 1 Wall-Clock Matrix', () => {
     expect(cell.speedupMedian).toBeGreaterThan(1);
     expect(cell.passed).toBe(true);
     expect(report.gate.pass).toBe(true);
+  });
+
+  it('exports a semiprime-only hard-workload config for isolated reruns', () => {
+    const config = makeSemiprimeFactorGate1Config();
+
+    expect(config.workloads).toHaveLength(1);
+    expect(config.workloads[0]?.name).toBe('factor-semiprime-n4-b6');
+    expect(config.workloads[0]?.cpuTask?.kind).toBe('semiprime-factor');
+    expect(config.networkConditions.map((condition) => condition.name)).toEqual([
+      'rtt3-loss0',
+      'rtt7-loss0',
+    ]);
+  });
+
+  it('exports an md5-only hard-workload config for isolated reruns', () => {
+    const config = makeMd5GrindGate1Config();
+
+    expect(config.workloads).toHaveLength(1);
+    expect(config.workloads[0]?.name).toBe('md5-grind-n4-b8');
+    expect(config.workloads[0]?.cpuTask?.kind).toBe('md5-grind');
+    expect(config.networkConditions.map((condition) => condition.name)).toEqual([
+      'rtt3-loss0',
+      'rtt7-loss0',
+    ]);
   });
 });

@@ -1,4 +1,4 @@
-# Aeon Flow Inspector — Chrome DevTools Extension
+# Aeon Flow Inspector  --  Chrome DevTools Extension
 
 A Chrome DevTools panel that decodes Aeon Flow binary frames into a visual waterfall, stream tree, and frame-by-frame inspector. The Network tab replacement for Aeon Flow.
 
@@ -13,7 +13,7 @@ A Chrome DevTools panel that decodes Aeon Flow binary frames into a visual water
 
 ### Waterfall
 
-Timeline view of all Aeon Flow frames — the equivalent of Chrome's Network waterfall tab. Each frame shows:
+Timeline view of all Aeon Flow frames  --  the equivalent of Chrome's Network waterfall tab. Each frame shows:
 
 - Timestamp (ms from connection start)
 - Stream ID
@@ -75,6 +75,6 @@ When Aeon Flow runs over a WebSocket transport (e.g., browser↔server), the ext
 
 ## See Also
 
-- [`wall`](../wall/) — CLI tool for Aeon Flow (curl equivalent)
-- [`nginx-aeon-flow`](../nginx-aeon-flow/) — HTTP → Aeon Flow nginx module
-- [`nginx-flow-aeon`](../nginx-flow-aeon/) — Aeon Flow → HTTP nginx module
+- [`wall`](../wall/)  --  CLI tool for Aeon Flow (curl equivalent)
+- [`nginx-aeon-flow`](../nginx-aeon-flow/)  --  HTTP → Aeon Flow nginx module
+- [`nginx-flow-aeon`](../nginx-flow-aeon/)  --  Aeon Flow → HTTP nginx module

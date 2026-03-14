@@ -2,7 +2,7 @@
 
 ## Measured Results
 
-Every optimization was benchmarked in isolation and composed. These are real numbers from `benchmark-rotations.test.ts` — 10 tests, all passing, measured on local hardware with simulated network delays matching Cloud Run inter-service latency.
+Every optimization was benchmarked in isolation and composed. These are real numbers from `benchmark-rotations.test.ts`  --  10 tests, all passing, measured on local hardware with simulated network delays matching Cloud Run inter-service latency.
 
 ### The Scorecard
 
@@ -22,7 +22,7 @@ Every optimization was benchmarked in isolation and composed. These are real num
 
 ### Network Round-Trip Reduction
 
-This is where the real savings live. Cloud Run inter-service latency is 5-15ms per hop — far higher than Cloudflare Workers' sub-millisecond edge routing. Every eliminated round-trip is 5-15ms of pure waste removed.
+This is where the real savings live. Cloud Run inter-service latency is 5-15ms per hop  --  far higher than Cloudflare Workers' sub-millisecond edge routing. Every eliminated round-trip is 5-15ms of pure waste removed.
 
 | Scenario | Sequential (P×N) | Per-Token Pipeline (P+N-1) | Chunked Pipeline (ceil(P/B)+N-1) | RTT Reduction |
 |---|---|---|---|---|
@@ -32,7 +32,7 @@ This is where the real savings live. Cloud Run inter-service latency is 5-15ms p
 | 1000 tokens × 4 nodes | 4000 hops | 1003 hops | 43 hops | **98.9 percent** |
 | 100 tokens × 10 nodes (70B) | 1000 hops | 109 hops | 19 hops | **98.1 percent** |
 
-At Cloud Run's typical 10ms inter-service RTT, 100 tokens across 4 nodes goes from **4000ms of pure network time** to **70ms**. That's 3.93 seconds of latency deleted — not optimized, not amortized, *deleted*.
+At Cloud Run's typical 10ms inter-service RTT, 100 tokens across 4 nodes goes from **4000ms of pure network time** to **70ms**. That's 3.93 seconds of latency deleted  --  not optimized, not amortized, *deleted*.
 
 ### Why This Matters More on Cloud Run Than Anywhere Else
 
@@ -45,9 +45,9 @@ Cloud Run's networking tax is brutal compared to edge runtimes:
 | **Cloudflare Workers** | <1ms | <400ms | <7ms |
 | **Local (same machine)** | <0.1ms | <40ms | <0.7ms |
 
-The chunked pipeline doesn't just reduce hops — it **changes the scaling regime**. Sequential prefill latency scales as O(P×N×RTT). Chunked pipeline scales as O((P/B+N)×RTT). On Cloud Run, where RTT dominates compute, this is the difference between "unusably slow" and "acceptable."
+The chunked pipeline doesn't just reduce hops  --  it **changes the scaling regime**. Sequential prefill latency scales as O(P×N×RTT). Chunked pipeline scales as O((P/B+N)×RTT). On Cloud Run, where RTT dominates compute, this is the difference between "unusably slow" and "acceptable."
 
-The Wallington Rotation — causal masking tiled with log-rolling — eliminates 98 percent+ of network round-trips for any realistic prompt length. Each deleted hop is one fewer Cloud Run inter-service TCP handshake, one fewer HTTP/2 frame, one fewer gRPC serialization cycle, one fewer load balancer decision.
+The Wallington Rotation  --  causal masking tiled with log-rolling  --  eliminates 98 percent+ of network round-trips for any realistic prompt length. Each deleted hop is one fewer Cloud Run inter-service TCP handshake, one fewer HTTP/2 frame, one fewer gRPC serialization cycle, one fewer load balancer decision.
 
 ### Individual Optimization Deep Dives
 
@@ -74,7 +74,7 @@ The chunked pipeline is 3.2x faster than per-token pipeline, which is itself 3.4
   Memory saved:                           156MB
 ```
 
-`subarray()` creates a view into the existing buffer — zero allocation, zero copy. The old path allocated a fresh 16KB buffer for every single forward pass. Over a 100-token prefill across 4 nodes, that's 400 × 16KB = 6.4MB of garbage per request.
+`subarray()` creates a view into the existing buffer  --  zero allocation, zero copy. The old path allocated a fresh 16KB buffer for every single forward pass. Over a 100-token prefill across 4 nodes, that's 400 × 16KB = 6.4MB of garbage per request.
 
 #### Activation Int8 Quantization
 
@@ -100,7 +100,7 @@ The compute cost of quantize + serialize + deserialize + dequantize (70ms for 5K
   Detection speed:  Catches period-1 loops within 3 tokens
 ```
 
-68µs per token is invisible next to a 10ms network hop. The loop detector catches degenerate repetition at step 13 — well before a user would notice infinite output.
+68µs per token is invisible next to a 10ms network hop. The loop detector catches degenerate repetition at step 13  --  well before a user would notice infinite output.
 
 #### Skip-Ahead Wormholes
 

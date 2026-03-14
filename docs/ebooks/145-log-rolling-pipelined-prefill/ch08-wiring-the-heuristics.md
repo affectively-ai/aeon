@@ -1,4 +1,4 @@
-# Chapter 8: Wiring the Heuristics — Loop Detection and Skip-Ahead Wormholes
+# Chapter 8: Wiring the Heuristics  --  Loop Detection and Skip-Ahead Wormholes
 
 ## The Integration
 
@@ -6,7 +6,7 @@ The coordinator's generation loop integrates **LoopDetector** and **SkipAheadAgg
 
 ### Loop Detection (Safety Fulcrum)
 
-The `LoopDetector` is Wallington's offset fulcrum — if something goes wrong, the system settles safely instead of spinning forever.
+The `LoopDetector` is Wallington's offset fulcrum  --  if something goes wrong, the system settles safely instead of spinning forever.
 
 **Wiring point:** After each token is sampled and emitted, before the next forward pass:
 
@@ -43,7 +43,7 @@ this.skipAhead.recordObservation(
 );
 ```
 
-This is pure gravity harvest — the weight of normal inference powers the learning. Zero compute overhead beyond creating 32-element sketches (mean-pooling the hidden state).
+This is pure gravity harvest  --  the weight of normal inference powers the learning. Zero compute overhead beyond creating 32-element sketches (mean-pooling the hidden state).
 
 #### Active Mode: Wormhole Prediction
 
@@ -71,13 +71,13 @@ This updates the running accuracy of each mapping, creating a self-correcting fe
 
 ### Prompt Class Hashing
 
-Both modules key their state by "prompt class" — a hash derived from the model name and the first 8 input tokens:
+Both modules key their state by "prompt class"  --  a hash derived from the model name and the first 8 input tokens:
 
 ```typescript
 const promptClassHash = `${this.modelName}:${inputTokens.slice(0, 8).join(',')}`;
 ```
 
-This groups similar prompts without requiring exact token matching. Two conversations that start the same way will share skip-ahead mappings, even if they diverge later. The cosine similarity matching handles the divergence — dissimilar hidden states won't match existing mappings.
+This groups similar prompts without requiring exact token matching. Two conversations that start the same way will share skip-ahead mappings, even if they diverge later. The cosine similarity matching handles the divergence  --  dissimilar hidden states won't match existing mappings.
 
 ## The Wallington Connection
 
@@ -85,7 +85,7 @@ This groups similar prompts without requiring exact token matching. Two conversa
 
 **Observation Recording = Gravity Harvest:** Each inference request builds the dataset that powers future optimizations. The weight of normal work charges the battery.
 
-**Skip-Ahead Prediction = The Wormhole:** Once the terrain is mapped (enough observations), you can teleport through it. The stone doesn't need to be carried — it walks on its own.
+**Skip-Ahead Prediction = The Wormhole:** Once the terrain is mapped (enough observations), you can teleport through it. The stone doesn't need to be carried  --  it walks on its own.
 
 **Verification Loop = Cribbing Jack:** Each verification is a shim. The mapping rises in confidence one observation at a time, and settles back if accuracy drops. The recursive build-up mirrors Wallington's recursive lifting process.
 

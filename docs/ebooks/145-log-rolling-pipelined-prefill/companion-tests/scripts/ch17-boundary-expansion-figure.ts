@@ -7,6 +7,7 @@ import {
   renderCh17BoundaryExpansionFigureMarkdown,
   renderCh17BoundaryExpansionFigureSvg,
   type AdversarialControlsFigureInput,
+  type NearControlSweepFigureInput,
   type RegimeSweepFigureInput,
 } from '../src/ch17-boundary-expansion-figure';
 
@@ -77,13 +78,20 @@ function main(): void {
   const options = parseCli(process.argv.slice(2));
   const moduleDir = dirname(fileURLToPath(import.meta.url));
   const artifactsDir = resolve(moduleDir, '../artifacts');
+  const nearControl = loadJson<NearControlSweepFigureInput>(
+    resolve(artifactsDir, 'gnosis-near-control-sweep.json'),
+  );
   const regimeSweep = loadJson<RegimeSweepFigureInput>(
     resolve(artifactsDir, 'gnosis-fold-boundary-regime-sweep.json'),
   );
   const adversarial = loadJson<AdversarialControlsFigureInput>(
     resolve(artifactsDir, 'gnosis-adversarial-controls-benchmark.json'),
   );
-  const report = buildCh17BoundaryExpansionFigureReport(regimeSweep, adversarial);
+  const report = buildCh17BoundaryExpansionFigureReport(
+    nearControl,
+    regimeSweep,
+    adversarial,
+  );
 
   mkdirSync(dirname(options.jsonPath), { recursive: true });
   mkdirSync(dirname(options.markdownPath), { recursive: true });
@@ -102,6 +110,9 @@ function main(): void {
   process.stdout.write(`markdown: ${options.markdownPath}\n`);
   process.stdout.write(`svg: ${options.svgPath}\n`);
   process.stdout.write(
+    `- near-control affine parity=${report.nearControl.affine.lastParityRegimeValue?.toFixed(2) ?? 'none'} -> split=${report.nearControl.affine.firstSeparatedRegimeValue?.toFixed(2) ?? 'none'}\n`,
+  );
+  process.stdout.write(
     `- affine first-separated=${report.affineRegime.firstSeparatedRegimeValue?.toFixed(2) ?? 'none'}\n`,
   );
   process.stdout.write(
@@ -111,6 +122,8 @@ function main(): void {
   if (
     options.assertSurface &&
     !(
+      report.nearControl.affine.lastParityRegimeValue !== null &&
+      report.nearControl.routed.lastParityRegimeValue !== null &&
       report.affineRegime.firstSeparatedRegimeValue !== null &&
       report.routedRegime.firstSeparatedRegimeValue !== null &&
       report.adversarial.rankingByFinalEvalMeanSquaredError['winner-affine-maxabs']?.[0] ===

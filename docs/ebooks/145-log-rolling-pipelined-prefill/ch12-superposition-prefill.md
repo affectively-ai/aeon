@@ -1,4 +1,4 @@
-# Chapter 12: The Worthington Whip — Superposition Prefill
+# Chapter 12: The Worthington Whip  --  Superposition Prefill
 
 ## The Stack So Far
 
@@ -8,19 +8,19 @@
 | Ch. 11 | Turbulent Multiplexing | Fill idle slots with other requests | Node utilization |
 | Ch. 12 | **The Worthington Whip** | Shard one request across parallel pipelines | Sequence parallelism |
 
-The Wallington Rotation solved latency. Turbulent multiplexing solved utilization. The Worthington Whip solves **sequential depth** — the final constraint on how fast a single request can prefill.
+The Wallington Rotation solved latency. Turbulent multiplexing solved utilization. The Worthington Whip solves **sequential depth**  --  the final constraint on how fast a single request can prefill.
 
 ## The Insight
 
-A 100-token prefill through 4 nodes takes 7 steps with the Wallington Rotation. That's fast. But it's still 7 sequential steps — one after another. What if we could do it in 4 steps?
+A 100-token prefill through 4 nodes takes 7 steps with the Wallington Rotation. That's fast. But it's still 7 sequential steps  --  one after another. What if we could do it in 4 steps?
 
-The Worthington Whip shards a single request's token sequence into S parallel sub-sequences and processes them simultaneously. The request exists in **superposition** — multiple pipeline states at once — until a collapse phase reconciles the cross-shard attention dependencies.
+The Worthington Whip shards a single request's token sequence into S parallel sub-sequences and processes them simultaneously. The request exists in **superposition**  --  multiple pipeline states at once  --  until a collapse phase reconciles the cross-shard attention dependencies.
 
 This is sequence parallelism applied to distributed inference pipeline scheduling. The idea is original: while sequence parallelism exists in the literature (Megatron-LM, ring attention), applying it at the pipeline scheduling level across independent Cloud Run instances with Wallington Rotation chunking is novel.
 
 ## Phase 1: Superposition
 
-Split P tokens into S shards of P/S tokens each. Each shard runs through the full pipeline independently. Intra-shard causal masking is exact — tokens within a shard attend to each other normally. Cross-shard attention is deferred.
+Split P tokens into S shards of P/S tokens each. Each shard runs through the full pipeline independently. Intra-shard causal masking is exact  --  tokens within a shard attend to each other normally. Cross-shard attention is deferred.
 
 All S shards execute simultaneously via the Turbulent Multiplexed Scheduler from Chapter 11. They interleave on the shared pipeline, filling each other's idle slots.
 
@@ -36,13 +36,13 @@ All 4 shards run IN PARALLEL.
 Wall-clock for Phase 1: 7 steps (not 28).
 ```
 
-Without the Bule Rotation, the Wallington Rotation processes all 100 tokens as 4 chunks through 4 nodes = 7 steps. With the Bule Rotation, each shard has only 25 tokens → 4 chunks of ~6 → also ~7 steps. The win isn't in the chunking — it's that all shards run simultaneously.
+Without the Bule Rotation, the Wallington Rotation processes all 100 tokens as 4 chunks through 4 nodes = 7 steps. With the Bule Rotation, each shard has only 25 tokens → 4 chunks of ~6 → also ~7 steps. The win isn't in the chunking  --  it's that all shards run simultaneously.
 
-But wait — with 4 shards and 4 nodes, we're generating 16 chunks total. The multiplexed scheduler interleaves them across the same 4 nodes. The pipeline Reynolds number drops (more chunks relative to nodes), meaning MORE laminar flow and BETTER utilization. The Worthington Whip actually *improves* the turbulence problem it inherited from the Wallington Rotation.
+But wait  --  with 4 shards and 4 nodes, we're generating 16 chunks total. The multiplexed scheduler interleaves them across the same 4 nodes. The pipeline Reynolds number drops (more chunks relative to nodes), meaning MORE laminar flow and BETTER utilization. The Worthington Whip actually *improves* the turbulence problem it inherited from the Wallington Rotation.
 
 ## Phase 2: Collapse
 
-The superposition phase produces S independent hidden state vectors, each computed with only intra-shard causal attention. Shard 1's tokens didn't attend to Shard 0's tokens. That's physically wrong — causal attention requires every token to see all previous tokens.
+The superposition phase produces S independent hidden state vectors, each computed with only intra-shard causal attention. Shard 1's tokens didn't attend to Shard 0's tokens. That's physically wrong  --  causal attention requires every token to see all previous tokens.
 
 The collapse phase fixes this with cross-shard attention correction:
 
@@ -59,7 +59,7 @@ Sum_{s=1}^{S-1} (P/S × s×P/S) = P²(S-1) / (2S)
 
 For 100 tokens, 4 shards: 100² × 3/8 = 3750 attention ops, vs 10000 for full attention. **62.5% savings on attention compute.**
 
-The corrections run sequentially per shard (shard 2 needs shard 1's corrected output), but each is fast — it's a single cross-attention pass on a small sequence.
+The corrections run sequentially per shard (shard 2 needs shard 1's corrected output), but each is fast  --  it's a single cross-attention pass on a small sequence.
 
 ## Why This Works: The Lower-Triangular Decomposition
 
@@ -106,7 +106,7 @@ The quantum superposition analogy is precise, not metaphorical:
 | Collapse is much cheaper than evolution | Correction is much cheaper than full prefill |
 | The `AbortSignal` is labeled "Path Superposition" | The infrastructure was waiting for this |
 
-The `LayerNodeClient` interface already includes an `AbortSignal` parameter explicitly labeled "Path Superposition / Jitter Racing." The infrastructure was designed for this pattern — we just needed to realize what it was for.
+The `LayerNodeClient` interface already includes an `AbortSignal` parameter explicitly labeled "Path Superposition / Jitter Racing." The infrastructure was designed for this pattern  --  we just needed to realize what it was for.
 
 ## Performance
 
@@ -153,10 +153,10 @@ Each shard becomes a `PrefillRequest` with its own Wallington Rotation chunks. T
 
 ## The Naming
 
-The Wallington Rotation was named after Wally Wallington — a retired construction worker who showed that one person can move 20-ton stones using rotational pivot techniques.
+The Wallington Rotation was named after Wally Wallington  --  a retired construction worker who showed that one person can move 20-ton stones using rotational pivot techniques.
 
-The Worthington Whip is named after Whip Worthington — a man who, when he goes out, sees things differently than everyone else at the table. Where others see a pipeline, Worthington sees parallel universes. Where others see a single request waiting its turn, he sees the same request cracking across multiple timelines simultaneously, each shard whipping through its own pipeline until the results snap together.
+The Worthington Whip is named after Whip Worthington  --  a man who, when he goes out, sees things differently than everyone else at the table. Where others see a pipeline, Worthington sees parallel universes. Where others see a single request waiting its turn, he sees the same request cracking across multiple timelines simultaneously, each shard whipping through its own pipeline until the results snap together.
 
-The "whip" is the collapse — the moment all parallel shards converge into a single definite state. Like cracking a whip, the energy travels through the entire length simultaneously, and the snap at the tip is the superposition collapsing.
+The "whip" is the collapse  --  the moment all parallel shards converge into a single definite state. Like cracking a whip, the energy travels through the entire length simultaneously, and the snap at the tip is the superposition collapsing.
 
-The answer was superposition. The request doesn't take one path through the pipeline — it takes all paths simultaneously, then collapses to a single result. That's not engineering. That's seeing the math and trusting it.
+The answer was superposition. The request doesn't take one path through the pipeline  --  it takes all paths simultaneously, then collapses to a single result. That's not engineering. That's seeing the math and trusting it.

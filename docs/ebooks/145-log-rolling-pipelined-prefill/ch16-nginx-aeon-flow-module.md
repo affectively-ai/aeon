@@ -1,6 +1,6 @@
-# Chapter 16: The nginx Module — Aeon Flow Behind the Reverse Proxy
+# Chapter 16: The nginx Module  --  Aeon Flow Behind the Reverse Proxy
 
-> *"You don't need to move the entire mass at once."* — Wally Wallington
+> *"You don't need to move the entire mass at once."*  --  Wally Wallington
 
 ## The Problem
 
@@ -16,7 +16,7 @@ Browser ──HTTP/1.1 or HTTP/2──▶ nginx ──Aeon Flow──▶ Backend
                           ngx_aeon_flow_module
 ```
 
-nginx handles TLS termination, static file serving, and HTTP to the browser. On the upstream side, it speaks Aeon Flow to the backend — 10-byte frames, stream multiplexing, fork/race/collapse.
+nginx handles TLS termination, static file serving, and HTTP to the browser. On the upstream side, it speaks Aeon Flow to the backend  --  10-byte frames, stream multiplexing, fork/race/collapse.
 
 The browser never knows. It sends a normal HTTP request and gets a normal HTTP response. But between nginx and the backend, the protocol tax drops from 5-31% to under 1.5%.
 
@@ -88,7 +88,7 @@ When `aeon_flow_fork` is enabled, the module intercepts the backend's initial re
 
 1. Root stream opens
 2. Backend responds with a resource manifest (JSON list of paths)
-3. Module forks N child streams — **one FORK frame, all children**
+3. Module forks N child streams  --  **one FORK frame, all children**
 4. Backend pushes all sub-resources simultaneously on child streams
 5. Module collapses them into the final HTTP response
 
@@ -169,7 +169,7 @@ Compare this to HTTP: when a browser disconnects, the backend has no way to know
 
 ## The Codec in C
 
-The binary codec is minimal — two functions, no allocations on the decode path:
+The binary codec is minimal  --  two functions, no allocations on the decode path:
 
 ```c
 size_t ngx_aeon_flow_encode(u_char *buf, ngx_aeon_flow_frame_t *frame);
@@ -196,7 +196,7 @@ while ((size_t)(conn->recv_buf->last - p) >= NGX_AEON_FLOW_HEADER_SIZE) {
 /* compact buffer */
 ```
 
-`NGX_AGAIN` means the header is present but the payload hasn't fully arrived. The module leaves the partial frame in the buffer and waits for the next read event. No state machine needed — just "do I have 10 bytes? read the length. do I have 10+length bytes? decode the frame."
+`NGX_AGAIN` means the header is present but the payload hasn't fully arrived. The module leaves the partial frame in the buffer and waits for the next read event. No state machine needed  --  just "do I have 10 bytes? read the length. do I have 10+length bytes? decode the frame."
 
 ## The Wallington Mapping
 
@@ -206,7 +206,7 @@ while ((size_t)(conn->recv_buf->last - p) >= NGX_AEON_FLOW_HEADER_SIZE) {
 | **Multi-Stage Cribbing Jack** | Connection pooling: each request raises the utilization one "shim" at a time |
 | **The Round Road** | HTTP→Aeon Flow translation normalizes any browser request into a shape the protocol can handle |
 | **Sand-Box Descent** | Poison propagation: controlled lowering of in-flight work, grain by grain |
-| **The Rolling Pivot** | The module is the corner pivot — browser side stays put (HTTP), backend side swings forward (Aeon Flow) |
+| **The Rolling Pivot** | The module is the corner pivot  --  browser side stays put (HTTP), backend side swings forward (Aeon Flow) |
 
 ## What's Built
 
@@ -231,4 +231,4 @@ All components are implemented:
 ## Next Steps
 
 1. **Fork discovery**: Parse manifest or Link headers from the initial response to auto-fork sub-resources
-2. **Benchmarks**: Same nginx, same backend, same files — HTTP/2 upstream vs Aeon Flow upstream. Measure TTFB, total transfer time, and backend CPU waste on cancelled requests.
+2. **Benchmarks**: Same nginx, same backend, same files  --  HTTP/2 upstream vs Aeon Flow upstream. Measure TTFB, total transfer time, and backend CPU waste on cancelled requests.

@@ -1,65 +1,51 @@
 # Aeon
 
-> TCP had its 40-year run. UDP by default everywhere, TCP only when necessary.
+Aeon is a TypeScript toolkit for collaborative systems, with one standout piece at the center: **Aeon Flow**, a small multiplexed frame protocol for moving many independent streams over one transport.
 
-[![npm version](https://badge.fury.io/js/@affectively%2Faeon.svg)](https://www.npmjs.com/package/@affectively/aeon)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6+-blue.svg)](https://www.typescriptlang.org/)
+The fair brag is not that this repo solves every distributed-systems problem. It is that the repo already covers a lot of the ground teams usually have to assemble themselves: transport, sync, offline queues, compression, presence, versioning, persistence, crypto, topology analysis, and benchmark companions.
 
-## Philosophy
+## Why People May Reach For It
 
-In Gnosticism, **Aeons** are not just time periods; they are divine beings or powers that emanate from the "One" (the Pleroma). They function as links or "levels" between the pure divine source and the material world, often existing in pairs (syzygies) to maintain balance.
+- Aeon Flow gives you one compact frame format that can ride UDP, WebSocket, WebTransport, IPC, or anything else that can move bytes.
+- The library surface is broad: sync coordination, conflict handling, offline queues, compression, persistence, crypto, topology tools, and transport helpers all live in one package.
+- The repo has real supporting material around it: docs, a manuscript, companion tests, protocol shootouts, and small tooling packages instead of a single README making promises by itself.
+- There is room to grow with it. The main package exports focused subpaths like `flow`, `offline`, `compression`, `versioning`, `distributed`, `persistence`, `crypto`, and `topology`.
 
-In the Affectively framework, if "halos" are the users, then **Aeons are the collaborative structures** — the channels that allow users to communicate with the higher-level logic of the platform. They bridge the gap between individual user state and the distributed system, maintaining harmony across the network.
+## Aeon Flow At A Glance
 
-## Overview
+One connection. Many independent streams. Less waiting behind unrelated work.
 
-**Aeon** is a comprehensive TypeScript library for building distributed, collaborative applications. It provides the primitives needed for:
-
-- **Aeon Flow Protocol** - 10-byte binary multiplexing with fork/race/fold over UDP
-- **Distributed Synchronization** - Coordinate sync sessions across multiple nodes
-- **Schema Versioning** - Manage schema evolution with migrations and rollbacks
-- **Data Replication** - Configure consistency levels and replication policies
-- **Conflict Resolution** - Multiple strategies for resolving divergent state
-- **Real-time Presence** - Track node health and status in real-time
-
-### Aeon Flow Protocol
-
-One connection. Every stream independent. Zero head-of-line blocking.
-
-```
+```text
 ┌──────────────────────────────────────────────────────────┐
-│                   10-byte Flow Frame                      │
+│                   10-byte Flow Frame                    │
 ├──────────┬──────────┬───────┬────────────────────────────┤
-│ stream_id│ sequence │ flags │ length    │    payload ...  │
+│ stream_id│ sequence │ flags │ length    │    payload ... │
 │  (u16)   │  (u32)   │ (u8)  │ (u24)    │                 │
 └──────────┴──────────┴───────┴────────────────────────────┘
 ```
 
-Every frame is self-describing. `stream_id` + `sequence` means frames arrive out of order and reassemble correctly. This is the same insight as QUIC/HTTP3 — but with 10-byte frames instead of QUIC's complex framing.
+What makes that worth caring about:
 
-**What was 100+ HTTP requests becomes 1 multiplexed stream:**
+- each stream can progress independently,
+- frames can arrive out of order and still be reassembled correctly,
+- protocol overhead stays small,
+- and the same framing model works across several transports.
 
-| | HTTP (before) | Aeon Flow (after) |
-|---|---|---|
-| Full site load | 5+ connections | 1 connection |
-| Service worker preload | 100 fetches in batches of 5 | 1 multiplexed stream |
-| ESI inference per page | N sequential fetches | N forked streams, raced |
-| Deploy artifact transfer | File-by-file | 1 multiplexed stream |
-| Protocol overhead per asset | ~200 bytes HTTP headers | 10 bytes flow header |
-| 100-page overhead | ~20KB HTTP headers | 1KB flow headers |
+The UDP path is one of the repo's clearest bragging points. It already includes MTU-aware fragmentation, ACK bitmaps, AIMD congestion control, and per-stream reassembly.
 
-**Transport-agnostic.** Same protocol over WebSocket, UDP, WebTransport, IPC, or anything that moves bytes:
+## Quick Taste
 
-```typescript
+```ts
 import { AeonFlowProtocol, UDPFlowTransport } from '@affectively/aeon';
 
-// Native UDP — zero connection setup, zero head-of-line blocking
 const transport = new UDPFlowTransport({
-  host: '0.0.0.0', port: 4242,
-  remoteHost: 'target.example.com', remotePort: 4242,
-  reliable: true, // ACK bitmaps + AIMD congestion control
+  host: '0.0.0.0',
+  port: 4242,
+  remoteHost: 'target.example.com',
+  remotePort: 4242,
+  reliable: true,
 });
+
 await transport.bind();
 
 const flow = new AeonFlowProtocol(transport, {
@@ -67,53 +53,49 @@ const flow = new AeonFlowProtocol(transport, {
   maxConcurrentStreams: 256,
 });
 
-// Fork 3 streams, race them, fold to winner
 const results = await flow.fork([stream1, stream2, stream3]);
 const winner = await flow.race(results);
 await flow.fold(winner);
 ```
 
-**UDP features:**
-- MTU-aware fragmentation (4-byte header, max 255 fragments x 1468 bytes = 366KB per frame)
-- ACK bitmaps: 14 bytes covers 64 contiguous sequences
-- AIMD congestion control (additive increase, multiplicative decrease)
-- Per-stream out-of-order reassembly via `FrameReassembler`
-- WebTransport bridge for browsers (HTTP/3 unreliable datagrams)
+## What You Get In The Main Package
 
-Roadmap vision: see [ROADMAP.md](./ROADMAP.md).
+- `flow`: protocol engine, codec, UDP transport, WebTransport bridge, and frame reassembly
+- `distributed`: coordination and replication helpers for multi-node work
+- `versioning`: schema versions, migrations, and tracking
+- `offline`: queued work for unreliable or offline periods
+- `compression`: compression and delta-sync helpers
+- `persistence`: in-memory and storage adapter surfaces
+- `presence`: real-time node and session state
+- `crypto`: signing and UCAN-related primitives
+- `topology`: topology analysis and formal-claims helpers
+- `federation`: mesh-style inference helpers
 
-## Documentation
+That breadth is a real part of the story. Aeon is not only a transport experiment.
 
-- Live documentation: [docs.aeonflux.dev](https://docs.aeonflux.dev)
-- Repo docs index: [open-source/aeon/docs/README.md](./docs/README.md)
-- Ebooks index: [open-source/aeon/docs/ebooks/README.md](./docs/ebooks/README.md)
-- Volume 145 book: [open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/README.md](./docs/ebooks/145-log-rolling-pipelined-prefill/README.md)
-- ArXiv manuscript source: [open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/ch17-arxiv-manuscript.md](./docs/ebooks/145-log-rolling-pipelined-prefill/ch17-arxiv-manuscript.md)
-- Companion reproducibility tests: [open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/README.md](./docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/README.md)
+## Install
 
-## Installation
+```bash
+bun add @affectively/aeon
+```
+
+Other package managers work too:
 
 ```bash
 npm install @affectively/aeon
-# or
 yarn add @affectively/aeon
-# or
 pnpm add @affectively/aeon
-# or
-bun add @affectively/aeon
 ```
 
 ## Quick Start
 
-### Distributed Synchronization
+### Sync Coordination
 
-```typescript
+```ts
 import { SyncCoordinator } from '@affectively/aeon';
 
-// Create a sync coordinator
 const coordinator = new SyncCoordinator();
 
-// Register nodes
 coordinator.registerNode({
   id: 'node-1',
   address: 'localhost',
@@ -124,49 +106,17 @@ coordinator.registerNode({
   capabilities: ['sync', 'replicate'],
 });
 
-// Create a sync session
 const session = coordinator.createSyncSession('node-1', ['node-2', 'node-3']);
-
-// Listen for sync events
-coordinator.on('sync-completed', (session) => {
-  console.log(`Session ${session.id} completed:`, session.itemsSynced, 'items synced');
-});
-
-// Start heartbeat monitoring
-coordinator.startHeartbeatMonitoring(5000);
+console.log(session.id);
 ```
 
-### Schema Versioning & Migrations
+### Schema Migrations
 
-```typescript
-import { SchemaVersionManager, MigrationEngine, MigrationTracker } from '@affectively/aeon';
+```ts
+import { MigrationEngine } from '@affectively/aeon';
 
-// Initialize version manager
-const versionManager = new SchemaVersionManager();
-
-// Register schema versions
-versionManager.registerVersion({
-  major: 1,
-  minor: 0,
-  patch: 0,
-  timestamp: new Date().toISOString(),
-  description: 'Initial schema',
-  breaking: false,
-});
-
-versionManager.registerVersion({
-  major: 2,
-  minor: 0,
-  patch: 0,
-  timestamp: new Date().toISOString(),
-  description: 'Added user status field',
-  breaking: true,
-});
-
-// Create migration engine
 const migrationEngine = new MigrationEngine();
 
-// Register a migration
 migrationEngine.registerMigration({
   id: 'add-status-field',
   version: '2.0.0',
@@ -179,253 +129,23 @@ migrationEngine.registerMigration({
   timestamp: new Date().toISOString(),
   description: 'Adds status field to all user records',
 });
-
-// Execute migration
-const result = await migrationEngine.executeMigration('add-status-field', userData);
-console.log(`Migration completed: ${result.itemsAffected} items affected`);
 ```
 
-### Data Replication
+## Companion Packages
 
-```typescript
-import { ReplicationManager } from '@affectively/aeon';
+- [`packages/shootoff`](./packages/shootoff/README.md): side-by-side protocol comparisons against HTTP/1.1 and HTTP/2
+- [`packages/wall`](./packages/wall/README.md): command-line client for Aeon Flow
+- `packages/nginx-flow-aeon`: nginx bridge for putting Aeon Flow behind HTTP infrastructure
 
-const replicationManager = new ReplicationManager();
+## Documentation
 
-// Create a replication policy
-const policy = replicationManager.createPolicy(
-  'user-data-policy',
-  3,                    // replication factor
-  'read-after-write',   // consistency level
-  1000,                 // sync interval (ms)
-  10000                 // max replication lag (ms)
-);
+- [docs/README.md](./docs/README.md): repo docs index
+- [docs/ebooks/README.md](./docs/ebooks/README.md): ebook index
+- [docs/ebooks/145-log-rolling-pipelined-prefill/README.md](./docs/ebooks/145-log-rolling-pipelined-prefill/README.md): main book/manuscript hub
+- [docs/ebooks/145-log-rolling-pipelined-prefill/ch17-arxiv-manuscript.md](./docs/ebooks/145-log-rolling-pipelined-prefill/ch17-arxiv-manuscript.md): manuscript source
+- [docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/README.md](./docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/README.md): reproducibility companion
+- [ROADMAP.md](./ROADMAP.md): near-term direction
 
-// Register replicas
-replicationManager.registerReplica({
-  id: 'replica-1',
-  nodeId: 'node-1',
-  status: 'primary',
-  lastSyncTime: new Date().toISOString(),
-  lagBytes: 0,
-  lagMillis: 0,
-});
+## Why This README Is Grounded
 
-// Check replication health
-const health = replicationManager.checkReplicationHealth(policy.id);
-console.log('Replication healthy:', health.healthy);
-```
-
-### Conflict Resolution
-
-```typescript
-import { StateReconciler } from '@affectively/aeon';
-
-const reconciler = new StateReconciler();
-
-// Record state versions from different nodes
-reconciler.recordStateVersion('user:123', '1.0', '2024-01-01T00:00:00Z', 'node-1', 'hash-a', { name: 'Alice' });
-reconciler.recordStateVersion('user:123', '1.0', '2024-01-01T00:00:01Z', 'node-2', 'hash-b', { name: 'Bob' });
-
-// Detect conflicts
-if (reconciler.detectConflicts('user:123')) {
-  // Reconcile using last-write-wins strategy
-  const versions = reconciler.getStateVersions('user:123');
-  const result = reconciler.reconcileLastWriteWins(versions);
-
-  console.log('Resolved state:', result.mergedState);
-  console.log('Conflicts resolved:', result.conflictsResolved);
-}
-```
-
-## Modules
-
-### Flow (`@affectively/aeon/flow`)
-
-Binary multiplexing protocol with fork/race/fold primitives.
-
-- `AeonFlowProtocol` - Protocol engine (transport-agnostic)
-- `FlowCodec` - Frame encoding/decoding (10-byte headers)
-- `UDPFlowTransport` - Native UDP transport with AIMD congestion control
-- `WebTransportFlowTransport` - Browser-side HTTP/3 unreliable datagrams
-- `FrameReassembler` - Per-stream out-of-order frame reconstruction
-
-```typescript
-import {
-  AeonFlowProtocol,
-  UDPFlowTransport,
-  FrameReassembler,
-} from '@affectively/aeon';
-```
-
-### Core (`@affectively/aeon/core`)
-
-Shared types and utilities used across all modules.
-
-```typescript
-import type { Operation, VectorClock, PresenceInfo } from '@affectively/aeon/core';
-```
-
-### Persistence (`@affectively/aeon/persistence`)
-
-Optional persistence boundaries and adapters for durable Aeon state.
-
-- `StorageAdapter` - runtime-agnostic adapter contract
-- `InMemoryStorageAdapter` - reference adapter for tests/dev
-- `DashStorageAdapter` - local-first adapter with optional debounced sync batching for D1/R2-backed resilience
-
-### Offline (`@affectively/aeon/offline`)
-
-Offline-first operation management.
-
-- `OfflineOperationQueue` - Priority-based offline operation queue with retry logic
-
-### Compression (`@affectively/aeon/compression`)
-
-Data compression and delta sync optimization.
-
-- `CompressionEngine` - Native compression using CompressionStream API
-- `DeltaSyncOptimizer` - Field-level change detection (70-90% payload reduction)
-
-### Optimization (`@affectively/aeon/optimization`)
-
-Network and performance optimization.
-
-- `PrefetchingEngine` - Predictive pre-compression based on operation patterns
-- `BatchTimingOptimizer` - Intelligent batch scheduling based on network conditions
-- `AdaptiveCompressionOptimizer` - Auto-adjusting compression level (1-9)
-
-### Presence (`@affectively/aeon/presence`)
-
-Real-time agent presence tracking.
-
-- `AgentPresenceManager` - Track agent status, cursors, and activity
-
-### Versioning (`@affectively/aeon/versioning`)
-
-Schema versioning and migration system.
-
-- `SchemaVersionManager` - Version tracking and compatibility
-- `MigrationEngine` - Migration execution and rollback
-- `DataTransformer` - Data transformation during migrations
-- `MigrationTracker` - Migration history and audit trails
-
-### Distributed (`@affectively/aeon/distributed`)
-
-Distributed synchronization primitives.
-
-- `SyncCoordinator` - Sync session management
-- `ReplicationManager` - Replica management and policies
-- `SyncProtocol` - Protocol messages and handshaking
-- `StateReconciler` - Conflict detection and resolution
-
-### Utils (`@affectively/aeon/utils`)
-
-Shared utilities including pluggable logging.
-
-```typescript
-import { setLogger, disableLogging } from '@affectively/aeon/utils';
-
-// Use custom logger
-setLogger({
-  debug: (...args) => myLogger.debug(...args),
-  info: (...args) => myLogger.info(...args),
-  warn: (...args) => myLogger.warn(...args),
-  error: (...args) => myLogger.error(...args),
-});
-
-// Or disable logging entirely
-disableLogging();
-```
-
-## API Reference
-
-### SyncCoordinator
-
-| Method | Description |
-|--------|-------------|
-| `registerNode(node)` | Register a node in the cluster |
-| `deregisterNode(nodeId)` | Remove a node from the cluster |
-| `createSyncSession(initiatorId, participantIds)` | Create a new sync session |
-| `updateSyncSession(sessionId, updates)` | Update sync session status |
-| `recordConflict(sessionId, nodeId, data)` | Record a conflict |
-| `getStatistics()` | Get sync statistics |
-| `startHeartbeatMonitoring(interval)` | Start health monitoring |
-
-### SchemaVersionManager
-
-| Method | Description |
-|--------|-------------|
-| `registerVersion(version)` | Register a schema version |
-| `getCurrentVersion()` | Get current active version |
-| `setCurrentVersion(version)` | Set the current version |
-| `canMigrate(from, to)` | Check if migration path exists |
-| `getMigrationPath(from, to)` | Get migration steps |
-| `compareVersions(v1, v2)` | Compare two versions |
-
-### MigrationEngine
-
-| Method | Description |
-|--------|-------------|
-| `registerMigration(migration)` | Register a migration |
-| `executeMigration(id, data)` | Execute a migration |
-| `rollbackMigration(id, data)` | Rollback a migration |
-| `getState()` | Get current migration state |
-| `getPendingMigrations()` | Get pending migrations |
-| `getStatistics()` | Get migration statistics |
-
-### ReplicationManager
-
-| Method | Description |
-|--------|-------------|
-| `registerReplica(replica)` | Register a replica |
-| `removeReplica(replicaId)` | Remove a replica |
-| `createPolicy(...)` | Create replication policy |
-| `updateReplicaStatus(...)` | Update replica status |
-| `checkReplicationHealth(policyId)` | Check replication health |
-| `getStatistics()` | Get replication statistics |
-
-### StateReconciler
-
-| Method | Description |
-|--------|-------------|
-| `recordStateVersion(...)` | Record a state version |
-| `detectConflicts(key)` | Detect state conflicts |
-| `compareStates(s1, s2)` | Generate state diff |
-| `reconcileLastWriteWins(versions)` | LWW reconciliation |
-| `reconcileVectorClock(versions)` | Vector clock reconciliation |
-| `reconcileMajorityVote(versions)` | Majority vote reconciliation |
-
-## Comparison with Similar Libraries
-
-| Feature | Aeon | Yjs | Automerge | QUIC |
-|---------|------|-----|-----------|------|
-| Binary Multiplexing | ✅ 10-byte frames | ❌ | ❌ | ✅ Complex framing |
-| Fork/Race/Fold | ✅ | ❌ | ❌ | ❌ |
-| UDP Transport | ✅ Native | ❌ | ❌ | ✅ |
-| Zero HOL Blocking | ✅ | ❌ | ❌ | ✅ |
-| Schema Versioning | ✅ | ❌ | ❌ | ❌ |
-| Migrations | ✅ | ❌ | ❌ | ❌ |
-| Replication Policies | ✅ | ❌ | ❌ | ❌ |
-| Multiple Merge Strategies | ✅ | ⚠️ | ⚠️ | ❌ |
-| TypeScript-first | ✅ | ⚠️ | ⚠️ | ❌ |
-| Zero Dependencies* | ✅ | ❌ | ❌ | ❌ |
-
-*Only `eventemitter3` for event handling
-
-## Requirements
-
-- Node.js >= 18.0.0
-- TypeScript >= 5.0.0 (for types)
-
-## Contributing
-
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
-
-## License
-
-MIT - see [LICENSE](LICENSE) for details.
-
-## Credits
-
-Built with care by [Affectively AI](https://github.com/affectively-ai).
+Aeon has enough real surface area to speak plainly. The strongest fair brag is that this repo already gives you a serious transport layer, a broad collaborative-systems library around it, and companion tooling and documentation to help you evaluate the whole thing.

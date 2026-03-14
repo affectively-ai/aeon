@@ -6,22 +6,22 @@
       "label": "Manuscript draft",
       "category": "document",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/ch17-arxiv-manuscript.md",
-      "sizeBytes": 187993,
-      "sha256": "58cff8a6c454cb7317dec96b008d3592add649984f997f24e0ec64fa315dbddf"
+      "sizeBytes": 211191,
+      "sha256": "05278c981db3762dfbfd5eee0b72ed81f2634b7303f751e38eb9c51aa9c2209b"
     },
     {
       "label": "Companion README",
       "category": "document",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/README.md",
-      "sizeBytes": 22481,
-      "sha256": "70cc43b8b58a4a56dfcdd78f6cd8bec3dc6414c62da644aef3361954a8009d92"
+      "sizeBytes": 27984,
+      "sha256": "0fbb6337457164276164bd6e4d93c41df5755f1c803eb912d89a9896b086b4d6"
     },
     {
       "label": "Evidence workflow",
       "category": "workflow",
       "path": ".github/workflows/ch17-evidence.yml",
-      "sizeBytes": 1903,
-      "sha256": "703bafe452d44ee4678900b53f3e81c62011f904ab34e646e121aabad3bf22ff"
+      "sizeBytes": 1945,
+      "sha256": "737235df866defea29f4440f1cd5bcd6a065c776b51846472090ae21b653019f"
     },
     {
       "label": "Quantum ablation artifact",
@@ -52,6 +52,13 @@
       "sha256": "1462b8d8588b534b4eac6fa655684a8aee903402f377f0f8aa6b1eaeef423071"
     },
     {
+      "label": "Gnosis near-control artifact",
+      "category": "artifact",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/gnosis-near-control-sweep.json",
+      "sizeBytes": 158354,
+      "sha256": "8ddb8a42708867c0cab816e29cc9f3a1487abe8b6cd6721c3a83324ddcfe171e"
+    },
+    {
       "label": "Gnosis regime-sweep artifact",
       "category": "artifact",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/gnosis-fold-boundary-regime-sweep.json",
@@ -71,6 +78,13 @@
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/gnosis-moe-routing-benchmark.json",
       "sizeBytes": 16896,
       "sha256": "81887e82d84566e6792443a8dcda8c6d18e5c21ed396c15439750108502ba42e"
+    },
+    {
+      "label": "Gnosis MoA evidence artifact",
+      "category": "artifact",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/gnosis-moa-transformer-evidence-benchmark.json",
+      "sizeBytes": 11161,
+      "sha256": "a25a69fd8818fff94e0cf802a1eb94d6978557ba2a0da75b067109ad94348eeb"
     },
     {
       "label": "Formal witness artifact",
@@ -111,8 +125,15 @@
       "label": "Expansion figure artifact",
       "category": "artifact",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/ch17-boundary-expansion-figure.svg",
-      "sizeBytes": 13340,
-      "sha256": "7c3479085e73718621b2c12ae6d1b88f8367539631013bcb04dbb784a64940e7"
+      "sizeBytes": 17842,
+      "sha256": "030f732ce53d1598c69b9228fd57145c1ad672f15892df68d44dd37a88ce67f2"
+    },
+    {
+      "label": "MoA figure artifact",
+      "category": "artifact",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/artifacts/ch17-moa-transformer-figure.svg",
+      "sizeBytes": 6962,
+      "sha256": "63be40143fdebdd90773740052f46aaf8b868a5292d647ff7361c1f5e16ff9c7"
     },
     {
       "label": "Replication-pack script",
@@ -129,6 +150,13 @@
       "sha256": "db7d2326aece58a6ddb0444d6551d02e64eb1e88a57a705cefdc48a34ea62fe8"
     },
     {
+      "label": "Near-control script",
+      "category": "script",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/gnosis-near-control-sweep-benchmark.ts",
+      "sizeBytes": 2864,
+      "sha256": "5dc3d08d061694a544d197c3a6e309f73105c5bb3052f2820571704268a759d0"
+    },
+    {
       "label": "Regime-sweep script",
       "category": "script",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/gnosis-regime-sweep-benchmark.ts",
@@ -141,6 +169,13 @@
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/gnosis-adversarial-controls-benchmark.ts",
       "sizeBytes": 2875,
       "sha256": "019884b3ccf6a92e0daddec7fd2c5561bdf9feeee32cd42a3601b2f369902fac"
+    },
+    {
+      "label": "MoA evidence script",
+      "category": "script",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/gnosis-moa-transformer-evidence-benchmark.ts",
+      "sizeBytes": 3946,
+      "sha256": "53f7820db5f78b2570844a1fd8cb2f9ca553436683dfd5aa12e5a9b1273cf4e8"
     },
     {
       "label": "Formal witness script",
@@ -174,8 +209,15 @@
       "label": "Expansion figure script",
       "category": "script",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/ch17-boundary-expansion-figure.ts",
-      "sizeBytes": 4074,
-      "sha256": "0906d94aed9ce0d4073cbf905b1513e8c70abf1279d67a77a0f3d9ac2316079c"
+      "sizeBytes": 4625,
+      "sha256": "ff2e2671e2ad1cbc6b327b18dfca5cee52f5f08e929c0d798bef14dc4c3a932f"
+    },
+    {
+      "label": "MoA figure script",
+      "category": "script",
+      "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/scripts/ch17-moa-transformer-figure.ts",
+      "sizeBytes": 4091,
+      "sha256": "cebeb2a7fac4458a6b216b4114970f719b3139853259fdd29132315e4f63cb29"
     },
     {
       "label": "External replication script",
@@ -209,8 +251,8 @@
       "label": "Theorem ledger",
       "category": "formal",
       "path": "open-source/aeon/docs/ebooks/145-log-rolling-pipelined-prefill/companion-tests/formal/THEOREM_LEDGER.md",
-      "sizeBytes": 39562,
-      "sha256": "b49547f54d8462ea5e252dbebbce5a55de1ec691dca4ce0e9980819ee504c0b4"
+      "sizeBytes": 71585,
+      "sha256": "a39331a5a75587ab1de16186e7f219051941b085935fe96eff2365b5a4f62cb6"
     },
     {
       "label": "Affine benchmark topology suite",
@@ -225,9 +267,23 @@
       "path": "open-source/gnosis/examples/benchmarks/moe-routing.test.gg",
       "sizeBytes": 472,
       "sha256": "282621a787b783cfde5dceaba5cad909de0824ac9f5989b51a50a13e88671a2d"
+    },
+    {
+      "label": "MoA benchmark topology suite",
+      "category": "topology",
+      "path": "open-source/gnosis/examples/benchmarks/moa-transformer.test.gg",
+      "sizeBytes": 375,
+      "sha256": "afbf38a2956103adf958d9dc231ee164777713a303db2b0475e843c2fad4a13e"
+    },
+    {
+      "label": "StructuredMoA sparse topology",
+      "category": "topology",
+      "path": "open-source/gnosis/examples/benchmarks/moa-transformer-moa.gg",
+      "sizeBytes": 590,
+      "sha256": "8509bfd80a9f4358f90eb7fcd341b741e21774b1835bf59410f276ab43b41940"
     }
   ],
-  "entryCount": 32,
-  "artifactCount": 13,
+  "entryCount": 40,
+  "artifactCount": 16,
   "complete": true
 }

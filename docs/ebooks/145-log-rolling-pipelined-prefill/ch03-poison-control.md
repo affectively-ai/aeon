@@ -1,4 +1,4 @@
-# Chapter 3: Poison Control — The Sand-Box Descent for NaN Handling
+# Chapter 3: Poison Control  --  The Sand-Box Descent for NaN Handling
 
 ## The Problem
 
@@ -19,7 +19,7 @@ This works because only one token is in-flight. `break` exits both loops and ret
 
 ## The Pipeline Approach: Controlled Drain
 
-In a pipeline, you can't just `break`. Other tokens are already in-flight on other nodes — some of them *ahead* of the poisoned token with clean data. Aborting immediately would discard valid work.
+In a pipeline, you can't just `break`. Other tokens are already in-flight on other nodes  --  some of them *ahead* of the poisoned token with clean data. Aborting immediately would discard valid work.
 
 The solution is Wallington's Sand-Box Descent: don't slam the brakes. Release the sand grain by grain.
 
@@ -80,7 +80,7 @@ This ensures no dangling promises. Every node finishes its current work before t
 
 Wallington lowered 10-ton lintels onto uprights using a box filled with sand. By slowly releasing sand from the bottom, the stone descends with millimeter precision. The sand is the buffer between "full support" and "no support."
 
-In the pipeline, in-flight promises are the sand. The poison detection is the hole in the bottom. We don't yank the box away (abort) — we let the sand drain out (promises resolve), and the system settles gently onto the last valid hidden state.
+In the pipeline, in-flight promises are the sand. The poison detection is the hole in the bottom. We don't yank the box away (abort)  --  we let the sand drain out (promises resolve), and the system settles gently onto the last valid hidden state.
 
 ## Edge Cases
 
@@ -90,7 +90,7 @@ The worst case: the very first computation produces NaN. The pipeline sets `pois
 
 ### NaN at Last Node
 
-If NaN appears at the final node, the token is already "complete" — it just completed with bad data. The poison flag prevents its result from being stored in `lastHiddenStates`, preserving the last clean output.
+If NaN appears at the final node, the token is already "complete"  --  it just completed with bad data. The poison flag prevents its result from being stored in `lastHiddenStates`, preserving the last clean output.
 
 ### Multiple NaN Sources
 

@@ -1,0 +1,98 @@
+{
+  "label": "ch17-moa-transformer-figure-v1",
+  "sourceLabel": "gnosis-moa-transformer-evidence-v1",
+  "primitive": "StructuredMoA",
+  "regularTopologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-regular.gg",
+  "moaTopologyPath": "/Users/buley/Documents/Code/emotions/open-source/gnosis/examples/benchmarks/moa-transformer-moa.gg",
+  "scalePoints": [
+    {
+      "id": "compact",
+      "title": "Compact workload",
+      "speedup": 7.015452138695149,
+      "accuracyGap": 0.08056374869200957,
+      "moaEvalMeanSquaredError": 0.08289821805505497,
+      "regularEvalMeanSquaredError": 0.0023344693630454015,
+      "moaActiveHeads": 4,
+      "regularActiveHeads": 16,
+      "moaFrames": 16,
+      "regularFrames": 64
+    },
+    {
+      "id": "baseline",
+      "title": "Baseline workload",
+      "speedup": 4.452753957708726,
+      "accuracyGap": 0.06617781739893082,
+      "moaEvalMeanSquaredError": 0.06662966987090403,
+      "regularEvalMeanSquaredError": 0.0004518524719732068,
+      "moaActiveHeads": 4,
+      "regularActiveHeads": 16,
+      "moaFrames": 16,
+      "regularFrames": 64
+    },
+    {
+      "id": "wide",
+      "title": "Wide workload",
+      "speedup": 2.556303527344907,
+      "accuracyGap": 0.0025368824232557415,
+      "moaEvalMeanSquaredError": 0.0033379704003022857,
+      "regularEvalMeanSquaredError": 0.0008010879770465443,
+      "moaActiveHeads": 4,
+      "regularActiveHeads": 16,
+      "moaFrames": 16,
+      "regularFrames": 64
+    }
+  ],
+  "ablationPoints": [
+    {
+      "id": "full-moa",
+      "title": "Full MoA",
+      "speedup": 3.658759395272003,
+      "exactFraction": 0.9225,
+      "computeAdjustedExactFraction": 0.230625,
+      "evalMeanSquaredError": 0.001389220125021179
+    },
+    {
+      "id": "no-outer-sparsity",
+      "title": "No outer sparsity",
+      "speedup": 2.18944052501913,
+      "exactFraction": 1,
+      "computeAdjustedExactFraction": 0.125,
+      "evalMeanSquaredError": 0.00025679431098197023
+    },
+    {
+      "id": "no-inner-sparsity",
+      "title": "No inner sparsity",
+      "speedup": 1.9622056120764804,
+      "exactFraction": 0.99,
+      "computeAdjustedExactFraction": 0.12375,
+      "evalMeanSquaredError": 0.000874465144769568
+    },
+    {
+      "id": "under-routed",
+      "title": "Under-routed",
+      "speedup": 6.376802446131791,
+      "exactFraction": 0.19,
+      "computeAdjustedExactFraction": 0.095,
+      "evalMeanSquaredError": 0.22329852374928322
+    }
+  ],
+  "headReductionFactor": 4,
+  "frameReductionFactor": 4,
+  "speedupRange": {
+    "min": 2.556303527344907,
+    "max": 7.015452138695149
+  },
+  "wideWorkload": {
+    "speedup": 2.556303527344907,
+    "moaEvalMeanSquaredError": 0.0033379704003022857,
+    "regularEvalMeanSquaredError": 0.0008010879770465443,
+    "accuracyGap": 0.0025368824232557415
+  },
+  "claims": {
+    "timingAdvantageRecovered": true,
+    "accuracyGapClosesWithScale": true,
+    "outerSparsityImprovesEfficiency": true,
+    "innerSparsityImprovesEfficiency": true,
+    "underRoutingHurtsAccuracy": true
+  }
+}

@@ -1,12 +1,12 @@
-# Chapter 15: The Shootoff — Aeon Flow vs HTTP/1.1 vs HTTP/2 vs HTTP/3
+# Chapter 15: The Shootoff  --  Aeon Flow vs HTTP/1.1 vs HTTP/2 vs HTTP/3
 
-> *"The longer the lever, the less effort required."* — Wallington's First Law
+> *"The longer the lever, the less effort required."*  --  Wallington's First Law
 
 ## The Question
 
 Chapter 14 introduced the Aeon Flow Protocol with a 10-byte fixed header and fork/race/collapse semantics. The theoretical advantage is clear: fewer bytes on the wire, fewer round trips, no per-request headers. But how much does it actually matter?
 
-To find out, we built a shootoff — a head-to-head benchmark that serves the same sites through all four protocols with the same compression, measuring real numbers. HTTP/3 is the toughest competitor: it runs on QUIC (1 RTT handshake, no TCP head-of-line blocking), uses QPACK (larger static table than HPACK), and variable-length frame headers (2-3 bytes vs HTTP/2's fixed 9). If anything was going to close the gap, HTTP/3 was it.
+To find out, we built a shootoff  --  a head-to-head benchmark that serves the same sites through all four protocols with the same compression, measuring real numbers. HTTP/3 is the toughest competitor: it runs on QUIC (1 RTT handshake, no TCP head-of-line blocking), uses QPACK (larger static table than HPACK), and variable-length frame headers (2-3 bytes vs HTTP/2's fixed 9). If anything was going to close the gap, HTTP/3 was it.
 
 ## Two Sites, Two Extremes
 
@@ -14,7 +14,7 @@ We needed sites that stress different aspects of the protocol:
 
 ### Whip Worthington's Flaxseed Empire (Big Content)
 
-A content-heavy blog from the heir to the Worthington Flaxseed dynasty. The kind of site where someone turned down Silicon Valley to run an omega-3 extraction lab. Some inherit oil, some inherit tech — Whip inherited flax.
+A content-heavy blog from the heir to the Worthington Flaxseed dynasty. The kind of site where someone turned down Silicon Valley to run an omega-3 extraction lab. Some inherit oil, some inherit tech  --  Whip inherited flax.
 
 - **12 resources, ~2.2 MB total**
 - Big JS bundles (750 KB + 420 KB)
@@ -26,7 +26,7 @@ This is the "big stone" test: few moves, each one heavy. Like moving a 20-ton sl
 
 ### The Wally Wallington Wonder Archive (Microfrontend)
 
-An interactive archive celebrating Wally Wallington's engineering — the Dynamic Offset Pivot, the Multi-Stage Cribbing Jack, the Sand-Box Descent. Built as a modern SPA with aggressive code-splitting.
+An interactive archive celebrating Wally Wallington's engineering  --  the Dynamic Offset Pivot, the Multi-Stage Cribbing Jack, the Sand-Box Descent. Built as a modern SPA with aggressive code-splitting.
 
 - **95 resources, ~618 KB total**
 - 45 JS modules (900 bytes to 45 KB each)
@@ -64,7 +64,7 @@ QUIC transport with QPACK header compression:
 - **QPACK:** 99-entry static table (vs HPACK's 61), 2-byte prefix per header block, Huffman encoding
 - **First request:** ~72-80 bytes (more static table hits than HPACK)
 - **Subsequent requests:** ~13-20 bytes (aggressive dynamic table reuse)
-- **Frame overhead:** Variable-length frame headers — typically 2-3 bytes (type + varint length) vs HTTP/2's fixed 9 bytes
+- **Frame overhead:** Variable-length frame headers  --  typically 2-3 bytes (type + varint length) vs HTTP/2's fixed 9 bytes
 - **Transport:** QUIC combines crypto + transport handshake in 1 RTT (vs TCP+TLS = 2). 0-RTT with session resumption.
 - **Multiplexing:** 100 concurrent streams, per-stream independence (no TCP head-of-line blocking)
 - **Round trips:** 1 (QUIC 1-RTT handshake + multiplexed streams)
@@ -84,7 +84,7 @@ The real FlowCodec, encoding actual frames:
 
 ## Results
 
-### Big Content Site — Whip Worthington (12 resources)
+### Big Content Site  --  Whip Worthington (12 resources)
 
 ```
 Protocol      Compress  Wire        Overhead    Ovhd %    RTTs  Savings
@@ -112,13 +112,13 @@ Aeon Flow     brotli    905 KB      276 B       0.03%     1     60.3%
 | HTTP/3 | 906 B | 1 |
 | Aeon Flow | 276 B | 1 |
 
-HTTP/3 closes the gap significantly — variable-length frame headers (2-3 bytes vs HTTP/2's fixed 9) and QPACK's larger static table cut framing nearly in half vs HTTP/2. And QUIC's 1-RTT handshake matches Aeon Flow's round trip count.
+HTTP/3 closes the gap significantly  --  variable-length frame headers (2-3 bytes vs HTTP/2's fixed 9) and QPACK's larger static table cut framing nearly in half vs HTTP/2. And QUIC's 1-RTT handshake matches Aeon Flow's round trip count.
 
-But Aeon Flow still uses **3.3x less framing** than HTTP/3. No per-request headers, no QPACK encoding/decoding, no HEADERS frames at all. The stream ID *is* the request. At 276 bytes vs 906 bytes on a 905 KB total, it's 0.03 percent vs 0.10 percent — both negligible for big content.
+But Aeon Flow still uses **3.3x less framing** than HTTP/3. No per-request headers, no QPACK encoding/decoding, no HEADERS frames at all. The stream ID *is* the request. At 276 bytes vs 906 bytes on a 905 KB total, it's 0.03 percent vs 0.10 percent  --  both negligible for big content.
 
 The real story for big content: HTTP/3 and Aeon Flow both win on round trips (1 RTT). HTTP/1.1 needs 3 RTTs, HTTP/2 needs 2. On a 100ms RTT, that's 300ms vs 200ms vs 100ms vs 100ms.
 
-### Microfrontend — Wally Wallington (95 resources)
+### Microfrontend  --  Wally Wallington (95 resources)
 
 ```
 Protocol      Compress  Wire        Overhead    Ovhd %    RTTs  Savings
@@ -143,7 +143,7 @@ HTTP/1.1 with brotli spends **31 percent of its total wire bytes on headers.** N
 
 HTTP/2's HPACK brings that down to 5.8 percent, but it's still 8 KB of framing for payloads that total 129 KB.
 
-HTTP/3's QPACK + variable-length frames bring it to 4.36 percent — a 25 percent improvement over HTTP/2. The bigger static table (99 entries vs 61) compresses common headers more aggressively, and the variable-length frame headers (2-3 bytes) are 3-4x smaller than HTTP/2's fixed 9-byte headers. QUIC also matches Aeon Flow on round trips: 1 RTT.
+HTTP/3's QPACK + variable-length frames bring it to 4.36 percent  --  a 25 percent improvement over HTTP/2. The bigger static table (99 entries vs 61) compresses common headers more aggressively, and the variable-length frame headers (2-3 bytes) are 3-4x smaller than HTTP/2's fixed 9-byte headers. QUIC also matches Aeon Flow on round trips: 1 RTT.
 
 But HTTP/3 still carries per-request semantics. Every one of those 95 resources needs a HEADERS frame with QPACK-encoded method, path, scheme, authority. Even compressed, that's 5.9 KB of framing.
 
@@ -155,13 +155,13 @@ And the round trips: HTTP/1.1 with 95 resources across 6 connections needs **16 
 
 | Wallington Principle | HTTP/1.1 | HTTP/2 | HTTP/3 | Aeon Flow |
 |---------------------|----------|--------|--------|-----------|
-| **Force Multiplication** (lever length) | 6 connections — short lever | 100 streams — longer lever | 100 streams, no HOL blocking — even longer | 256 streams + server push — longest lever |
-| **Friction Reduction** (contact point) | ~600 bytes per request/response cycle | ~40 bytes HPACK-compressed | ~25 bytes QPACK + 2-3 byte frame headers | 20 bytes (DATA+FIN) — smallest pivot |
-| **Gravity Harvest** (use weight as battery) | None — client must discover and request each resource | Server Push (deprecated) | None — same client-driven model as H2 | FORK — server pushes all children from one parent stream |
+| **Force Multiplication** (lever length) | 6 connections  --  short lever | 100 streams  --  longer lever | 100 streams, no HOL blocking  --  even longer | 256 streams + server push  --  longest lever |
+| **Friction Reduction** (contact point) | ~600 bytes per request/response cycle | ~40 bytes HPACK-compressed | ~25 bytes QPACK + 2-3 byte frame headers | 20 bytes (DATA+FIN)  --  smallest pivot |
+| **Gravity Harvest** (use weight as battery) | None  --  client must discover and request each resource | Server Push (deprecated) | None  --  same client-driven model as H2 | FORK  --  server pushes all children from one parent stream |
 
 HTTP/3 is the best HTTP has ever been. QUIC eliminates TCP head-of-line blocking, variable-length integers shrink frame headers, QPACK compresses more aggressively. It matches Aeon Flow on round trips. But it still speaks HTTP semantics: every resource is a request/response pair with encoded method, path, scheme, authority. That per-request tax is the fundamental architectural constraint.
 
-The microfrontend result is the Dynamic Offset Pivot applied to protocols: by placing the pivot point (the frame header) slightly off-center — 10 bytes fixed instead of variable-length HTTP headers — each resource "steps" through the wire with minimal resistance. The FORK frame is the master pivot: one small stone that sets 95 streams in motion.
+The microfrontend result is the Dynamic Offset Pivot applied to protocols: by placing the pivot point (the frame header) slightly off-center  --  10 bytes fixed instead of variable-length HTTP headers  --  each resource "steps" through the wire with minimal resistance. The FORK frame is the master pivot: one small stone that sets 95 streams in motion.
 
 ## Running the Shootoff
 
@@ -182,7 +182,7 @@ The benchmark uses:
 
 ## What the Numbers Mean
 
-For **big content sites**: pick any protocol with brotli. The compression does 99 percent of the work. HTTP/3 and Aeon Flow both win on round trips (1 RTT). The framing overhead difference between HTTP/3 (906 B) and Aeon Flow (276 B) is 630 bytes on a 905 KB payload — irrelevant.
+For **big content sites**: pick any protocol with brotli. The compression does 99 percent of the work. HTTP/3 and Aeon Flow both win on round trips (1 RTT). The framing overhead difference between HTTP/3 (906 B) and Aeon Flow (276 B) is 630 bytes on a 905 KB payload  --  irrelevant.
 
 For **microfrontend architecture**: the protocol matters enormously.
 
@@ -193,23 +193,23 @@ For **microfrontend architecture**: the protocol matters enormously.
 | HTTP/3 + brotli | 5.9 KB | 4.36 percent | 1 |
 | Aeon Flow + brotli | 1.9 KB | 1.47 percent | 1 |
 
-HTTP/3 is 25 percent better than HTTP/2 on framing and matches Aeon Flow on round trips. It's a genuine improvement. But Aeon Flow still carries **3x less framing** than HTTP/3 — because it doesn't carry per-request headers at all. The stream ID *is* the request.
+HTTP/3 is 25 percent better than HTTP/2 on framing and matches Aeon Flow on round trips. It's a genuine improvement. But Aeon Flow still carries **3x less framing** than HTTP/3  --  because it doesn't carry per-request headers at all. The stream ID *is* the request.
 
-The modern web is moving toward more, smaller resources (code splitting, tree shaking, component-level CSS, icon sprites → individual SVGs). Every step toward granularity penalizes HTTP more and rewards Aeon Flow more. HTTP/3 narrows the gap but can't close it — the per-request header tax is architectural, not implementational.
+The modern web is moving toward more, smaller resources (code splitting, tree shaking, component-level CSS, icon sprites → individual SVGs). Every step toward granularity penalizes HTTP more and rewards Aeon Flow more. HTTP/3 narrows the gap but can't close it  --  the per-request header tax is architectural, not implementational.
 
 The next chapter shows how to put Aeon Flow behind nginx, so browsers speak HTTP while backends enjoy the 10-byte pivot.
 
 ## The UDP Advantage: Beyond Framing
 
-The shootoff above measures framing overhead — bytes on the wire. But framing is only half the story. The other half is **transport behavior under loss**.
+The shootoff above measures framing overhead  --  bytes on the wire. But framing is only half the story. The other half is **transport behavior under loss**.
 
-TCP's head-of-line blocking means a single lost packet stalls ALL streams on the connection. HTTP/3 fixes this at the QUIC layer (per-stream independence), but at the cost of significant protocol complexity — QUIC frames are variable-length with type-dependent semantics, connection IDs, packet number spaces, and a crypto handshake integrated into the transport.
+TCP's head-of-line blocking means a single lost packet stalls ALL streams on the connection. HTTP/3 fixes this at the QUIC layer (per-stream independence), but at the cost of significant protocol complexity  --  QUIC frames are variable-length with type-dependent semantics, connection IDs, packet number spaces, and a crypto handshake integrated into the transport.
 
 Aeon Flow over UDP achieves the same per-stream independence with a 10-byte fixed header. The `FrameReassembler` tracks per-stream sequence numbers and delivers frames in order per stream, out of order across streams. Stream A's lost packet is invisible to stream B.
 
 ### The Real-World Impact
 
-On a clean network (0 percent loss), all protocols perform similarly — the framing overhead difference is the full story.
+On a clean network (0 percent loss), all protocols perform similarly  --  the framing overhead difference is the full story.
 
 On a lossy network (1-5 percent packet loss, common on mobile/WiFi):
 

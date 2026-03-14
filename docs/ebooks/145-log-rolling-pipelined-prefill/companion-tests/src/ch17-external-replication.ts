@@ -62,9 +62,15 @@ const commandPlan = [
   { label: 'Build Gnosis', cwd: gnosisRoot, command: 'bun run build' },
   { label: 'Test Gnosis fold training', cwd: gnosisRoot, command: 'bun run test:fold-training' },
   { label: 'Test Gnosis negative controls', cwd: gnosisRoot, command: 'bun run test:negative-controls' },
+  { label: 'Test Gnosis near-control sweep', cwd: gnosisRoot, command: 'bun run test:near-control-sweep' },
   { label: 'Test Gnosis regime sweep', cwd: gnosisRoot, command: 'bun run test:regime-sweep' },
   { label: 'Test Gnosis adversarial controls', cwd: gnosisRoot, command: 'bun run test:adversarial-controls' },
   { label: 'Test Gnosis mini-MoE routing', cwd: gnosisRoot, command: 'bun run test:mini-moe-routing' },
+  {
+    label: 'Test Gnosis MoA transformer evidence',
+    cwd: companionRoot,
+    command: 'bun run test:gnosis-moa-transformer-evidence',
+  },
   { label: 'Export formal witness catalog', cwd: companionRoot, command: 'bun run test:formal:witnesses' },
   {
     label: 'Export formal adaptive witness catalog',

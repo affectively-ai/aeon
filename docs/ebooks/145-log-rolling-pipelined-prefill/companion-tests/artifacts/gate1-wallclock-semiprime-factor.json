@@ -1,0 +1,184 @@
+{
+  "config": {
+    "trialsPerCell": 4,
+    "maxAttemptsPerRequest": 4,
+    "requestTimeoutMs": 20000,
+    "bootstrapResamples": 1200,
+    "seed": 1588051969,
+    "workloads": [
+      {
+        "name": "factor-semiprime-n4-b6",
+        "tokens": 24,
+        "nodes": 4,
+        "chunkSize": 6,
+        "serviceMsPerToken": 0,
+        "payloadBytesPerToken": 64,
+        "cpuTask": {
+          "kind": "semiprime-factor",
+          "unitsPerToken": 1
+        }
+      }
+    ],
+    "networkConditions": [
+      {
+        "name": "rtt3-loss0",
+        "rttMs": 3,
+        "jitterMs": 0.3,
+        "lossRate": 0,
+        "primary": true
+      },
+      {
+        "name": "rtt7-loss0",
+        "rttMs": 7,
+        "jitterMs": 0.6,
+        "lossRate": 0,
+        "primary": true
+      }
+    ]
+  },
+  "execution": {
+    "label": "loopback-semiprime-factor",
+    "mode": "embedded-stage-servers",
+    "listenHost": "127.0.0.1",
+    "advertiseHost": "127.0.0.1",
+    "endpointPoolSize": 0,
+    "endpointHosts": [],
+    "distinctEndpointHostCount": 0
+  },
+  "cells": [
+    {
+      "cellId": "factor-semiprime-n4-b6__rtt3-loss0",
+      "workload": {
+        "name": "factor-semiprime-n4-b6",
+        "tokens": 24,
+        "nodes": 4,
+        "chunkSize": 6,
+        "serviceMsPerToken": 0,
+        "payloadBytesPerToken": 64,
+        "cpuTask": {
+          "kind": "semiprime-factor",
+          "unitsPerToken": 1
+        }
+      },
+      "network": {
+        "name": "rtt3-loss0",
+        "rttMs": 3,
+        "jitterMs": 0.3,
+        "lossRate": 0,
+        "primary": true
+      },
+      "pairedTrials": 4,
+      "failedTrials": 0,
+      "sequential": {
+        "p50Ms": 306.6070625,
+        "p95Ms": 308.52241425,
+        "p50Ci": {
+          "low": 303.6547919999998,
+          "high": 308.660208
+        },
+        "p95Ci": {
+          "low": 305.472542,
+          "high": 308.660208
+        }
+      },
+      "chunked": {
+        "p50Ms": 67.56116699999998,
+        "p95Ms": 67.9044581,
+        "p50Ci": {
+          "low": 65.42841700000008,
+          "high": 67.92908299999999
+        },
+        "p95Ci": {
+          "low": 67.35018324999994,
+          "high": 67.92908299999999
+        }
+      },
+      "speedupMedian": 4.561867378667062,
+      "speedupMedianCi": {
+        "low": 4.496933103012741,
+        "high": 4.641023058833892
+      },
+      "improvementMedianMs": 239.10152049999985,
+      "improvementMedianMsCi": {
+        "low": 237.54345899999998,
+        "high": 241.30279100000007
+      },
+      "sequentialAvgRetriesPerTrial": 0,
+      "chunkedAvgRetriesPerTrial": 0,
+      "passed": true
+    },
+    {
+      "cellId": "factor-semiprime-n4-b6__rtt7-loss0",
+      "workload": {
+        "name": "factor-semiprime-n4-b6",
+        "tokens": 24,
+        "nodes": 4,
+        "chunkSize": 6,
+        "serviceMsPerToken": 0,
+        "payloadBytesPerToken": 64,
+        "cpuTask": {
+          "kind": "semiprime-factor",
+          "unitsPerToken": 1
+        }
+      },
+      "network": {
+        "name": "rtt7-loss0",
+        "rttMs": 7,
+        "jitterMs": 0.6,
+        "lossRate": 0,
+        "primary": true
+      },
+      "pairedTrials": 4,
+      "failedTrials": 0,
+      "sequential": {
+        "p50Ms": 768.4973330000005,
+        "p95Ms": 797.8266999500004,
+        "p50Ci": {
+          "low": 756.2397080000001,
+          "high": 802.6182500000004
+        },
+        "p95Ci": {
+          "low": 766.3200830000005,
+          "high": 802.6182500000004
+        }
+      },
+      "chunked": {
+        "p50Ms": 99.68572950000043,
+        "p95Ms": 106.30873939999984,
+        "p50Ci": {
+          "low": 94.95912499999986,
+          "high": 106.71120799999971
+        },
+        "p95Ci": {
+          "low": 95.34337500000038,
+          "high": 106.71120799999971
+        }
+      },
+      "speedupMedian": 7.823574299876363,
+      "speedupMedianCi": {
+        "low": 7.222058464561684,
+        "high": 8.069999412905307
+      },
+      "improvementMedianMs": 667.6621665000007,
+      "improvementMedianMsCi": {
+        "low": 660.8963329999997,
+        "high": 698.590166
+      },
+      "sequentialAvgRetriesPerTrial": 0,
+      "chunkedAvgRetriesPerTrial": 0,
+      "passed": true
+    }
+  ],
+  "gate": {
+    "primaryCells": [
+      "factor-semiprime-n4-b6__rtt3-loss0",
+      "factor-semiprime-n4-b6__rtt7-loss0"
+    ],
+    "passedPrimaryCells": [
+      "factor-semiprime-n4-b6__rtt3-loss0",
+      "factor-semiprime-n4-b6__rtt7-loss0"
+    ],
+    "failedPrimaryCells": [],
+    "pass": true
+  }
+}

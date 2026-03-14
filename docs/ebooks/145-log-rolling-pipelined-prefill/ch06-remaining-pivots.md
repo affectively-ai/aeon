@@ -1,4 +1,4 @@
-# Chapter 6: The Remaining Pivots — A Survey of Rotational Opportunities
+# Chapter 6: The Remaining Pivots  --  A Survey of Rotational Opportunities
 
 The prefill pipeline proved that P×N bottlenecks can hide in plain sight. This chapter catalogs every other sequential pattern in the Aether inference engine, classifying each as a **rotational opportunity** (can be pipelined/parallelized) or a **hard wall** (inherently serial).
 
@@ -24,7 +24,7 @@ const depformerIn = await Promise.all(
 );
 ```
 
-**Wallington Technique:** Multi-Stage Cribbing. Each file fetch is a "shim" — independent, no ordering constraint. Loading them sequentially is like placing one board at a time when you could place all boards on one side simultaneously.
+**Wallington Technique:** Multi-Stage Cribbing. Each file fetch is a "shim"  --  independent, no ordering constraint. Loading them sequentially is like placing one board at a time when you could place all boards on one side simultaneously.
 
 **Estimated Speedup:** 5-10x on cold start. From ~3-5 seconds of serialized I/O to ~500ms of parallel fetches (bounded by network bandwidth, not latency).
 
@@ -44,11 +44,11 @@ for (let h = 0; h < numHeads; h++) {
 }
 ```
 
-**The Insight:** Zero data dependency between iterations. Head 3 doesn't read from head 2's output slice. This is the purest form of parallelism — embarrassingly parallel.
+**The Insight:** Zero data dependency between iterations. Head 3 doesn't read from head 2's output slice. This is the purest form of parallelism  --  embarrassingly parallel.
 
 **Wallington Technique:** The Round Road (#3). Normalize irregular work into identical parallel tracks. Each head is an identical computation on a different slice of Q/K/V.
 
-**Implementation Path:** This is a SIMD/WASM opportunity rather than an async one. The loop body is pure math — no I/O, no promises. Parallelism here means:
+**Implementation Path:** This is a SIMD/WASM opportunity rather than an async one. The loop body is pure math  --  no I/O, no promises. Parallelism here means:
 - WASM SIMD: process 4 heads simultaneously using 128-bit lanes
 - Web Workers: split heads across threads (high overhead, low payoff for 8 heads)
 - Fused kernel: combine Q·K scoring and V accumulation into a single SIMD pass
@@ -69,9 +69,9 @@ for (let ni = 0; ni < nodeEntries.length; ni++) {
 }
 ```
 
-**The Fix:** Call `pipelinedPrefill()` instead. This is a free optimization — the method already exists, handles all edge cases, and produces identical results.
+**The Fix:** Call `pipelinedPrefill()` instead. This is a free optimization  --  the method already exists, handles all edge cases, and produces identical results.
 
-**Estimated Speedup:** Same as main prefill — near-Nx where N = number of nodes.
+**Estimated Speedup:** Same as main prefill  --  near-Nx where N = number of nodes.
 
 ### 4. Zero-Copy Pipeline Forwarding
 
@@ -94,9 +94,9 @@ result: r.hiddenStates as Float32Array  // no copy
 
 For a 4096-dim model, each copy is 16KB. At 100 tokens × 4 nodes × 3 copies per token, that's ~19MB of unnecessary allocation. Eliminating it reduces GC pressure and improves cache locality.
 
-**The Initial Embedding Subarray:** The first dispatch already uses `allEmbeddings.subarray()` — a zero-copy view. If we can extend zero-copy to inter-stage forwarding, the pipeline touches memory only at the boundaries (embedding in, final hidden state out).
+**The Initial Embedding Subarray:** The first dispatch already uses `allEmbeddings.subarray()`  --  a zero-copy view. If we can extend zero-copy to inter-stage forwarding, the pipeline touches memory only at the boundaries (embedding in, final hidden state out).
 
-**Wallington Technique:** Friction Reduction. The pivot point should be as small as possible. Copying data is friction — it doesn't move the stone, it just resists the movement.
+**Wallington Technique:** Friction Reduction. The pivot point should be as small as possible. Copying data is friction  --  it doesn't move the stone, it just resists the movement.
 
 ### 5. Embedding Precomputation Overlap
 
@@ -109,7 +109,7 @@ const allEmbeddings = await this.embedTokens(inputTokens);
 // ... then pipeline starts
 ```
 
-For long prompts, embedding computation is significant. Could overlap embedding with pipeline execution — compute embeddings for tokens 0-15, start pipeline, compute 16-31 while pipeline processes 0-15, etc.
+For long prompts, embedding computation is significant. Could overlap embedding with pipeline execution  --  compute embeddings for tokens 0-15, start pipeline, compute 16-31 while pipeline processes 0-15, etc.
 
 **Estimated Complexity:** High. Requires chunked embedding and coordination with the pipeline's `nextToDispatch` pointer. Payoff depends on embedding latency relative to node forward latency.
 
@@ -119,7 +119,7 @@ For long prompts, embedding computation is significant. Could overlap embedding 
 
 **Location:** `kernels/moshi-depformer.ts`, lines 350-411
 
-Each codebook depends on the previous codebook's sampled audio token: `prevToken = audioToken`. This is an architectural dependency of the Moshi model — the depth decoder is autoregressive over the codebook dimension. No pipeline or parallelism is possible without changing the model architecture.
+Each codebook depends on the previous codebook's sampled audio token: `prevToken = audioToken`. This is an architectural dependency of the Moshi model  --  the depth decoder is autoregressive over the codebook dimension. No pipeline or parallelism is possible without changing the model architecture.
 
 ### Autoregressive Generation
 

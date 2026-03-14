@@ -1,10 +1,10 @@
-# Chapter 11: Turbulent Multiplexing — Filling the Idle Slots
+# Chapter 11: Turbulent Multiplexing  --  Filling the Idle Slots
 
 ## The Problem the Wallington Rotation Creates
 
 The Wallington Rotation compresses prefill so aggressively that it creates a new problem: idle nodes.
 
-In a traditional per-token pipeline with 100 tokens and 4 nodes, there are 103 steps. The pipeline spends 3 steps ramping up and 3 steps draining — 6 steps of "turbulence" out of 103 total. The remaining 97 steps are **laminar flow**: all 4 nodes busy simultaneously, fully utilized. Turbulence is 5.8 percent of runtime. Negligible.
+In a traditional per-token pipeline with 100 tokens and 4 nodes, there are 103 steps. The pipeline spends 3 steps ramping up and 3 steps draining  --  6 steps of "turbulence" out of 103 total. The remaining 97 steps are **laminar flow**: all 4 nodes busy simultaneously, fully utilized. Turbulence is 5.8 percent of runtime. Negligible.
 
 The Wallington Rotation changes the math. Same 100 tokens, 4 nodes, chunks of 25: only 7 steps total. Ramp-up is 3 steps. Drain is 3 steps. Laminar window: **1 step**. Turbulence is 86 percent of runtime.
 
@@ -33,11 +33,11 @@ N3:    ·  ·  ·  C0 C1 C2 C3 C4
 Laminar ticks: 2 out of 8 = 25 percent
 ```
 
-The pipeline never reaches steady state. It's all turbulence — startup and shutdown with barely any sustained flow in between.
+The pipeline never reaches steady state. It's all turbulence  --  startup and shutdown with barely any sustained flow in between.
 
 ## The Fluid Dynamics Analogy
 
-In fluid dynamics, laminar flow is smooth, parallel, predictable. Every layer of fluid moves in the same direction at the same speed. Turbulent flow is chaotic — eddies, vortices, wasted energy.
+In fluid dynamics, laminar flow is smooth, parallel, predictable. Every layer of fluid moves in the same direction at the same speed. Turbulent flow is chaotic  --  eddies, vortices, wasted energy.
 
 A pipeline has the same two regimes:
 
@@ -57,7 +57,7 @@ When `num_chunks ≈ num_nodes` (which the Wallington Rotation achieves by desig
 
 Those idle node-slots during turbulence aren't inherently wasted. They're wasted only because we're processing a single request. If multiple requests are in flight, the idle slots in one request's pipeline can serve another request's chunks.
 
-The nodes are stateless per-chunk. Each chunk carries its own hidden state. There's no KV cache conflict between requests during prefill. A node doesn't care whether the chunk it's processing belongs to User A's request or User B's — it runs the same forward pass either way.
+The nodes are stateless per-chunk. Each chunk carries its own hidden state. There's no KV cache conflict between requests during prefill. A node doesn't care whether the chunk it's processing belongs to User A's request or User B's  --  it runs the same forward pass either way.
 
 This means we can **interleave chunks from different requests** into the same pipeline schedule:
 
@@ -82,11 +82,11 @@ N3:    ·  ·  ·  A0 A1 A2 A3 A4 B0 B1 B2 B3  B4
 Total: 12 ticks, 48 slots, 8 idle (16.7 percent waste)
 ```
 
-Request A finishes at the same time (tick 8). But Request B finishes at tick 12 instead of tick 16 — a **25 percent latency reduction for free**. And total node utilization jumps from 62.5 percent to 83.3 percent.
+Request A finishes at the same time (tick 8). But Request B finishes at tick 12 instead of tick 16  --  a **25 percent latency reduction for free**. And total node utilization jumps from 62.5 percent to 83.3 percent.
 
 ## The Multiplexed Scheduler
 
-The coordinator already tracks `nodeFree[]` — the tick at which each node becomes available. Multiplexing extends this to multiple concurrent requests:
+The coordinator already tracks `nodeFree[]`  --  the tick at which each node becomes available. Multiplexing extends this to multiple concurrent requests:
 
 ```typescript
 interface PrefillRequest {
@@ -125,7 +125,7 @@ function scheduleNext(): { request: PrefillRequest; chunkIdx: number; nodeIdx: n
 }
 ```
 
-The key constraint: chunks within a single request must traverse nodes in order (0 → 1 → 2 → 3). But chunks from *different* requests are independent — Request B's chunk can use Node 0 while Request A's chunk is at Node 2.
+The key constraint: chunks within a single request must traverse nodes in order (0 → 1 → 2 → 3). But chunks from *different* requests are independent  --  Request B's chunk can use Node 0 while Request A's chunk is at Node 2.
 
 ## Three Multiplexing Strategies
 
@@ -147,7 +147,7 @@ While prefill chunks drain through later nodes, freed early nodes begin speculat
 
 ### 3. Predictive Prefetch (Cold Start)
 
-Use idle nodes to prefetch and warm weight caches for anticipated next requests. On Cloud Run, this combats cold starts — the node is already warm when the real request arrives.
+Use idle nodes to prefetch and warm weight caches for anticipated next requests. On Cloud Run, this combats cold starts  --  the node is already warm when the real request arrives.
 
 - **Benefit**: Eliminates cold start for subsequent requests
 - **Cost**: Wasted compute if prediction is wrong
@@ -176,7 +176,7 @@ This ratio predicts the flow regime:
 | Re ≈ 1.0 | Critical transition | Ramp-up meets ramp-down. Minimal laminar window. | 100 tokens, 4 nodes, chunks of 25: C=4, Re=1.0 |
 | Re > 1.0 | Fully turbulent | Some nodes never receive a chunk. Pure waste. | 10 tokens, 8 nodes: C=2, Re=4.0 |
 
-The Wallington Rotation, by design, pushes Re_pipeline toward 1.0 — it sets chunk size B = floor(P/N), so C ≈ N, so Re ≈ 1.0. This is optimal for *latency* (minimum total steps) but maximally turbulent for *utilization*.
+The Wallington Rotation, by design, pushes Re_pipeline toward 1.0  --  it sets chunk size B = floor(P/N), so C ≈ N, so Re ≈ 1.0. This is optimal for *latency* (minimum total steps) but maximally turbulent for *utilization*.
 
 This is the fundamental tradeoff the Wallington Rotation makes: it trades utilization for latency. Multiplexing recovers the utilization without sacrificing the latency gain.
 
@@ -194,23 +194,23 @@ Setting laminar_fraction = 0 (fully turbulent threshold):
 C - N + 1 = 0  →  C = N - 1  →  Re = N / (N-1) ≈ 1.0
 ```
 
-The critical pipeline Reynolds number is approximately 1.0 — exactly where the Wallington Rotation operates. This isn't coincidence; it's a direct consequence of setting B = P/N.
+The critical pipeline Reynolds number is approximately 1.0  --  exactly where the Wallington Rotation operates. This isn't coincidence; it's a direct consequence of setting B = P/N.
 
 ### Connection to Fluidic Routing
 
-This connects directly to our fluidic routing architecture. In fluidic routing, requests flow through the inference network like fluid through pipes — taking the path of least resistance, pooling at available nodes, splitting at branch points.
+This connects directly to our fluidic routing architecture. In fluidic routing, requests flow through the inference network like fluid through pipes  --  taking the path of least resistance, pooling at available nodes, splitting at branch points.
 
 The pipeline Reynolds number tells us whether our routing will be smooth (predictable, efficient, boring) or turbulent (chaotic, wasteful, but full of opportunity). The fluidic router can use Re_pipeline as a **scheduling signal**:
 
 - **Low Re**: Route requests to dedicated pipelines. No multiplexing needed.
 - **Re ≈ 1**: Activate multiplexing. Interleave requests to fill turbulent slots.
-- **High Re**: Consider reducing node count. The pipeline is over-provisioned — some nodes aren't even getting work.
+- **High Re**: Consider reducing node count. The pipeline is over-provisioned  --  some nodes aren't even getting work.
 
 The Reynolds number becomes a real-time dial for the fluidic scheduler: as request patterns change, Re changes, and the routing strategy adapts.
 
 ## The TinyLlama Problem
 
-TinyLlama (22 layers, 4 nodes) is the worst case for idle waste and the best case for multiplexing gains. With short prompts (10-20 tokens), the pipeline is pure turbulence. But TinyLlama is also *fast* — each layer processes in milliseconds. The turbulent slots are short but numerous.
+TinyLlama (22 layers, 4 nodes) is the worst case for idle waste and the best case for multiplexing gains. With short prompts (10-20 tokens), the pipeline is pure turbulence. But TinyLlama is also *fast*  --  each layer processes in milliseconds. The turbulent slots are short but numerous.
 
 Multiplexing turns TinyLlama from "fast but wasteful" into "fast AND efficient." The same 4 Cloud Run instances that serve one request with 43 percent idle time can serve 2-3 concurrent requests with <20 percent idle time, at nearly the same per-request latency.
 
@@ -226,12 +226,12 @@ Turbulent multiplexing is the same principle applied to the pipeline: as one req
 
 Fully implemented in `open-source/aether/src/multiplexed-prefill-scheduler.ts` (799 lines):
 
-- **`MultiplexedPrefillScheduler`** — Manages concurrent `PrefillRequest` objects against shared `nodeFree[]` state
-- **`runPipelineLoop()`** — Core dispatch loop: `tryDispatchToFreeNodes()` → `handleChunkCompletion()` → resolve completed requests
-- **`selectNextRequest()`** — Priority-based request selection across the shared pipeline
-- **`buildWallingtonChunks()`** — Chunk builder with `B = floor(P/N)` sizing
-- **`calculatePipelineFlowMetrics()`** — Reynolds number, utilization, laminar/turbulent fraction
+- **`MultiplexedPrefillScheduler`**  --  Manages concurrent `PrefillRequest` objects against shared `nodeFree[]` state
+- **`runPipelineLoop()`**  --  Core dispatch loop: `tryDispatchToFreeNodes()` → `handleChunkCompletion()` → resolve completed requests
+- **`selectNextRequest()`**  --  Priority-based request selection across the shared pipeline
+- **`buildWallingtonChunks()`**  --  Chunk builder with `B = floor(P/N)` sizing
+- **`calculatePipelineFlowMetrics()`**  --  Reynolds number, utilization, laminar/turbulent fraction
 
-Used by both the Superposition Prefill Engine (Ch. 12) and the Speculative Tree Engine (Ch. 13) as their execution backend — each shard or branch becomes a sub-request in the multiplexed pipeline.
+Used by both the Superposition Prefill Engine (Ch. 12) and the Speculative Tree Engine (Ch. 13) as their execution backend  --  each shard or branch becomes a sub-request in the multiplexed pipeline.
 
 **Tests**: `apps/edge-workers/src/lib/multi-arch/__tests__/superposition-prefill.test.ts` and `speculative-tree.test.ts` exercise the scheduler through the higher-level engines

@@ -1,4 +1,4 @@
-# Chapter 14: The Aeon Flow Protocol — Fork, Race, Collapse All The Way Down
+# Chapter 14: The Aeon Flow Protocol  --  Fork, Race, Collapse All The Way Down
 
 > *"The same pattern, appearing at every layer, is not coincidence. It is the protocol trying to be born."*
 
@@ -31,7 +31,7 @@ FlowFrame {
 
 Total header: **10 bytes**. Compare HTTP/2's 9-byte frame header plus HPACK-encoded headers averaging 50–200 bytes per request. For inference hidden states (4096 × f32 = 16KB), the Aeon Flow header is **0.06 percent overhead** vs HTTP's 1–3 percent.
 
-The key zerocopy insight: `Float32Array` hidden states from inference can be written directly as the frame payload — no intermediate `Buffer` copy. The codec writes the 10-byte header in front of the existing `ArrayBuffer` view.
+The key zerocopy insight: `Float32Array` hidden states from inference can be written directly as the frame payload  --  no intermediate `Buffer` copy. The codec writes the 10-byte header in front of the existing `ArrayBuffer` view.
 
 ## The Protocol Stack
 
@@ -55,7 +55,7 @@ The key zerocopy insight: `Float32Array` hidden states from inference can be wri
 
 TCP had its 40-year run. The Aeon Flow Protocol defaults to UDP everywhere, TCP only when necessary.
 
-The 10-byte flow header is **self-describing** — `stream_id` + `sequence` in every frame means frames can arrive out of order and be reassembled correctly. This is the same insight as QUIC/HTTP3 — but with 10-byte frames instead of QUIC's complex framing. TCP's ordered delivery is redundant when every frame already carries its own identity.
+The 10-byte flow header is **self-describing**  --  `stream_id` + `sequence` in every frame means frames can arrive out of order and be reassembled correctly. This is the same insight as QUIC/HTTP3  --  but with 10-byte frames instead of QUIC's complex framing. TCP's ordered delivery is redundant when every frame already carries its own identity.
 
 **Why UDP wins for multiplexed protocols:**
 
@@ -64,7 +64,7 @@ The 10-byte flow header is **self-describing** — `stream_id` + `sequence` in e
 | Ordered delivery | One lost packet for stream A blocks ALL streams (B, C, D) waiting behind it |
 | Connection handshake | SYN → SYN-ACK → ACK = 1.5 RTT before first data byte. UDP: first datagram IS data |
 | Single-stream congestion | TCP backs off the entire connection on loss. Flow protocol backs off per-stream |
-| Retransmission | TCP retransmits at the connection level. Flow protocol retransmits per-stream — stream A's retransmit doesn't delay stream B |
+| Retransmission | TCP retransmits at the connection level. Flow protocol retransmits per-stream  --  stream A's retransmit doesn't delay stream B |
 
 **The `UDPFlowTransport`:**
 
@@ -86,13 +86,13 @@ const flow = new AeonFlowProtocol(transport, {
 
 **MTU-aware fragmentation:** Large flow frames (>1472 bytes) are automatically fragmented with a 4-byte fragment header `[frame_id:u16][frag_index:u8][frag_total:u8]`. Max 255 fragments × 1468 bytes = 366KB per flow frame. Small frames (the common case) need zero fragmentation.
 
-**ACK bitmaps:** 14 bytes covers 64 contiguous sequences per stream — `[stream_id:u16][base_seq:u32][bitmap_hi:u32][bitmap_lo:u32]`. Compact vs TCP SACK.
+**ACK bitmaps:** 14 bytes covers 64 contiguous sequences per stream  --  `[stream_id:u16][base_seq:u32][bitmap_hi:u32][bitmap_lo:u32]`. Compact vs TCP SACK.
 
-**AIMD congestion control:** Congestion window starts at 16, max 256. Additive increase (1/cwnd per ACK), multiplicative decrease (halve on loss). Per-transport, not per-stream — the transport layer manages the wire, the flow layer manages the streams.
+**AIMD congestion control:** Congestion window starts at 16, max 256. Additive increase (1/cwnd per ACK), multiplicative decrease (halve on loss). Per-transport, not per-stream  --  the transport layer manages the wire, the flow layer manages the streams.
 
-**`FrameReassembler`:** Per-stream out-of-order reconstruction. Each stream has its own reorder buffer with gap detection and dedup. Stream A's lost packet is invisible to stream B — zero head-of-line blocking.
+**`FrameReassembler`:** Per-stream out-of-order reconstruction. Each stream has its own reorder buffer with gap detection and dedup. Stream A's lost packet is invisible to stream B  --  zero head-of-line blocking.
 
-**Browser bridge:** Browsers can't bind raw UDP sockets, so `WebTransportFlowTransport` uses HTTP/3 unreliable datagrams for the same semantics. The flow protocol is identical — only the physical transport changes.
+**Browser bridge:** Browsers can't bind raw UDP sockets, so `WebTransportFlowTransport` uses HTTP/3 unreliable datagrams for the same semantics. The flow protocol is identical  --  only the physical transport changes.
 
 **Fallback chain:** UDP → WebSocket → TCP. The `FlowTransport` interface (`send/onReceive/close`) is transport-agnostic. `AeonFlowProtocol`, `FlowDeployTransport`, `FlowESIProcessor` all work unchanged regardless of physical transport.
 
@@ -106,7 +106,7 @@ const encoded = codec.encode(frame);              // Uint8Array
 const { frame, bytesRead } = codec.decode(buf);   // zerocopy payload view
 ```
 
-Batch operations encode/decode multiple frames into a single contiguous buffer — ideal for sending multiple chunks in one transport write.
+Batch operations encode/decode multiple frames into a single contiguous buffer  --  ideal for sending multiple chunks in one transport write.
 
 ### Flow Layer: `AeonFlowProtocol`
 
@@ -153,7 +153,7 @@ const merged = await protocol.collapse([s1, s2, s3, s4], (results) => {
 });
 ```
 
-Waits for all streams to complete (or poison), then calls a merger function. Poisoned streams contribute nothing to the merge — they're absent from the results map.
+Waits for all streams to complete (or poison), then calls a merger function. Poisoned streams contribute nothing to the merge  --  they're absent from the results map.
 
 **In inference**: Worthington Whip cross-shard attention correction. In ESI: assemble HTML from fragments. In sync: StateReconciler merges divergent replicas. In shell: ghost merge with wisdom extraction.
 
@@ -167,7 +167,7 @@ aeon://sync.relay/room/dashboard              // CRDT sync room
 aeon://ghost.local/fork/reality-3             // reality fork
 ```
 
-Every multiplexed stream gets a first-class address. This is what makes `aeon://` real — not just a namespace, but a wire protocol with binary semantics.
+Every multiplexed stream gets a first-class address. This is what makes `aeon://` real  --  not just a namespace, but a wire protocol with binary semantics.
 
 ## Performance Characteristics
 
@@ -205,7 +205,7 @@ interface FlowProtocolBridge {
 }
 ```
 
-This is a non-breaking addition. The scheduler works identically with or without a flow protocol attached. When attached, chunk data flows over binary frames instead of direct function calls — enabling the same pipeline to run across network boundaries.
+This is a non-breaking addition. The scheduler works identically with or without a flow protocol attached. When attached, chunk data flows over binary frames instead of direct function calls  --  enabling the same pipeline to run across network boundaries.
 
 ## What This Means
 

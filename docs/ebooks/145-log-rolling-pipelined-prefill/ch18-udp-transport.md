@@ -1,10 +1,10 @@
-# Chapter 18: The UDP Transport — TCP Had Its 40-Year Run
+# Chapter 18: The UDP Transport  --  TCP Had Its 40-Year Run
 
-> *"You don't move the stone to the hole. You let the stone fall into the hole."* — Wally Wallington
+> *"You don't move the stone to the hole. You let the stone fall into the hole."*  --  Wally Wallington
 
 ## The Insight
 
-Every Aeon Flow frame carries its own identity: `stream_id` + `sequence`. This means frames can arrive out of order and be reassembled correctly. TCP's ordered delivery guarantee — the foundation of reliable networking since 1981 — is redundant. Worse, it's harmful: one lost packet stalls every stream on the connection.
+Every Aeon Flow frame carries its own identity: `stream_id` + `sequence`. This means frames can arrive out of order and be reassembled correctly. TCP's ordered delivery guarantee  --  the foundation of reliable networking since 1981  --  is redundant. Worse, it's harmful: one lost packet stalls every stream on the connection.
 
 This is the same insight that produced QUIC (HTTP/3). But QUIC solves it with ~30,000 lines of specification across three RFCs (9000, 9001, 9002). Aeon Flow solves it with a 10-byte fixed header and ~800 lines of TypeScript.
 
@@ -46,7 +46,7 @@ const protocol = new AeonFlowProtocol(transport, {
 
 ### MTU Fragmentation
 
-UDP datagrams have a maximum transmission unit (MTU) — typically 1500 bytes on Ethernet, minus 28 bytes for IP+UDP headers = **1472 bytes usable**. Flow frames larger than 1472 bytes are automatically fragmented with a 4-byte fragment header:
+UDP datagrams have a maximum transmission unit (MTU)  --  typically 1500 bytes on Ethernet, minus 28 bytes for IP+UDP headers = **1472 bytes usable**. Flow frames larger than 1472 bytes are automatically fragmented with a 4-byte fragment header:
 
 ```
 Fragment Header (4 bytes):
@@ -78,18 +78,18 @@ ACK Bitmap (14 bytes):
 
 One bitmap covers **64 contiguous sequences** per stream. `base_seq` is the lowest sequence number in the window. Each bit in `bitmap_hi:bitmap_lo` represents whether that sequence has been received. Multiple bitmaps (one per active stream) are batched into a single ACK frame on the reserved control stream (`0xFFFF`).
 
-14 bytes per stream vs TCP SACK's variable-length blocks. For 10 active streams, that's 140 bytes — one datagram covers the entire ACK state.
+14 bytes per stream vs TCP SACK's variable-length blocks. For 10 active streams, that's 140 bytes  --  one datagram covers the entire ACK state.
 
 ### AIMD Congestion Control
 
-The transport implements Additive Increase, Multiplicative Decrease — the same family of algorithms that TCP uses, but operating at the transport level (not per-stream):
+The transport implements Additive Increase, Multiplicative Decrease  --  the same family of algorithms that TCP uses, but operating at the transport level (not per-stream):
 
 - **Initial window**: 16 frames
 - **Max window**: 256 frames
-- **On ACK**: `cwnd += 1/cwnd` (additive increase — slow growth)
-- **On loss**: `cwnd = cwnd / 2` (multiplicative decrease — fast backoff)
+- **On ACK**: `cwnd += 1/cwnd` (additive increase  --  slow growth)
+- **On loss**: `cwnd = cwnd / 2` (multiplicative decrease  --  fast backoff)
 
-This is deliberately simpler than TCP's congestion control (which includes slow start, fast retransmit, fast recovery, ECN, etc.). For the workloads Aeon Flow targets — deploy artifact streams, CRDT sync, inference pipeline chunks — the simpler model is sufficient.
+This is deliberately simpler than TCP's congestion control (which includes slow start, fast retransmit, fast recovery, ECN, etc.). For the workloads Aeon Flow targets  --  deploy artifact streams, CRDT sync, inference pipeline chunks  --  the simpler model is sufficient.
 
 ### Retransmission
 
@@ -112,16 +112,16 @@ const reassembler = new FrameReassembler({
   maxGap: 64,               // max sequence gap before skip-ahead
 });
 
-// Push frames in any order — reassembler delivers in-order per stream
+// Push frames in any order  --  reassembler delivers in-order per stream
 const deliverable = reassembler.push(frame);
-// deliverable: FlowFrame[] — 0 if buffered, 1+ if gap filled
+// deliverable: FlowFrame[]  --  0 if buffered, 1+ if gap filled
 
 // Get missing sequences for ACK generation
 const missing = reassembler.getMissingSequences(streamId);
 ```
 
 **Key properties:**
-- Each stream has its own reorder buffer — stream A's gaps don't affect stream B
+- Each stream has its own reorder buffer  --  stream A's gaps don't affect stream B
 - Dedup via emitted sequence tracking (trimmed at 1024 entries per stream)
 - Stream eviction by LRU when `maxStreams` exceeded
 - `maxGap` triggers skip-ahead to prevent unbounded buffering on persistent loss
@@ -140,14 +140,14 @@ const transport = new WebTransportFlowTransport(
 );
 await transport.connect();
 
-// Same FlowTransport interface — protocol layer is identical
+// Same FlowTransport interface  --  protocol layer is identical
 const protocol = new AeonFlowProtocol(transport, {
   role: 'client',
   maxConcurrentStreams: 256,
 });
 ```
 
-The flow protocol frames travel as HTTP/3 unreliable datagrams — preserving the out-of-order, per-stream independence semantics. The `FrameReassembler` handles the rest.
+The flow protocol frames travel as HTTP/3 unreliable datagrams  --  preserving the out-of-order, per-stream independence semantics. The `FrameReassembler` handles the rest.
 
 ## The Fallback Chain
 
@@ -179,8 +179,8 @@ The `FlowTransport` interface is the same at every level: `send(data: Uint8Array
 |---------------------|-----|---------------------|
 | **Force Multiplication** | One connection, one ordered stream | One socket, 256+ independent streams |
 | **Friction Reduction** | SYN/SYN-ACK/ACK before first byte | First datagram IS data |
-| **Gravity Harvest** | Congestion control fights loss | Per-stream ACK bitmaps — loss on stream A is invisible to stream B |
+| **Gravity Harvest** | Congestion control fights loss | Per-stream ACK bitmaps  --  loss on stream A is invisible to stream B |
 
-TCP's reliability guarantees were essential when every byte stream was a single logical conversation. But when every frame already carries its own identity — `stream_id` + `sequence` — those guarantees become overhead. The transport is doing work the application already handles better.
+TCP's reliability guarantees were essential when every byte stream was a single logical conversation. But when every frame already carries its own identity  --  `stream_id` + `sequence`  --  those guarantees become overhead. The transport is doing work the application already handles better.
 
 TCP had its 40-year run. It earned its retirement.

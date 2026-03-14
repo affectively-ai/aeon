@@ -248,6 +248,9 @@ async function readBody(request: IncomingMessage): Promise<string> {
 
 function sendJson(response: ServerResponse, statusCode: number, body: unknown): void {
   response.statusCode = statusCode;
+  response.setHeader('access-control-allow-origin', '*');
+  response.setHeader('access-control-allow-methods', 'POST, OPTIONS');
+  response.setHeader('access-control-allow-headers', 'content-type');
   response.setHeader('content-type', 'application/json');
   response.end(JSON.stringify(body));
 }
@@ -313,6 +316,15 @@ async function startStageServers(
 
   for (let stageIndex = 0; stageIndex < nodeCount; stageIndex++) {
     const handler = async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
+      if (request.method === 'OPTIONS' && request.url === '/stage') {
+        response.statusCode = 204;
+        response.setHeader('access-control-allow-origin', '*');
+        response.setHeader('access-control-allow-methods', 'POST, OPTIONS');
+        response.setHeader('access-control-allow-headers', 'content-type');
+        response.end();
+        return;
+      }
+
       if (request.method !== 'POST' || request.url !== '/stage') {
         sendJson(response, 404, { error: 'not-found' });
         return;
@@ -924,6 +936,86 @@ export function makeHardSearchGate1Config(): Gate1Config {
         cpuTask: {
           kind: 'semiprime-factor',
           unitsPerToken: 1,
+        },
+      },
+    ],
+    networkConditions: [
+      {
+        name: 'rtt3-loss0',
+        rttMs: 3,
+        jitterMs: 0.3,
+        lossRate: 0,
+        primary: true,
+      },
+      {
+        name: 'rtt7-loss0',
+        rttMs: 7,
+        jitterMs: 0.6,
+        lossRate: 0,
+        primary: true,
+      },
+    ],
+  };
+}
+
+export function makeSemiprimeFactorGate1Config(): Gate1Config {
+  return {
+    trialsPerCell: 4,
+    maxAttemptsPerRequest: 4,
+    requestTimeoutMs: 20_000,
+    bootstrapResamples: 1200,
+    seed: 0x5EA7C001,
+    workloads: [
+      {
+        name: 'factor-semiprime-n4-b6',
+        tokens: 24,
+        nodes: 4,
+        chunkSize: 6,
+        serviceMsPerToken: 0,
+        payloadBytesPerToken: 64,
+        cpuTask: {
+          kind: 'semiprime-factor',
+          unitsPerToken: 1,
+        },
+      },
+    ],
+    networkConditions: [
+      {
+        name: 'rtt3-loss0',
+        rttMs: 3,
+        jitterMs: 0.3,
+        lossRate: 0,
+        primary: true,
+      },
+      {
+        name: 'rtt7-loss0',
+        rttMs: 7,
+        jitterMs: 0.6,
+        lossRate: 0,
+        primary: true,
+      },
+    ],
+  };
+}
+
+export function makeMd5GrindGate1Config(): Gate1Config {
+  return {
+    trialsPerCell: 4,
+    maxAttemptsPerRequest: 4,
+    requestTimeoutMs: 20_000,
+    bootstrapResamples: 1200,
+    seed: 0x5EA7C001,
+    workloads: [
+      {
+        name: 'md5-grind-n4-b8',
+        tokens: 32,
+        nodes: 4,
+        chunkSize: 8,
+        serviceMsPerToken: 0,
+        payloadBytesPerToken: 64,
+        cpuTask: {
+          kind: 'md5-grind',
+          unitsPerToken: 180,
         },
       },
     ],
