@@ -3,3 +3,4 @@ export { serveHttp2, http2RoundTrips } from './http2';
 export { serveAeonFlow, aeonFlowRoundTrips } from './aeon-flow';
 export { serveAeonFluxHttp, serveAeonFluxFlow, aeonFluxHttpRoundTrips, aeonFluxFlowRoundTrips } from './aeon-flux';
 export { serveXGnosis, xGnosisRoundTrips } from './x-gnosis';
+export { serveXGnosisTopo, xGnosisTopoRoundTrips } from './x-gnosis-topo';

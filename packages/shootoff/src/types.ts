@@ -29,7 +29,7 @@ export interface SiteManifest {
 export type CompressionAlgo = 'none' | 'gzip' | 'brotli' | 'topo-pure' | 'topo-full';
 
 /** Protocol under test */
-export type Protocol = 'http1' | 'http2' | 'http3' | 'aeon-flow' | 'aeon-flux-http' | 'aeon-flux-flow' | 'x-gnosis';
+export type Protocol = 'http1' | 'http2' | 'http3' | 'aeon-flow' | 'aeon-flux-http' | 'aeon-flux-flow' | 'x-gnosis' | 'x-gnosis-topo';
 
 /** Result of serving a single resource through a protocol */
 export interface ResourceResult {
