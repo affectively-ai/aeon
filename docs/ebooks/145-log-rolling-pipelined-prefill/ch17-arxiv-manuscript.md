@@ -736,6 +736,42 @@ The First Law restated in bits: $H_{\text{fork}} = I_{\text{fold}} + H_{\text{ve
 
 This links the thermodynamic framing (§6.1–§6.7) with the quantum framing (§5): amplitude interference can be interpreted as information compression, and vented paths carry the bits discarded at fold.
 
+#### The Syllogistic Triangle
+
+The triadic structure of fork/race/fold is not novel. It recurs in the minimum architecture of *any* complete movement of thought.
+
+In Aristotelian syllogistic logic -- adopted and refined by Al-Farabi, Ibn Sina (Avicenna), and the broader Islamic tradition of *Mantiq* (formal logic) -- a proof requires three terms:
+
+1. **Major premise** (the broad rule)
+2. **Minor premise** (the specific case)
+3. **Conclusion** (the necessary result)
+
+Without the third term, two premises are disconnected lines. The triangle represents certainty: once the two base points are established, the apex is logically inevitable. Fork/race/fold is this same shape:
+
+| Syllogistic Role | Fork/Race/Fold | Function |
+|-----------------|---------------|----------|
+| Major premise | Fork | Establishes the space of possibilities |
+| Minor premise | Race | Selects the specific case through observation |
+| Conclusion | Fold | Collapses to the necessary result |
+
+The Betti number $\beta_1$ counts *unclosed arguments* -- forks without folds. A topology with $\beta_1 > 0$ is a syllogism with a missing conclusion: premises asserted, deduction incomplete. The diagnostic `ERR_BETA_UNBOUNDED` in the Gnosis compiler (§11.2) detects exactly this -- the logical shape fails because the middle term is undistributed.
+
+**The contingency argument.** Ibn Sina's *Burhan al-Siddiqin* (Proof of the Truthful) categorized existence into three classes: the Impossible (that which cannot exist), the Contingent (that which can exist but needs a cause), and the Necessary (that which must exist by its own nature). The argument proceeds by triangulation: a collection of contingent things is itself contingent, so a non-contingent anchor is required. This is structurally identical to the spectral radius argument in the Jackson network formalization (§4.3, companion §JacksonQueueing.lean): a directed graph of contingent queues -- each node's throughput depending on arrivals from other nodes -- diverges unless a root condition anchors it. The spectral radius $\rho < 1$ condition is the Necessary Existent of the queueing network: without it, the Neumann series $\sum P^k$ diverges and the traffic equations have no finite solution.
+
+**The thermodynamic arrow as contingency proof.** The coarsening chain formalized in the companion (§CoarseningThermodynamics.lean) is the argument from contingency made precise. A coarsened system is contingent -- it arose from a finer system through a many-to-one quotient. The data processing inequality (§DataProcessingInequality.lean) proves that this coarsening *strictly* erases information whenever the quotient is non-trivial: $H(X|f(X)) > 0$. Landauer's principle converts that erasure to heat: $Q \geq kT \ln 2 \cdot H(X|f(X))$. And that heat is physically observable as latency or waste. The conclusion: for any system with coarsening history, the zero-deficit floor $\Delta_\beta = 0$ is the unique global minimum for every monotone cost function. The thermodynamic observable coupling is not an axiom -- it is a theorem derived from the physics of irreversible computation. The companion also proves the converse impossibility: without the coupling (i.e., for systems with no documented coarsening history), the floor cannot be established from deficit alone, because there exist counterexamples where positive deficit has strictly lower cost in both coordinates (§BeautyOptimality.lean, `beauty_universal_impossibility`).
+
+**The Peircean triangle.** In semiotics, a sign requires three parts: the Signifier (the word or shape), the Object (the reality referred to), and the Interpretant (the mental concept connecting them). In Sufi semiotics, logic is not binary (True/False) but a process of *mediation* where the intellect acts as the third point connecting the physical to the abstract. Fork/race/fold instantiates this: fork creates the sign-space (all possible paths), race is the interpretive act (observation, measurement), and fold is the connection to ground truth (the reconciled result). The vented paths are the signs that failed to connect -- the equivocation $H(X|Y)$ in information-theoretic terms.
+
+The parallel extends to the geometric:
+
+| Geometric Element | Logical Equivalent | Fork/Race/Fold | Information-Theoretic |
+|-------------------|-------------------|----------------|----------------------|
+| Point | Axiom / Identity | Single state | $H = 0$ (certainty) |
+| Line | Relation / Premise | Sequential path ($\beta_1 = 0$) | Channel capacity |
+| Triangle | Syllogism / Proof | Fork/Race/Fold ($\beta_1 > 0 \to 0$) | $H_{\text{fork}} = I_{\text{fold}} + H_{\text{vent}}$ |
+
+A triangle is a "closed argument." If the angles don't add up to $180°$ on a flat plane, the shape fails. If the middle term of a syllogism is undistributed, the logic collapses. If the Betti number doesn't return to zero, the computation leaks. All three are the same structural constraint: the minimum requirement for a complete movement from possibility to necessity.
+
 ### 6.9 The Pipeline as an Energy Diagram
 
 The Triangle (§0.1) is an energy envelope:
@@ -955,7 +991,7 @@ $$1 \text{ B} = 1 \text{ unit of } \Delta_\beta = \beta_1^* - \beta_1$$
 
 A system at 0 B is topology-matched under this metric. A system at 3 B is leaving three independent parallel paths unexploited. The Bule is dimensionless, integer-valued in this representation, and computable once a dependency graph and $\beta_1^*$ modeling protocol are specified.
 
-Bules are intended as a structural diagnostic of that fit. The formal result in the companion is conditional rather than unconditional: zero deficit is a global minimum only on failure Pareto frontiers with an explicit zero-deficit floor witness and supplied latency/waste floor bounds, and strict unique optimality further requires strict generalized-convex monotonicity plus uniqueness of the zero-deficit frontier point. The stronger claim that zero deficit is the universal floor with no additional witness conditions remains open.
+Bules are intended as a structural diagnostic of that fit. The formal companion now establishes two complementary results. First, for systems that arose from non-trivial coarsening (many-to-one quotients of finer systems), the thermodynamic observable coupling is a *theorem* rather than an axiom: the strict data processing inequality proves that coarsening erases information ($H(X|f(X)) > 0$), Landauer's principle converts that erasure to heat, and that heat is observable as latency or waste. Under this derivation, $\Delta_\beta = 0$ is the strict unique global minimum for every monotone generalized-convex cost (§CoarseningThermodynamics.lean, `coarsened_system_beauty_unconditional_floor`). Second, for systems with no documented coarsening history, the companion proves a formal *impossibility*: without the observable coupling, zero deficit cannot be proved universally optimal, because there exist constructive counterexamples where a positive-deficit point dominates a zero-deficit point componentwise in both latency and waste (§BeautyOptimality.lean, `beauty_universal_impossibility`). The coupling axiom is therefore the minimum sufficient condition -- necessary for the floor, and automatically satisfied by any system with coarsening history.
 
 The $\beta_1^*$ term is model-estimated rather than uniquely observer-independent in open systems. Reported deficits should therefore be interpreted with explicit modeling assumptions and uncertainty intervals where available.
 
@@ -1399,7 +1435,7 @@ Executable companion tests verify these claims [13].
 
 ## 11. Instantiation B: Formal Language Theory (Stack Layer 2)
 
-The fifth instantiation domain is the most recursive: a programming language whose source code *is* the computation graph, whose compiler *is* a fork/race/fold pipeline, and whose self-hosting bootstraps through the previous four domains.
+Although it appears fifth in the manuscript's section order, formal language theory is the second stack layer: a programming language whose source code *is* the computation graph, whose compiler *is* a fork/race/fold pipeline, and whose self-hosting connects the verification foundation below to the scheduler, transport and compression layers above.
 
 ### 11.1 Gnosis Graph Language (GGL)
 
@@ -1462,9 +1498,9 @@ Gnosis supports a strong evidence-backed claim: it is a self-hosted, self-checki
 
 This is a claim of structural formal compatibility and mechanized verification workflow, not a claim of automatic asymptotic quantum advantage.
 
-### 11.5 The Five Domains as a Stack
+### 11.5 The Six Domains as a Stack
 
-The five instantiation domains are not independent -- they form a stack, each enabled by the ones below:
+The six instantiation domains are not independent -- they form a stack, each enabled by the ones below:
 
 | Stack Layer | Domain | §  | Primitive | Role |
 |:-----------:|--------|:---:|-----------|------|
@@ -1472,13 +1508,14 @@ The five instantiation domains are not independent -- they form a stack, each en
 | 2 | Formal language | §11 | GGL + Betty/Betti | The programming model |
 | 3 | Distributed computation | §7 | Wallington Rotation | The scheduling algorithm |
 | 4 | Edge transport | §8 | 10-byte FlowFrame | The wire format |
-| 5 (capstone) | Compression | §9 | Per-chunk codec racing | Bytes on wire |
+| 5 | Compression | §9 | Per-chunk codec racing | Bytes on wire |
+| 6 (closure) | Protocol-as-execution-model | §12.4 | Frame-native execution | Wire format subsumes scheduler |
 
-The stack reads bottom-up: *from building blocks to bytes on wire*. Layer 1 (§10) verifies modeled primitive properties. Layer 2 (§11) gives a language to write topologies, checked by layer 1 workflows. Layer 3 (§7) schedules work through the topology, expressed in layer 2's language. Layer 4 (§8) puts frames on the wire, carrying layer 3's scheduled work. Layer 5 (§9) compresses the payload -- actual bytes, actual ratios, actual wire -- using layers below it.
+The stack reads bottom-up: *from building blocks to bytes on wire and back into execution*. Layer 1 (§10) verifies modeled primitive properties. Layer 2 (§11) gives a language to write topologies, checked by layer 1 workflows. Layer 3 (§7) schedules work through the topology, expressed in layer 2's language. Layer 4 (§8) puts frames on the wire, carrying layer 3's scheduled work. Layer 5 (§9) compresses the payload -- actual bytes, actual ratios, actual wire -- using layers below it. Layer 6 (§12.4) closes the loop by turning layer 4's self-describing frame protocol back into the execution model for layers 2 and 3.
 
 The Rust/WASM runtime executes the FlowFrames at the same byte-level format defined in §8.2. The language is not a wrapper around the protocol -- it is the protocol's native programming model.
 
-The stack is the paper's clearest existence demonstration: one set of four primitives (fork, race, fold, vent) yields a scheduling algorithm, wire protocol, compression strategy, verification engine, and programming language. Each layer is independently useful. Together they form a computational ecosystem where topology, program structure, and protocol design are aligned.
+The stack is the paper's clearest existence demonstration: one set of four primitives (fork, race, fold, vent) yields a scheduling algorithm, wire protocol, compression strategy, verification engine, programming language, and a frame-native execution model. Each layer is independently useful. Together they form a computational ecosystem where topology, program structure, execution, and protocol design are aligned.
 
 ## 12. The Engine
 
@@ -1575,13 +1612,13 @@ The frame-native path produces identical results to the `Stream`-based path. It 
 
 | Operation | Stream-based | Frame-native | Speedup |
 |-----------|-------------|--------------|---------|
-| `fold(10)` | 17.1 µs | **3.8 µs** | **4.5x** |
-| `race(10)` | 21.5 µs | **4.6 µs** | **4.7x** |
-| `worthingtonWhip(4, 3, 50)` | 22.6 µs | **16.7 µs** | **1.4x** |
-| `wallingtonRotation(3, 10)` | 18.0 µs | 20.4 µs | ~1x |
-| `wallingtonRotation(5, 100)` | 154.7 µs | 191.9 µs | ~1x |
+| `fold(10)` | 17.6-17.9 µs | **3.7-3.9 µs** | **4.5x-4.8x** |
+| `race(10)` | 21.0-22.5 µs | **4.6-4.7 µs** | **4.6x-4.8x** |
+| `worthingtonWhip(4, 3, 50)` | 19.9-24.3 µs | **15.9-16.9 µs** | **1.3x-1.4x** |
+| `wallingtonRotation(3, 10)` | 16.9-47.1 µs | 20.0-20.7 µs | ~0.8x-2.3x |
+| `wallingtonRotation(5, 100)` | 125.9-165.6 µs | 189.1-200.3 µs | ~0.6x-0.9x |
 
-The fold and race speedups are substantial (4--5x) because per-stream overhead dominates when work functions resolve immediately. The Wallington rotation shows parity because the `Promise.all`-per-tick scheduling cost dominates over per-item allocation savings when stage functions are trivially fast ($<$1 µs). For workloads with real I/O latency (network, disk, inference), the tick-parallel topology provides wall-clock speedup proportional to the parallelism degree at each tick, which the sequential `Stream`-based path cannot exploit.
+The fold and race speedups remain substantial (roughly 4.5x-4.8x) because per-stream overhead dominates when work functions resolve immediately. Worthington remains modestly positive on the trivial synthetic workload. That is architecturally interesting because the gain is not just "TypeScript got faster" in the abstract; it comes from moving the same Wallington-style lower-triangular schedule down into the scheduler layer itself, so shard-local work is dispatched in the rotated frontier order rather than wrapped in full `Stream` lifecycle machinery. Wallington is still the unstable row in this microbench: at `3x10` the crossover now flips run-to-run, while `5x100` still stays below parity when stage bodies are trivially fast ($<$1 µs). The scheduler interpretation is therefore narrower than the earlier prose: once stage work is close to zero, microtask and tick-coordination noise dominate the measurement; once stage work carries real I/O or inference latency, the tick-parallel topology can still expose wall-clock parallelism the sequential `Stream` path cannot exploit.
 
 This result was not anticipated during the protocol's design. The `Stream<T>` state machine and the 10-byte frame header were built independently, for different purposes (execution scheduling and wire transport, respectively). That the frame header turns out to encode sufficient information to replace the state machine -- `streamId` for path identity, `sequence` for ordering, `flags` for topology semantics -- only became apparent when profiling revealed where the orchestration cost actually lived. The frame-native path demonstrates, after the fact, that the protocol's self-describing design is not merely a transport optimization -- it is a sufficient execution model. When the topology is known (fork $\rightarrow$ race, fork $\rightarrow$ fold, tick-parallel Wallington), the frame protocol's identity model is enough to route results without per-unit lifecycle management. The wire format subsumes the scheduler.
 
