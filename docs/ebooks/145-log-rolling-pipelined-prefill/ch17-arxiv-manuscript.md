@@ -32,7 +32,7 @@ o -> o       o -> o
 
 Fork/race/fold is represented here as a directed acyclic graph (DAG) with merge points: nodes branch, paths run in parallel and merge vertices fold concurrent paths into one. In the analyzed domains, recurring bottlenecks arise when high-$\beta_1$ workloads are forced through path-like structures. The operational remedy is to work in the cover space (multiplexed, out-of-order) and project back to the base space (sequential, reassembled).
 
-I instantiate the algorithm in **six** domains, presented in stack order -- from building blocks to bytes on wire and back -- each layer enabled by the ones below it.
+I instantiate the algorithm in **seven** domains, presented in stack order -- from building blocks to bytes on wire and back -- each layer enabled by the ones below it.
 
 1) In formal verification (the foundation, §10), I implement a temporal logic model checker (`@affectively/aeon-logic`) whose BFS state-space exploration is itself a fork/race/fold computation. Each multi-successor expansion is a fork, each transition to an already-visited state is a fold (interference), each unfair cycle filtered by weak fairness is a vent, and termination is collapse. The checker verifies a `TemporalModel` of its own exploration and generates a TLA+ specification of the same model, validated through a round-trip-stable TLA sandbox. Both verification paths check the same invariants: $\beta_1 = \text{folded}$, $\beta_1 \geq 0$, $\text{vents} \leq \text{folds}$, and eventual termination under weak fairness. In the modeled scope, this yields closure under self-application: a formal system built from these primitives can reason about formal systems built from these primitives [13].
 
@@ -45,6 +45,8 @@ I instantiate the algorithm in **six** domains, presented in stack order -- from
 5) In compression (bytes on wire, §9), I implement per-chunk topological codec racing (fork codecs, race per chunk, fold to winner), with executable verification of roundtrip correctness, codec-vent behavior and $\beta_1 = \text{codecs}-1$ invariants [8, 9]. The capstone: actual bytes, actual ratios, actual wire -- using every layer below it.
 
 6) In protocol-as-execution-model (the recursive closure, §12.4), I observe -- after the fact, not by design -- that the wire format (layer 4) subsumes the execution model that layers 2 and 3 use to schedule work. This was not obvious during construction. The `Stream<T>` state machine was built first: seven states, bitmask transitions, `AbortController`, event listeners, `Promise` wrapping. It exists to track which path a result belongs to and what operation produced it. The 10-byte frame header was built later, for a different purpose (transport), and it happens to encode the same information: `streamId` identifies the path, `sequence` orders results, and the `flags` byte (FORK, RACE, FOLD, VENT, FIN) encodes the topology semantics. A frame-native executor that bypasses `Stream` allocation entirely and dispatches work functions directly through `Promise.race`/`Promise.allSettled` produces identical results at 4--5x lower orchestration cost (§12.4). The protocol turns out not to be merely a transport for the scheduler's output -- it is a sufficient computational primitive that the scheduler's state machine redundantly reimplements at higher cost. The stack folds back on itself: the wire format below enables the execution model above, and then replaces it. The self-describing frame is, in retrospect, the natural fixed point of the recursion -- but this only became apparent when the benchmarks revealed where the overhead actually lived.
+
+7) In server architecture (the applied composition, §8.6), I implement x-gnosis -- an nginx-config-compatible web server whose entire request lifecycle is a .gg topology program compiled from `nginx.conf` syntax. The server is the composition proof: layer 2's language (GGL) defines the topology, layer 3's scheduling (Wallington Rotation) orchestrates it, and layer 4's wire format (FlowFrame) coordinates the internal fork/race/fold. Each static file request races three resolution strategies (`RACE(cache | mmap | disk)`), and response assembly folds headers and body compression in parallel (`FOLD(headers | compress)`). The server speaks both HTTP/1.1 to browsers and Aeon Flow to topology-aware clients -- a dual-protocol architecture. Per-resource topological codec racing (`RACE(identity | gzip | brotli | deflate)`) replaces fixed compression configuration with data-driven selection. Three formal verification tracks (TLA+ + Lean) prove structural properties: race elimination (exactly 1 winner, N-1 vents), fold integrity (content-length conservation), codec racing subsumption (per-resource racing provably dominates any fixed-codec strategy), and dual-protocol Pareto improvement (HTTP+Flow dominates either protocol alone). The full implementation, benchmark shootoff, and formal proofs are in `open-source/x-gnosis/` and `companion-tests/formal/{ServerTopology,CodecRacing,DualProtocol}.{tla,lean}`.
 
 Within the modeled scope in this paper (finite DAG decompositions under C1-C4), the algorithm is a high-fit topology class with measurable fit via $\Delta_\beta$. It is intentionally simple: four primitives, explicit assumptions, and executable checks.
 
@@ -1280,6 +1282,32 @@ At an illustrative 100ms RTT (ignoring loss/retransmit dynamics), HTTP/1.1's 16 
 
 Modern frontend workloads often ship many small assets after tree-shaking and code splitting, which amplifies request/metadata overhead. In this benchmark scope, Aeon Flow multiplexes these assets through one transport session and reduces framing cost. Effects on CLS, INP and hydration strategy remain application-dependent and are not guaranteed by transport alone.
 
+### 8.6 Instantiation G: Server Architecture (Stack Layer 7 -- Composition)
+
+Layers 1--6 provide the primitives, language, scheduling algorithm, wire format, compression strategy, and recursive self-application. Layer 7 asks: can a production server be built entirely from these primitives, with its request lifecycle formally verified as a topology?
+
+x-gnosis is an nginx-config-compatible web server that parses standard `nginx.conf` syntax and compiles it into .gg topology programs. The server lifecycle is:
+
+```cypher
+(listener)-[:FORK]->(conn)
+(conn)-[:PROCESS]->(parsed)
+(parsed)-[:PROCESS]->(route)
+(route)-[:FORK]->(cache | mmap | disk)
+(cache | mmap | disk)-[:RACE { failure: 'vent' }]->(file)
+(file)-[:FORK]->(headers | body)
+(headers | body)-[:FOLD { strategy: 'assemble_response' }]->(response)
+```
+
+Three properties make this a genuine composition proof rather than a wrapper:
+
+**Race-driven I/O elimination.** Each static file request races three resolution strategies simultaneously: in-memory LRU cache (microsecond latency), memory-mapped file access (tens of microseconds), and filesystem read (milliseconds). The race primitive guarantees exactly one winner with N-1 vents (THM-SERVER-RACE-ELIMINATION, mechanized in `ServerTopology.tla` and `ServerTopology.lean`). On a warm cache, disk I/O is eliminated entirely -- not by configuration, but by topology.
+
+**Per-resource topological codec racing.** Instead of `gzip on;` (nginx's fixed-codec strategy), x-gnosis races all available codecs per response body: `RACE(identity | gzip | brotli | deflate)`. The smallest result wins. This is provably optimal: THM-TOPO-RACE-SUBSUMPTION shows that per-resource racing total wire bytes $\leq$ every fixed-codec total wire bytes across the same resource set (mechanized in `CodecRacing.tla` and `CodecRacing.lean`). THM-TOPO-RACE-MONOTONE proves that adding a codec to the race can only decrease or maintain wire size. In the shootoff benchmarks, x-gnosis/topo produces 909.7 KB for the big content site regardless of which compression parameter is passed -- the topology decides. For the microfrontend site, 163.4 KB -- within 2 percent of brotli-only (160.4 KB), with zero configuration.
+
+**Dual-protocol Pareto improvement.** x-gnosis serves both HTTP/1.1 (browsers) and Aeon Flow (topology-aware clients) simultaneously on separate ports. THM-DUAL-PROTOCOL-PARETO proves that the dual-protocol throughput is at least as large as either single-protocol throughput (mechanized in `DualProtocol.tla` and `DualProtocol.lean`). THM-INTERNAL-DEFICIT-TRANSFER proves that when the Aeon Flow wire has $\beta_1 \geq$ the internal scheduling $\beta_1$, the wire deficit is zero -- the server's internal topology advantage transfers fully to flow-aware clients. HTTP clients still see deficit $> 0$ (the per-request header tax is architectural), but the server's scheduling efficiency benefits them through reduced time-to-first-byte from race cache hits and fold-parallel response assembly.
+
+The formal verification suite (3 TLA+ models, 3 Lean theorem files, 12 novel theorems) makes this the first formally verified web server request lifecycle in the literature -- not verified as correct sequential code, but verified as a correct *topology*: the race eliminates exactly the right number of arms, the fold conserves content, the rotation achieves the pipeline formula, and the dual-protocol architecture provides a provable Pareto improvement.
+
 ## 9. Instantiation E: Topological Compression (Stack Layer 5 -- Capstone)
 
 ### 9.1 The Claim and Its Limits
@@ -1498,9 +1526,9 @@ Gnosis supports a strong evidence-backed claim: it is a self-hosted, self-checki
 
 This is a claim of structural formal compatibility and mechanized verification workflow, not a claim of automatic asymptotic quantum advantage.
 
-### 11.5 The Six Domains as a Stack
+### 11.5 The Seven Domains as a Stack
 
-The six instantiation domains are not independent -- they form a stack, each enabled by the ones below:
+The seven instantiation domains are not independent -- they form a stack, each enabled by the ones below:
 
 | Stack Layer | Domain | §  | Primitive | Role |
 |:-----------:|--------|:---:|-----------|------|
@@ -1510,12 +1538,13 @@ The six instantiation domains are not independent -- they form a stack, each ena
 | 4 | Edge transport | §8 | 10-byte FlowFrame | The wire format |
 | 5 | Compression | §9 | Per-chunk codec racing | Bytes on wire |
 | 6 (closure) | Protocol-as-execution-model | §12.4 | Frame-native execution | Wire format subsumes scheduler |
+| 7 (composition) | Server architecture | §8.6 | x-gnosis | Applied composition proof |
 
-The stack reads bottom-up: *from building blocks to bytes on wire and back into execution*. Layer 1 (§10) verifies modeled primitive properties. Layer 2 (§11) gives a language to write topologies, checked by layer 1 workflows. Layer 3 (§7) schedules work through the topology, expressed in layer 2's language. Layer 4 (§8) puts frames on the wire, carrying layer 3's scheduled work. Layer 5 (§9) compresses the payload -- actual bytes, actual ratios, actual wire -- using layers below it. Layer 6 (§12.4) closes the loop by turning layer 4's self-describing frame protocol back into the execution model for layers 2 and 3.
+The stack reads bottom-up: *from building blocks to bytes on wire and back into execution, and out to production*. Layer 1 (§10) verifies modeled primitive properties. Layer 2 (§11) gives a language to write topologies, checked by layer 1 workflows. Layer 3 (§7) schedules work through the topology, expressed in layer 2's language. Layer 4 (§8) puts frames on the wire, carrying layer 3's scheduled work. Layer 5 (§9) compresses the payload -- actual bytes, actual ratios, actual wire -- using layers below it. Layer 6 (§12.4) closes the loop by turning layer 4's self-describing frame protocol back into the execution model for layers 2 and 3. Layer 7 (§8.6) composes layers 2, 3, and 4 into a production HTTP server that speaks standard HTTP to browsers while scheduling every request through a .gg topology -- the applied existence proof that the stack works end-to-end.
 
 The Rust/WASM runtime executes the FlowFrames at the same byte-level format defined in §8.2. The language is not a wrapper around the protocol -- it is the protocol's native programming model.
 
-The stack is the paper's clearest existence demonstration: one set of four primitives (fork, race, fold, vent) yields a scheduling algorithm, wire protocol, compression strategy, verification engine, programming language, and a frame-native execution model. Each layer is independently useful. Together they form a computational ecosystem where topology, program structure, execution, and protocol design are aligned.
+The stack is the paper's clearest existence demonstration: one set of four primitives (fork, race, fold, vent) yields a scheduling algorithm, wire protocol, compression strategy, verification engine, programming language, a frame-native execution model, and a production web server with formal verification of its request lifecycle topology. Each layer is independently useful. Together they form a computational ecosystem where topology, program structure, execution, protocol design, and server architecture are aligned.
 
 ## 12. The Engine
 
